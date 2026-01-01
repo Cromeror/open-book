@@ -5,10 +5,10 @@
 | Campo | Valor |
 |-------|-------|
 | Epic | OB-001 - Configuracion e Infraestructura del Proyecto |
-| Status | pending |
+| Status | in-progress |
 | Priority | critical |
 | Created | 2025-12-31 |
-| Updated | 2025-12-31 |
+| Updated | 2026-01-01 |
 | Labels | story, setup, infraestructura |
 | Depends on | - |
 
@@ -26,7 +26,7 @@ Esta story cubre la inicializacion completa del proyecto, incluyendo la estructu
 
 | ID | Titulo | Status |
 |----|--------|--------|
-| [OB-001-A-001](./OB-001-A-001.md) | Inicializar monorepo Nx con pnpm y estructura de carpetas | pending |
+| [OB-001-A-001](./OB-001-A-001.md) | Inicializar monorepo Nx con pnpm y estructura de carpetas | ✅ completed |
 | [OB-001-A-002](./OB-001-A-002.md) | Configurar TypeScript con tsconfig apropiado | pending |
 | [OB-001-A-003](./OB-001-A-003.md) | Configurar ESLint y Prettier | pending |
 | [OB-001-A-004](./OB-001-A-004.md) | Configurar variables de entorno con dotenv | pending |
@@ -34,7 +34,7 @@ Esta story cubre la inicializacion completa del proyecto, incluyendo la estructu
 
 ## Criterios de Aceptacion
 
-- [ ] El proyecto tiene una estructura de carpetas clara y documentada
+- [x] El proyecto tiene una estructura de carpetas clara y documentada
 - [ ] TypeScript esta configurado con modo estricto
 - [ ] ESLint y Prettier estan configurados y funcionando
 - [ ] Las variables de entorno tienen un archivo .env.example
