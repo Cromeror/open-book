@@ -7,3 +7,4 @@ export { Sidebar } from './Sidebar';
 export { Header } from './Header';
 export { Breadcrumbs } from './Breadcrumbs';
 export { Icon } from './Icon';
+export { LogoutButton } from './LogoutButton';

@@ -5,9 +5,10 @@
 | Campo | Valor |
 |-------|-------|
 | Epic | OB-015 - Layout Principal y Navegacion con Permisos |
-| Status | pending |
+| Status | done |
 | Priority | high |
 | Created | 2026-01-06 |
+| Completed | 2026-01-06 |
 | Labels | story, frontend, layout |
 | Depends on | OB-014-E |
 
@@ -21,55 +22,71 @@
 
 Implementar la estructura base del layout para usuarios autenticados usando route groups de Next.js. El layout incluye un header fijo con informacion del usuario y un sidebar lateral para navegacion.
 
-## Tareas
+## Implementacion
 
-| ID | Titulo | Status |
-|----|--------|--------|
-| [OB-015-A-001](./OB-015-A-001.md) | Crear route group (dashboard) con layout base | pending |
-| [OB-015-A-002](./OB-015-A-002.md) | Implementar componente Header | pending |
-| [OB-015-A-003](./OB-015-A-003.md) | Implementar componente Sidebar base | pending |
-| [OB-015-A-004](./OB-015-A-004.md) | Crear pagina de dashboard home | pending |
+### Archivos Creados
+
+| Archivo | Descripcion |
+|---------|-------------|
+| `app/(dashboard)/layout.tsx` | Layout principal que carga permisos y renderiza DashboardShell |
+| `app/(dashboard)/dashboard/page.tsx` | Pagina home del dashboard con cards segun permisos |
+| `components/layout/DashboardShell.tsx` | Client Component que combina Sidebar + Header |
+| `components/layout/Header.tsx` | Header con logo, notificaciones y user menu |
+| `components/layout/Sidebar.tsx` | Sidebar con navegacion y logout |
+
+### Codigo Clave
+
+```typescript
+// app/(dashboard)/layout.tsx
+export default async function DashboardLayout({ children }) {
+  const permissions = await getServerPermissions();
+
+  if (!permissions.isAuthenticated) {
+    redirect('/login');
+  }
+
+  const navItems = filterNavItems(permissions);
+  const user = getUserForHeader(permissions);
+
+  return (
+    <DashboardShell
+      user={user}
+      navItems={navItems}
+      isSuperAdmin={permissions.isSuperAdmin}
+    >
+      {children}
+    </DashboardShell>
+  );
+}
+```
 
 ## Criterios de Aceptacion
 
-- [ ] Route group `(dashboard)` creado con layout propio
-- [ ] Header muestra logo y nombre del usuario
-- [ ] Sidebar con estructura base (sin modulos dinamicos aun)
-- [ ] Layout ocupa toda la pantalla con sidebar fijo a la izquierda
-- [ ] Content area con scroll independiente
-- [ ] Estilos con Tailwind CSS
+- [x] Route group `(dashboard)` creado con layout propio
+- [x] Header muestra logo y nombre del usuario
+- [x] Sidebar con estructura base
+- [x] Layout ocupa toda la pantalla con sidebar fijo a la izquierda
+- [x] Content area con scroll independiente
+- [x] Estilos con Tailwind CSS
 
-## Diseno
+## Diseno Implementado
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  HEADER (h-16, fixed top)                                   │
+│  HEADER (h-16, sticky top)                                  │
 │  ┌─────────────────┐                    ┌────────────────┐  │
-│  │  OpenBook       │                    │  Usuario ▼     │  │
+│  │  ☰ OpenBook     │                    │ 🔔  Usuario ▼  │  │
 │  └─────────────────┘                    └────────────────┘  │
 ├─────────────────────────────────────────────────────────────┤
 │ ┌────────────┐ ┌────────────────────────────────────────┐   │
+│ │  SIDEBAR   │ │  Breadcrumbs                           │   │
+│ │  (w-64)    │ ├────────────────────────────────────────┤   │
 │ │            │ │                                        │   │
-│ │  SIDEBAR   │ │         MAIN CONTENT                   │   │
-│ │  (w-64)    │ │         (flex-1, overflow-auto)        │   │
+│ │  - Inicio  │ │         MAIN CONTENT                   │   │
+│ │  - Modulos │ │         (p-4 md:p-6)                   │   │
+│ │  - ...     │ │                                        │   │
 │ │            │ │                                        │   │
-│ │            │ │                                        │   │
-│ │            │ │                                        │   │
+│ │ [Logout]   │ │                                        │   │
 │ └────────────┘ └────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
-```
-
-## Archivos a Crear
-
-```
-apps/web/src/
-├── app/
-│   └── (dashboard)/
-│       ├── layout.tsx          # DashboardLayout
-│       └── page.tsx            # Dashboard home
-├── components/
-│   └── layout/
-│       ├── Header.tsx
-│       ├── Sidebar.tsx
-│       └── index.ts
 ```

@@ -5,9 +5,10 @@
 | Campo | Valor |
 |-------|-------|
 | Type | Epic |
-| Status | pending |
+| Status | done |
 | Priority | high |
 | Created | 2026-01-06 |
+| Completed | 2026-01-06 |
 | Labels | epic, frontend, layout, navigation, permissions |
 | Depends on | OB-014-E |
 
@@ -27,39 +28,34 @@ Crear una experiencia de navegacion coherente y segura donde:
 
 | ID | Titulo | Status | Priority |
 |----|--------|--------|----------|
-| [OB-015-A](./OB-015-A/_overview.md) | Layout principal con header y sidebar | pending | high |
-| [OB-015-B](./OB-015-B/_overview.md) | Sidemenu dinamico con modulos por permisos | pending | high |
-| [OB-015-C](./OB-015-C/_overview.md) | Funcionalidad de logout | pending | high |
-| [OB-015-D](./OB-015-D/_overview.md) | Responsive design y sidebar colapsable | pending | medium |
+| [OB-015-A](./OB-015-A/_overview.md) | Layout principal con header y sidebar | completed | high |
+| [OB-015-B](./OB-015-B/_overview.md) | Sidemenu dinamico con modulos por permisos | completed | high |
+| [OB-015-C](./OB-015-C/_overview.md) | Funcionalidad de logout | completed | high |
+| [OB-015-D](./OB-015-D/_overview.md) | Responsive design y sidebar colapsable | completed | medium |
 
-## Arquitectura
+## Implementacion
 
-### Estructura de Carpetas
+### Archivos Creados
 
 ```
 apps/web/src/
 ├── app/
-│   ├── (public)/              # Rutas publicas (login, registro, landing)
-│   │   ├── layout.tsx
-│   │   ├── page.tsx           # Landing page
-│   │   ├── login/
-│   │   └── registro/
-│   └── (dashboard)/           # Rutas protegidas con layout comun
-│       ├── layout.tsx         # DashboardLayout con sidebar
-│       ├── page.tsx           # Dashboard home
-│       ├── objetivos/
-│       ├── aportes/
-│       ├── usuarios/
-│       └── configuracion/
+│   └── (dashboard)/
+│       ├── layout.tsx              # Layout principal con permisos
+│       └── dashboard/page.tsx      # Dashboard home
 ├── components/
 │   └── layout/
-│       ├── DashboardLayout.tsx
-│       ├── Sidebar.tsx
-│       ├── SidebarNav.tsx
-│       ├── SidebarItem.tsx
-│       ├── Header.tsx
-│       ├── UserMenu.tsx
-│       └── MobileNav.tsx
+│       ├── DashboardShell.tsx      # Shell que combina sidebar + header
+│       ├── Sidebar.tsx             # Navegacion lateral con logout
+│       ├── Header.tsx              # Header con user menu
+│       ├── LogoutButton.tsx        # Boton de logout (server action)
+│       ├── Icon.tsx                # Iconos dinamicos de Lucide
+│       ├── Breadcrumbs.tsx         # Migas de pan
+│       └── index.ts                # Barrel export
+└── lib/
+    ├── nav-config.ts               # Configuracion de items de navegacion
+    ├── nav-filter.server.ts        # Filtrado server-side por permisos
+    └── auth.actions.ts             # Server actions (login/logout)
 ```
 
 ### Flujo de Navegacion
@@ -88,20 +84,15 @@ apps/web/src/
 ### Carga de Modulos por Permisos
 
 ```typescript
-// El sidebar se renderiza server-side usando getServerPermissions()
-// Solo muestra modulos a los que el usuario tiene acceso
+// apps/web/src/app/(dashboard)/layout.tsx
+const permissions = await getServerPermissions();
+const navItems = filterNavItems(permissions);
 
-const { modules, user } = await getServerPermissions();
-
-// SuperAdmin ve todos los modulos
-const visibleModules = user.isSuperAdmin
-  ? ALL_MODULES
-  : modules;
-
-// Renderizar items del sidebar
-{visibleModules.map(module => (
-  <SidebarItem key={module} module={module} />
-))}
+// filterNavItems() en nav-filter.server.ts filtra segun:
+// - permissions.isSuperAdmin -> ve todo
+// - item.superAdminOnly -> solo SuperAdmin
+// - item.module -> verifica hasModule()
+// - item.permission -> verifica can()
 ```
 
 ## Modulos del Sistema
@@ -109,28 +100,30 @@ const visibleModules = user.isSuperAdmin
 | Codigo | Icono | Label | Ruta |
 |--------|-------|-------|------|
 | `dashboard` | Home | Inicio | /dashboard |
-| `objetivos` | Target | Objetivos | /dashboard/objetivos |
-| `actividades` | Calendar | Actividades | /dashboard/actividades |
-| `compromisos` | FileCheck | Compromisos | /dashboard/compromisos |
-| `aportes` | DollarSign | Aportes | /dashboard/aportes |
-| `usuarios` | Users | Usuarios | /dashboard/usuarios |
-| `copropiedades` | Building2 | Copropiedades | /dashboard/copropiedades |
-| `apartamentos` | Home | Apartamentos | /dashboard/apartamentos |
-| `pqr` | MessageSquare | PQR | /dashboard/pqr |
-| `reportes` | BarChart3 | Reportes | /dashboard/reportes |
-| `auditoria` | Shield | Auditoria | /dashboard/auditoria |
-| `configuracion` | Settings | Configuracion | /dashboard/configuracion |
+| `objetivos` | Target | Objetivos | /objetivos |
+| `actividades` | Calendar | Actividades | /actividades |
+| `compromisos` | Handshake | Compromisos | /compromisos |
+| `aportes` | Banknote | Aportes | /aportes |
+| `usuarios` | Users | Usuarios | /usuarios |
+| `copropiedades` | Building2 | Copropiedades | /copropiedades |
+| `apartamentos` | DoorOpen | Apartamentos | /apartamentos |
+| `pqr` | MessageSquare | PQR | /pqr |
+| `reportes` | BarChart3 | Reportes | /reportes |
+| `auditoria` | ClipboardList | Auditoria | /auditoria |
+| `notificaciones` | Bell | Notificaciones | /notificaciones |
+| `configuracion` | Settings | Configuracion | /configuracion |
+| `admin` | Shield | Administracion | /admin (SuperAdmin only) |
 
-## Criterios de Aceptacion Generales
+## Criterios de Aceptacion
 
-- [ ] Layout consistente en todas las paginas del dashboard
-- [ ] Sidebar muestra solo modulos habilitados para el usuario
-- [ ] SuperAdmin ve todos los modulos
-- [ ] Header con informacion del usuario y menu desplegable
-- [ ] Boton de logout funcional que limpia tokens y redirige a login
-- [ ] Responsive: sidebar colapsable en pantallas pequenas
-- [ ] Indicador visual del modulo activo en sidebar
-- [ ] Transiciones suaves al navegar
+- [x] Layout consistente en todas las paginas del dashboard
+- [x] Sidebar muestra solo modulos habilitados para el usuario
+- [x] SuperAdmin ve todos los modulos
+- [x] Header con informacion del usuario y menu desplegable
+- [x] Boton de logout funcional que limpia tokens y redirige a login
+- [x] Responsive: sidebar colapsable en pantallas pequenas
+- [x] Indicador visual del modulo activo en sidebar
+- [x] Transiciones suaves al navegar
 
 ## Dependencias Tecnicas
 
@@ -142,7 +135,8 @@ const visibleModules = user.isSuperAdmin
 
 ## Notas
 
-- El layout usa route groups de Next.js: `(public)` y `(dashboard)`
+- El layout usa route groups de Next.js: `(dashboard)` para rutas protegidas
 - La validacion de permisos es server-side para mejor seguridad
-- El middleware ya protege las rutas `/dashboard/*`
-- Usar Server Components donde sea posible para mejor performance
+- El middleware protege las rutas y redirige a login si no autenticado
+- Los items de navegacion tienen soporte para submenus (children)
+- El logout usa server action para limpiar cookies HttpOnly correctamente

@@ -21,7 +21,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/';
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {

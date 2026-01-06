@@ -8,6 +8,7 @@ import { ChevronDown, ChevronRight, X } from 'lucide-react';
 import type { NavItem } from '@/lib/nav-config';
 
 import { Icon } from './Icon';
+import { LogoutButton } from './LogoutButton';
 
 interface SidebarProps {
   /** Navigation items filtered by permissions (from server) */
@@ -136,16 +137,21 @@ export function Sidebar({ navItems, isSuperAdmin, isOpen, onClose }: SidebarProp
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 overflow-y-auto h-[calc(100%-4rem)]">
+        <nav className="flex flex-col p-4 overflow-y-auto h-[calc(100%-4rem)]">
           {isSuperAdmin && (
             <div className="mb-4 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg">
               <span className="text-xs font-medium text-amber-800">SuperAdmin</span>
             </div>
           )}
 
-          <ul className="space-y-1">
+          <ul className="space-y-1 flex-1">
             {navItems.map((item) => renderNavItem(item))}
           </ul>
+
+          {/* Logout button at bottom */}
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <LogoutButton variant="sidebar" />
+          </div>
         </nav>
       </aside>
     </>

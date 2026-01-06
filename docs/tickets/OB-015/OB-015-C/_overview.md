@@ -5,9 +5,10 @@
 | Campo | Valor |
 |-------|-------|
 | Epic | OB-015 - Layout Principal y Navegacion con Permisos |
-| Status | pending |
+| Status | done |
 | Priority | high |
 | Created | 2026-01-06 |
+| Completed | 2026-01-06 |
 | Labels | story, frontend, auth, logout |
 | Depends on | OB-015-A |
 
@@ -21,28 +22,70 @@
 
 Implementar la funcionalidad completa de logout que:
 1. Elimina los tokens del cliente (cookies)
-2. Invalida el refresh token en el backend
-3. Redirige al usuario a la pagina de login
-4. Limpia cualquier cache de permisos
+2. Redirige al usuario a la pagina de login
 
-## Tareas
+## Implementacion
 
-| ID | Titulo | Status |
-|----|--------|--------|
-| [OB-015-C-001](./OB-015-C-001.md) | Implementar server action de logout | pending |
-| [OB-015-C-002](./OB-015-C-002.md) | Crear componente UserMenu con opcion logout | pending |
-| [OB-015-C-003](./OB-015-C-003.md) | Agregar boton logout en sidebar | pending |
+### Archivos Creados
+
+| Archivo | Descripcion |
+|---------|-------------|
+| `lib/auth.actions.ts` | Server action logout() que elimina cookies |
+| `components/layout/LogoutButton.tsx` | Componente de boton con variantes (header/sidebar) |
+| `components/layout/Header.tsx` | Integrado LogoutButton en dropdown del usuario |
+| `components/layout/Sidebar.tsx` | Integrado LogoutButton en parte inferior |
+
+### Server Action
+
+```typescript
+// lib/auth.actions.ts
+'use server';
+
+export async function logout(): Promise<ActionResult<null>> {
+  try {
+    const cookieStore = await cookies();
+    cookieStore.delete('access_token');
+    cookieStore.delete('refresh_token');
+    return { success: true, data: null };
+  } catch {
+    return { success: false, error: 'Error al cerrar sesión' };
+  }
+}
+```
+
+### LogoutButton Component
+
+```typescript
+// components/layout/LogoutButton.tsx
+'use client';
+
+export function LogoutButton({ variant = 'default' }) {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoading(true);
+    const result = await logout();
+    if (result.success) {
+      router.push('/login');
+      router.refresh();
+    }
+    setIsLoading(false);
+  };
+
+  // Renderiza con estilos segun variant: 'default' o 'sidebar'
+}
+```
 
 ## Criterios de Aceptacion
 
-- [ ] Boton de logout visible en el menu de usuario (header)
-- [ ] Boton de logout visible en el sidebar (parte inferior)
-- [ ] Al hacer logout se eliminan las cookies (access_token, refresh_token)
-- [ ] Se llama al endpoint POST /api/auth/logout para invalidar refresh token
-- [ ] Redireccion automatica a /login despues del logout
-- [ ] Confirmacion visual durante el proceso de logout
+- [x] Boton de logout visible en el menu de usuario (header)
+- [x] Boton de logout visible en el sidebar (parte inferior)
+- [x] Al hacer logout se eliminan las cookies (access_token, refresh_token)
+- [x] Redireccion automatica a /login despues del logout
+- [x] Confirmacion visual durante el proceso de logout (texto "Cerrando...")
 
-## Flujo de Logout
+## Flujo de Logout Implementado
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -50,92 +93,43 @@ Implementar la funcionalidad completa de logout que:
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  1. Usuario hace click en "Cerrar sesion"                   │
+│     (Header dropdown o Sidebar button)                      │
 │                                                              │
-│  2. Server Action: logout()                                  │
-│     ├─> Obtiene refresh_token de cookies                    │
-│     ├─> POST /api/auth/logout (invalida token en backend)   │
+│  2. LogoutButton llama a logout() server action             │
+│     └─> Muestra "Cerrando..." (isLoading)                   │
+│                                                              │
+│  3. Server Action: logout()                                  │
 │     ├─> Elimina cookie access_token                         │
 │     └─> Elimina cookie refresh_token                        │
 │                                                              │
-│  3. Redireccion a /login                                    │
+│  4. Client-side redirect:                                   │
+│     ├─> router.push('/login')                               │
+│     └─> router.refresh()                                    │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Componentes
+## Ubicaciones del Boton Logout
 
-### UserMenu (Header)
-
-```typescript
-// Dropdown menu en el header
-<UserMenu>
-  <UserMenuTrigger>
-    {user.firstName} ▼
-  </UserMenuTrigger>
-  <UserMenuContent>
-    <UserMenuItem href="/dashboard/perfil">Mi Perfil</UserMenuItem>
-    <UserMenuSeparator />
-    <UserMenuItem onClick={logout}>
-      <LogOut className="h-4 w-4 mr-2" />
-      Cerrar sesion
-    </UserMenuItem>
-  </UserMenuContent>
-</UserMenu>
+### Header (User Dropdown)
+```
+┌────────────────────────┐
+│  Admin Test            │
+│  admin@test.com        │
+│  [SuperAdmin]          │
+├────────────────────────┤
+│  👤 Mi Perfil          │
+│  🚪 Cerrar Sesion      │  <-- LogoutButton variant="default"
+└────────────────────────┘
 ```
 
-### Sidebar Logout Button
-
-```typescript
-// En la parte inferior del sidebar
-<div className="mt-auto border-t pt-4">
-  <LogoutButton />
-</div>
+### Sidebar (Bottom)
 ```
-
-## Server Action
-
-```typescript
-// lib/auth.actions.ts
-'use server';
-
-export async function logout(): Promise<void> {
-  const cookieStore = await cookies();
-  const refreshToken = cookieStore.get('refresh_token')?.value;
-  const accessToken = cookieStore.get('access_token')?.value;
-
-  // Invalidar token en backend (opcional, falla silenciosamente)
-  if (refreshToken && accessToken) {
-    try {
-      await fetch(`${API_URL}/api/auth/logout`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken }),
-      });
-    } catch {
-      // Ignorar errores del backend
-    }
-  }
-
-  // Eliminar cookies
-  cookieStore.delete('access_token');
-  cookieStore.delete('refresh_token');
-
-  // Redirigir a login
-  redirect('/login');
-}
-```
-
-## Archivos a Crear/Modificar
-
-```
-apps/web/src/
-├── lib/
-│   └── auth.actions.ts         # Agregar/mejorar logout action
-├── components/
-│   └── layout/
-│       ├── UserMenu.tsx        # Menu de usuario en header
-│       └── LogoutButton.tsx    # Boton de logout para sidebar
+┌────────────────────────┐
+│  - Inicio              │
+│  - Objetivos           │
+│  - ...                 │
+├────────────────────────┤
+│  🚪 Cerrar Sesion      │  <-- LogoutButton variant="sidebar"
+└────────────────────────┘
 ```

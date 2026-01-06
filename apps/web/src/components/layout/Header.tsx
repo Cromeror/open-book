@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { Menu, Bell, LogOut, User, ChevronDown } from 'lucide-react';
+import { Menu, Bell, User, ChevronDown } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+
+import { LogoutButton } from './LogoutButton';
 
 interface HeaderProps {
   /** User information from server */
@@ -35,12 +37,6 @@ export function Header({ user, onMenuClick }: HeaderProps) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const handleLogout = async () => {
-    // Clear the access token cookie and redirect to login
-    document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    window.location.href = '/login';
-  };
 
   return (
     <header className="sticky top-0 z-30 h-16 bg-white border-b border-gray-200">
@@ -118,13 +114,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                     Mi Perfil
                   </Link>
 
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Cerrar Sesion
-                  </button>
+                  <LogoutButton />
                 </div>
               )}
             </div>
