@@ -5,10 +5,10 @@
 | Campo | Valor |
 |-------|-------|
 | Epic | OB-001 - Configuracion e Infraestructura del Proyecto |
-| Status | in-progress |
+| Status | done |
 | Priority | critical |
 | Created | 2025-12-31 |
-| Updated | 2026-01-01 |
+| Updated | 2026-01-05 |
 | Labels | story, setup, infraestructura |
 | Depends on | - |
 
@@ -26,19 +26,19 @@ Esta story cubre la inicializacion completa del proyecto, incluyendo la estructu
 
 | ID | Titulo | Status |
 |----|--------|--------|
-| [OB-001-A-001](./OB-001-A-001.md) | Inicializar monorepo Nx con pnpm y estructura de carpetas | ✅ completed |
-| [OB-001-A-002](./OB-001-A-002.md) | Configurar TypeScript con tsconfig apropiado | pending |
-| [OB-001-A-003](./OB-001-A-003.md) | Configurar ESLint y Prettier | pending |
-| [OB-001-A-004](./OB-001-A-004.md) | Configurar variables de entorno con dotenv | pending |
-| [OB-001-A-005](./OB-001-A-005.md) | Crear README con instrucciones de setup | pending |
+| [OB-001-A-001](./OB-001-A-001.md) | Inicializar monorepo Nx con pnpm y estructura de carpetas | done |
+| [OB-001-A-002](./OB-001-A-002.md) | Configurar TypeScript con tsconfig apropiado | done |
+| [OB-001-A-003](./OB-001-A-003.md) | Configurar ESLint y Prettier | done |
+| [OB-001-A-004](./OB-001-A-004.md) | Configurar variables de entorno con dotenv | done |
+| [OB-001-A-005](./OB-001-A-005.md) | Crear README con instrucciones de setup | done |
 
 ## Criterios de Aceptacion
 
 - [x] El proyecto tiene una estructura de carpetas clara y documentada
-- [ ] TypeScript esta configurado con modo estricto
-- [ ] ESLint y Prettier estan configurados y funcionando
-- [ ] Las variables de entorno tienen un archivo .env.example
-- [ ] El README contiene instrucciones completas de instalacion
+- [x] TypeScript esta configurado con modo estricto
+- [x] ESLint y Prettier estan configurados y funcionando
+- [x] Las variables de entorno tienen un archivo .env.example
+- [x] El README contiene instrucciones completas de instalacion
 
 ## Stack Tecnologico
 

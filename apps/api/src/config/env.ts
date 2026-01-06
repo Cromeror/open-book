@@ -18,7 +18,12 @@ const envSchema = z.object({
   DATABASE_NAME: z.string().min(1, 'DATABASE_NAME is required'),
   DATABASE_USER: z.string().min(1, 'DATABASE_USER is required'),
   DATABASE_PASSWORD: z.string().min(1, 'DATABASE_PASSWORD is required'),
-  DATABASE_URL: z.string().url().optional(),
+  DATABASE_URL: z.string().optional(),
+  DATABASE_POOL_SIZE: z.coerce.number().positive().default(10),
+  DATABASE_SSL: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((val) => val === 'true'),
 
   // JWT Authentication
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
@@ -60,3 +65,29 @@ export function validateEnv(): EnvConfig {
  * Import this to access typed environment variables
  */
 export const env = validateEnv();
+
+/**
+ * Get the database connection URL
+ * Uses DATABASE_URL if provided, otherwise constructs from individual parts
+ */
+export function getDatabaseUrl(): string {
+  if (env.DATABASE_URL) {
+    return env.DATABASE_URL;
+  }
+
+  return `postgresql://${env.DATABASE_USER}:${env.DATABASE_PASSWORD}@${env.DATABASE_HOST}:${env.DATABASE_PORT}/${env.DATABASE_NAME}`;
+}
+
+/**
+ * Database configuration object for TypeORM or other ORMs
+ */
+export const databaseConfig = {
+  host: env.DATABASE_HOST,
+  port: env.DATABASE_PORT,
+  database: env.DATABASE_NAME,
+  username: env.DATABASE_USER,
+  password: env.DATABASE_PASSWORD,
+  url: getDatabaseUrl(),
+  poolSize: env.DATABASE_POOL_SIZE,
+  ssl: env.DATABASE_SSL,
+};
