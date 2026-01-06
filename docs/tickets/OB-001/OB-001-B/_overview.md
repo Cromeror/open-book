@@ -5,10 +5,10 @@
 | Campo | Valor |
 |-------|-------|
 | Epic | OB-001 - Configuracion e Infraestructura del Proyecto |
-| Status | pending |
+| Status | done |
 | Priority | critical |
 | Created | 2025-12-31 |
-| Updated | 2025-12-31 |
+| Updated | 2026-01-05 |
 | Labels | story, database, orm |
 | Depends on | OB-001-A |
 
@@ -26,19 +26,19 @@ Esta story cubre la configuracion completa de la capa de persistencia, incluyend
 
 | ID | Titulo | Status |
 |----|--------|--------|
-| [OB-001-B-001](./OB-001-B-001.md) | Configurar conexion a PostgreSQL | pending |
-| [OB-001-B-002](./OB-001-B-002.md) | Instalar y configurar TypeORM | pending |
-| [OB-001-B-003](./OB-001-B-003.md) | Crear modelo base con campos de auditoria | pending |
-| [OB-001-B-004](./OB-001-B-004.md) | Configurar sistema de migraciones | pending |
-| [OB-001-B-005](./OB-001-B-005.md) | Implementar soft delete para inmutabilidad | pending |
+| [OB-001-B-001](./OB-001-B-001.md) | Configurar conexion a PostgreSQL | done |
+| [OB-001-B-002](./OB-001-B-002.md) | Instalar y configurar TypeORM | done |
+| [OB-001-B-003](./OB-001-B-003.md) | Crear modelo base con campos de auditoria | done |
+| [OB-001-B-004](./OB-001-B-004.md) | Configurar sistema de migraciones | done |
+| [OB-001-B-005](./OB-001-B-005.md) | Implementar soft delete para inmutabilidad | done |
 
 ## Criterios de Aceptacion
 
-- [ ] La conexion a PostgreSQL funciona correctamente
-- [ ] TypeORM esta configurado con las entidades del proyecto
-- [ ] Las migraciones se ejecutan automaticamente
-- [ ] Todas las entidades tendran campos de auditoria (createdAt, updatedAt, createdBy)
-- [ ] El soft delete esta implementado para cumplir con inmutabilidad
+- [x] La conexion a PostgreSQL funciona correctamente
+- [x] TypeORM esta configurado con las entidades del proyecto
+- [x] Las migraciones se ejecutan automaticamente
+- [x] Todas las entidades tendran campos de auditoria (createdAt, updatedAt, createdBy)
+- [x] El soft delete esta implementado para cumplir con inmutabilidad
 
 ## Notas Tecnicas
 

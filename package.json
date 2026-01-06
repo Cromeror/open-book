@@ -17,9 +17,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d apps/api/typeorm.config.ts",
-    "typeorm:generate": "pnpm typeorm migration:generate apps/api/src/migrations/migration",
-    "typeorm:run": "pnpm typeorm migration:run",
-    "typeorm:revert": "pnpm typeorm migration:revert"
+    "migration:generate": "pnpm typeorm migration:generate",
+    "migration:run": "pnpm typeorm migration:run",
+    "migration:revert": "pnpm typeorm migration:revert",
+    "migration:create": "pnpm typeorm migration:create"
   },
   "private": true,
   "devDependencies": {
