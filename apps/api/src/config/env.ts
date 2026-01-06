@@ -1,5 +1,12 @@
 /* eslint-disable no-console -- Console output is intentional for env validation errors */
+import { config } from 'dotenv';
+import path from 'path';
 import { z } from 'zod';
+
+// Load test environment variables if running in test mode
+if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
+  config({ path: path.resolve(process.cwd(), 'apps/api/.env.test') });
+}
 
 /**
  * Schema for environment variables validation using Zod
@@ -64,8 +71,38 @@ export function validateEnv(): EnvConfig {
 /**
  * Pre-validated environment configuration
  * Import this to access typed environment variables
+ *
+ * Note: In test environment, validation errors don't exit the process
+ * to allow test setup to complete first.
  */
-export const env = validateEnv();
+function getEnv(): EnvConfig {
+  // Skip strict validation in test mode if env vars are not yet loaded
+  if (process.env.NODE_ENV === 'test') {
+    const result = envSchema.safeParse(process.env);
+    if (result.success) {
+      return result.data;
+    }
+    // Return defaults for test environment
+    return {
+      NODE_ENV: 'test',
+      PORT: 3000,
+      DATABASE_HOST: process.env.DATABASE_HOST || 'localhost',
+      DATABASE_PORT: parseInt(process.env.DATABASE_PORT || '5433', 10),
+      DATABASE_NAME: process.env.DATABASE_NAME || 'openbook_test',
+      DATABASE_USER: process.env.DATABASE_USER || 'postgres',
+      DATABASE_PASSWORD: process.env.DATABASE_PASSWORD || 'postgres',
+      DATABASE_URL: process.env.DATABASE_URL,
+      DATABASE_POOL_SIZE: 5,
+      DATABASE_SSL: false,
+      JWT_SECRET: process.env.JWT_SECRET || 'test-jwt-secret-key-that-is-at-least-32-characters-long',
+      JWT_ACCESS_EXPIRES_IN: '15m',
+      JWT_REFRESH_EXPIRES_IN: '7d',
+    };
+  }
+  return validateEnv();
+}
+
+export const env = getEnv();
 
 /**
  * Get the database connection URL

@@ -10,7 +10,10 @@ export default defineConfig({
     environment: 'node',
     include: ['apps/**/*.spec.ts', 'apps/**/*.test.ts', 'libs/**/*.spec.ts', 'libs/**/*.test.ts'],
     exclude: ['**/node_modules/**', '**/dist/**', '**/*-e2e/**', '**/e2e/**'],
-    setupFiles: ['./apps/api/test/setup.ts'],
+    setupFiles: ['./apps/api/test/setup-env.ts', './apps/api/test/setup.ts'],
+    env: {
+      NODE_ENV: 'test',
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

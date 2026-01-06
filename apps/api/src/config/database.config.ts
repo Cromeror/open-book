@@ -16,23 +16,29 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
   ssl: env.DATABASE_SSL ? { rejectUnauthorized: false } : false,
   poolSize: env.DATABASE_POOL_SIZE,
 
-  // Entity configuration
-  entities: [__dirname + '/../entities/**/*.entity{.ts,.js}'],
+  // Entities are auto-loaded via TypeOrmModule.forFeature() in each module
+  // Using empty array to avoid ESM/CommonJS glob pattern issues with Vitest
+  entities: [],
 
-  // Migration configuration
-  migrations: [__dirname + '/../migrations/**/*{.ts,.js}'],
+  // Migrations are run via CLI with separate datasource config
+  migrations: [],
 
-  // Subscribers for audit logging
-  subscribers: [__dirname + '/../subscribers/**/*{.ts,.js}'],
+  // Subscribers are registered via NestJS DI (see AuditSubscriber, ImmutableSubscriber)
+  // Using empty array to avoid ESM/CommonJS glob pattern issues with Vitest
+  subscribers: [],
 
-  // IMPORTANT: Always false in production - use migrations only
-  synchronize: false,
+  // Synchronize in test mode to auto-create tables
+  synchronize: env.NODE_ENV === 'test',
 
   // Enable logging in development
   logging: env.NODE_ENV === 'development',
 
   // Auto-load entities from modules
   autoLoadEntities: true,
+
+  // Connection retry settings - disable in test mode for faster failures
+  retryAttempts: env.NODE_ENV === 'test' ? 1 : 10,
+  retryDelay: env.NODE_ENV === 'test' ? 100 : 3000,
 };
 
 /**

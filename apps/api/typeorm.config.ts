@@ -26,8 +26,8 @@ export default new DataSource({
       : false,
 
   entities: [__dirname + '/src/entities/**/*.entity{.ts,.js}'],
-  migrations: [__dirname + '/src/migrations/**/*{.ts,.js}'],
-  subscribers: [__dirname + '/src/subscribers/**/*{.ts,.js}'],
+  migrations: [__dirname + '/src/migrations/*-*{.ts,.js}'],
+  subscribers: [],
 
   synchronize: false,
   logging: process.env['NODE_ENV'] === 'development',

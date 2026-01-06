@@ -57,7 +57,18 @@ docker compose up -d postgres
 pnpm typeorm:run
 ```
 
-### 6. Iniciar el proyecto
+### 6. Usuarios de prueba
+
+Las migraciones crean usuarios por defecto para desarrollo:
+
+| Email | Password | Rol |
+|-------|----------|-----|
+| `admin@test.com` | `Test123!` | SuperAdmin (acceso total) |
+| `user@test.com` | `Test123!` | Usuario regular |
+
+> **Importante**: Estos usuarios son solo para desarrollo. En produccion, eliminalos o cambia las credenciales inmediatamente despues del primer despliegue.
+
+### 7. Iniciar el proyecto
 
 ```bash
 pnpm dev

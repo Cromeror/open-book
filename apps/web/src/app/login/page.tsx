@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 
+import { LoginForm } from '@/components/auth/LoginForm';
 import { getServerPermissions } from '@/lib/permissions.server';
 
 export const metadata = {
@@ -25,7 +27,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-8">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-gray-900">OpenBook</h1>
@@ -39,18 +41,38 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             Iniciar Sesión
           </h2>
 
-          {/* TODO: Implement login form in OB-014-B */}
-          <p className="text-center text-gray-500">
-            Formulario de login pendiente de implementación.
-          </p>
-
-          {params.redirect && (
-            <p className="mt-4 text-center text-sm text-gray-500">
-              Serás redirigido a: <code className="text-blue-600">{params.redirect}</code>
-            </p>
-          )}
+          <Suspense fallback={<LoginFormSkeleton />}>
+            <LoginForm />
+          </Suspense>
         </div>
+
+        <p className="mt-6 text-center text-xs text-gray-500">
+          Al iniciar sesión, aceptas nuestros{' '}
+          <a href="/terminos" className="text-blue-600 hover:underline">
+            Términos de Servicio
+          </a>{' '}
+          y{' '}
+          <a href="/privacidad" className="text-blue-600 hover:underline">
+            Política de Privacidad
+          </a>
+        </p>
       </div>
     </main>
+  );
+}
+
+function LoginFormSkeleton() {
+  return (
+    <div className="animate-pulse space-y-6">
+      <div>
+        <div className="h-4 w-24 rounded bg-gray-200" />
+        <div className="mt-1 h-10 w-full rounded bg-gray-200" />
+      </div>
+      <div>
+        <div className="h-4 w-20 rounded bg-gray-200" />
+        <div className="mt-1 h-10 w-full rounded bg-gray-200" />
+      </div>
+      <div className="h-10 w-full rounded bg-gray-200" />
+    </div>
   );
 }

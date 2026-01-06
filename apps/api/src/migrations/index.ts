@@ -9,3 +9,4 @@ export { RemoveUserRoleAddSuperAdmin1736160000000 } from './1736160000000-Remove
 export { CreatePermissionsTables1736161000000 } from './1736161000000-CreatePermissionsTables';
 export { SeedInitialModules1736162000000 } from './1736162000000-SeedInitialModules';
 export { CreateAuthTables1736163000000 } from './1736163000000-CreateAuthTables';
+export { SeedTestUsers1736164000000 } from './1736164000000-SeedTestUsers';
