@@ -27,6 +27,32 @@ export interface RefreshResponse {
 }
 
 /**
+ * User permission with module, action and scope
+ */
+export interface UserPermission {
+  module: string;
+  action: string;
+  scope: 'own' | 'copropiedad' | 'all';
+  scopeId?: string;
+}
+
+/**
+ * Auth me response with user info and permissions
+ * Used by frontend to verify authentication and load permissions
+ */
+export interface AuthMeResponse {
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    isSuperAdmin: boolean;
+  };
+  modules: string[];
+  permissions: UserPermission[];
+}
+
+/**
  * Service for authentication operations
  */
 @Injectable()
@@ -36,6 +62,41 @@ export class AuthService {
     private readonly tokenService: TokenService,
     private readonly authLogService: AuthLogService
   ) {}
+
+  /**
+   * Get current authenticated user info with permissions
+   *
+   * @param user - Authenticated user from JWT validation
+   * @returns User data with modules and permissions
+   */
+  async getMe(user: User): Promise<AuthMeResponse> {
+    // Map user to response format
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      isSuperAdmin: user.isSuperAdmin,
+    };
+
+    // SuperAdmin has access to all modules - return empty permissions array
+    // (frontend will handle SuperAdmin bypass logic)
+    if (user.isSuperAdmin) {
+      return {
+        user: userResponse,
+        modules: [], // SuperAdmin doesn't need explicit modules
+        permissions: [], // SuperAdmin doesn't need explicit permissions
+      };
+    }
+
+    // TODO: Load actual permissions from permission system (OB-002-C)
+    // For now, return empty arrays - users have no permissions until assigned
+    return {
+      user: userResponse,
+      modules: [],
+      permissions: [],
+    };
+  }
 
   /**
    * Register a new user

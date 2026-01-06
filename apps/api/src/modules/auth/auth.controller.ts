@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
   HttpCode,
   HttpStatus,
@@ -14,7 +15,7 @@ import { z } from 'zod';
 import { User } from '../../entities/user.entity';
 import { UserResponse } from '../../types/user';
 
-import { AuthService, LoginResponse, RefreshResponse } from './auth.service';
+import { AuthService, LoginResponse, RefreshResponse, AuthMeResponse } from './auth.service';
 import { CurrentUser } from './decorators';
 import {
   RegisterDto,
@@ -86,6 +87,23 @@ export class AuthController {
 
     // Register user
     return this.authService.register(dto, ipAddress, userAgent);
+  }
+
+  /**
+   * Get current authenticated user info with permissions
+   *
+   * GET /api/auth/me
+   *
+   * Requires authentication.
+   *
+   * @param user - Authenticated user from JWT
+   * @returns User data with modules and permissions (200)
+   * @throws UnauthorizedException if not authenticated (401)
+   */
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async getMe(@CurrentUser() user: User): Promise<AuthMeResponse> {
+    return this.authService.getMe(user);
   }
 
   /**

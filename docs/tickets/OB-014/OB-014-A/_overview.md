@@ -5,7 +5,7 @@
 | Campo | Valor |
 |-------|-------|
 | Epic | OB-014 - Configuracion de Vistas por Permisos y Modulos |
-| Status | pending |
+| Status | done |
 | Priority | critical |
 | Created | 2026-01-05 |
 | Updated | 2026-01-06 |
@@ -34,11 +34,11 @@ Esta story implementa el sistema de autenticacion y permisos con enfoque **Serve
 
 | ID | Titulo | Status |
 |----|--------|--------|
-| [OB-014-A-001](./OB-014-A-001.md) | Implementar middleware de autenticacion | pending |
-| [OB-014-A-002](./OB-014-A-002.md) | Crear utilidades de permisos server-side | pending |
-| [OB-014-A-003](./OB-014-A-003.md) | Implementar Server Actions protegidas | pending |
-| [OB-014-A-004](./OB-014-A-004.md) | Crear componentes de permisos (server y client) | pending |
-| [OB-014-A-005](./OB-014-A-005.md) | Crear pagina de acceso denegado | pending |
+| [OB-014-A-001](./OB-014-A-001.md) | Implementar middleware de autenticacion | done |
+| [OB-014-A-002](./OB-014-A-002.md) | Crear utilidades de permisos server-side | done |
+| [OB-014-A-003](./OB-014-A-003.md) | Implementar Server Actions protegidas | done |
+| [OB-014-A-004](./OB-014-A-004.md) | Crear componentes de permisos (server y client) | done |
+| [OB-014-A-005](./OB-014-A-005.md) | Crear pagina de acceso denegado | done |
 
 ## Arquitectura Server-First
 
