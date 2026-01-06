@@ -5,7 +5,7 @@
 | Campo | Valor |
 |-------|-------|
 | Epic | OB-002 - Gestion de Usuarios y Autenticacion |
-| Status | pending |
+| Status | done |
 | Priority | critical |
 | Created | 2025-12-31 |
 | Updated | 2025-12-31 |
@@ -26,19 +26,19 @@ Esta story implementa el sistema de autenticacion basado en JWT (JSON Web Tokens
 
 | ID | Titulo | Status |
 |----|--------|--------|
-| [OB-002-B-001](./OB-002-B-001.md) | Implementar endpoint de login | pending |
-| [OB-002-B-002](./OB-002-B-002.md) | Generar y firmar JWT | pending |
-| [OB-002-B-003](./OB-002-B-003.md) | Crear middleware de autenticacion | pending |
-| [OB-002-B-004](./OB-002-B-004.md) | Implementar refresh token | pending |
-| [OB-002-B-005](./OB-002-B-005.md) | Registrar eventos de login en auditoria | pending |
+| [OB-002-B-001](./OB-002-B-001.md) | Implementar endpoint de login | done |
+| [OB-002-B-002](./OB-002-B-002.md) | Generar y firmar JWT | done |
+| [OB-002-B-003](./OB-002-B-003.md) | Crear Guard de autenticacion NestJS | done |
+| [OB-002-B-004](./OB-002-B-004.md) | Implementar refresh token | done |
+| [OB-002-B-005](./OB-002-B-005.md) | Registrar eventos de login en auditoria | done |
 
 ## Criterios de Aceptacion
 
-- [ ] POST /api/auth/login retorna JWT valido
-- [ ] El JWT contiene id, email y role del usuario
-- [ ] Middleware protege rutas que requieren autenticacion
-- [ ] Refresh token permite renovar access token
-- [ ] Los eventos de login se registran con timestamp e IP
+- [x] POST /api/auth/login retorna JWT valido
+- [x] El JWT contiene id, email y isSuperAdmin del usuario
+- [x] Guard protege rutas que requieren autenticacion
+- [x] Refresh token permite renovar access token
+- [x] Los eventos de login se registran con timestamp e IP
 
 ## Notas Tecnicas
 

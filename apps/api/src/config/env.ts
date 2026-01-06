@@ -27,7 +27,8 @@ const envSchema = z.object({
 
   // JWT Authentication
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
-  JWT_EXPIRES_IN: z.string().default('7d'),
+  JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
+  JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;
@@ -90,4 +91,36 @@ export const databaseConfig = {
   url: getDatabaseUrl(),
   poolSize: env.DATABASE_POOL_SIZE,
   ssl: env.DATABASE_SSL,
+};
+
+/**
+ * Convert duration string (e.g., '15m', '7d') to seconds
+ */
+function parseExpirationToSeconds(expiresIn: string): number {
+  const value = parseInt(expiresIn.slice(0, -1), 10);
+  const unit = expiresIn.slice(-1);
+
+  switch (unit) {
+    case 's':
+      return value;
+    case 'm':
+      return value * 60;
+    case 'h':
+      return value * 60 * 60;
+    case 'd':
+      return value * 24 * 60 * 60;
+    default:
+      return 15 * 60; // Default 15 minutes
+  }
+}
+
+/**
+ * JWT configuration object
+ */
+export const jwtConfig = {
+  secret: env.JWT_SECRET,
+  accessExpiresIn: env.JWT_ACCESS_EXPIRES_IN,
+  accessExpiresInSeconds: parseExpirationToSeconds(env.JWT_ACCESS_EXPIRES_IN),
+  refreshExpiresIn: env.JWT_REFRESH_EXPIRES_IN,
+  refreshExpiresInSeconds: parseExpirationToSeconds(env.JWT_REFRESH_EXPIRES_IN),
 };
