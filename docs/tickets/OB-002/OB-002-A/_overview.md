@@ -5,7 +5,7 @@
 | Campo | Valor |
 |-------|-------|
 | Epic | OB-002 - Gestion de Usuarios y Autenticacion |
-| Status | in_progress |
+| Status | done |
 | Priority | critical |
 | Created | 2025-12-31 |
 | Updated | 2026-01-05 |
@@ -31,7 +31,7 @@ Esta story cubre la creacion del modelo de usuario en la base de datos y la impl
 | [OB-002-A-003](./OB-002-A-003.md) | Validar datos de registro | done |
 | [OB-002-A-004](./OB-002-A-004.md) | Implementar hash de contrasena con bcrypt | done |
 | [OB-002-A-005](./OB-002-A-005.md) | Registrar consentimiento de visibilidad | done |
-| [OB-002-A-006](./OB-002-A-006.md) | Actualizar entidad User (eliminar roles) | pending |
+| [OB-002-A-006](./OB-002-A-006.md) | Actualizar entidad User (eliminar roles) | done |
 
 ## Criterios de Aceptacion
 
@@ -40,7 +40,7 @@ Esta story cubre la creacion del modelo de usuario en la base de datos y la impl
 - [x] La validacion rechaza datos invalidos con mensajes claros
 - [x] Las contrasenas se almacenan hasheadas, nunca en texto plano
 - [x] El consentimiento de visibilidad se registra obligatoriamente
-- [ ] Entidad User actualizada sin campo role (nueva arquitectura)
+- [x] Entidad User actualizada sin campo role (nueva arquitectura)
 
 ## Notas Tecnicas
 

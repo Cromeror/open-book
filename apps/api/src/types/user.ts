@@ -1,17 +1,9 @@
 /**
- * User role enumeration
- * Defines the roles available in the system
- */
-export enum UserRole {
-  /** System administrator with full access */
-  ADMIN = 'ADMIN',
-  /** Building resident with standard access */
-  RESIDENT = 'RESIDENT',
-}
-
-/**
  * User response type (without sensitive data)
  * Used for API responses
+ *
+ * Note: System uses module-based permissions instead of roles.
+ * SuperAdmin status is only exposed in admin contexts, not in general user responses.
  */
 export interface UserResponse {
   id: string;
@@ -19,7 +11,6 @@ export interface UserResponse {
   firstName: string;
   lastName: string;
   phone?: string;
-  role: UserRole;
   isActive: boolean;
   publicAccountConsent: boolean;
   consentDate?: Date;

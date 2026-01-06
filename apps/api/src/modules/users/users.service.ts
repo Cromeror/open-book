@@ -99,6 +99,10 @@ export class UsersService {
 
   /**
    * Convert User entity to UserResponse (without sensitive data)
+   *
+   * Note: isSuperAdmin is intentionally not included in the response
+   * to avoid exposing admin status in general API responses.
+   * Use a dedicated admin endpoint to check SuperAdmin status.
    */
   toUserResponse(user: User): UserResponse {
     return {
@@ -107,7 +111,6 @@ export class UsersService {
       firstName: user.firstName,
       lastName: user.lastName,
       phone: user.phone,
-      role: user.role,
       isActive: user.isActive,
       publicAccountConsent: user.publicAccountConsent,
       consentDate: user.consentDate,

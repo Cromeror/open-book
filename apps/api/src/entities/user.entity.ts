@@ -1,7 +1,5 @@
 import { Entity, Column, Index } from 'typeorm';
 
-import { UserRole } from '../types/user';
-
 import { BaseEntity } from './base.entity';
 
 /**
@@ -78,15 +76,20 @@ export class User extends BaseEntity {
   phone?: string;
 
   /**
-   * User role in the system
-   * Default: RESIDENT
+   * Whether this user is the SuperAdmin
+   *
+   * Only ONE user should have this flag set to true.
+   * SuperAdmin has full access to all system features and can manage
+   * module permissions and user pools.
+   *
+   * Default: false
    */
   @Column({
-    type: 'enum',
-    enum: UserRole,
-    default: UserRole.RESIDENT,
+    name: 'is_super_admin',
+    type: 'boolean',
+    default: false,
   })
-  role!: UserRole;
+  isSuperAdmin!: boolean;
 
   /**
    * Whether the user account is active
