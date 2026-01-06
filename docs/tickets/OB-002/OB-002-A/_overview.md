@@ -5,10 +5,10 @@
 | Campo | Valor |
 |-------|-------|
 | Epic | OB-002 - Gestion de Usuarios y Autenticacion |
-| Status | pending |
+| Status | done |
 | Priority | critical |
 | Created | 2025-12-31 |
-| Updated | 2025-12-31 |
+| Updated | 2026-01-05 |
 | Labels | story, usuarios, registro |
 | Depends on | OB-001-B |
 
@@ -26,19 +26,19 @@ Esta story cubre la creacion del modelo de usuario en la base de datos y la impl
 
 | ID | Titulo | Status |
 |----|--------|--------|
-| [OB-002-A-001](./OB-002-A-001.md) | Crear entidad User con TypeORM | pending |
-| [OB-002-A-002](./OB-002-A-002.md) | Implementar endpoint de registro | pending |
-| [OB-002-A-003](./OB-002-A-003.md) | Validar datos de registro | pending |
-| [OB-002-A-004](./OB-002-A-004.md) | Implementar hash de contrasena con bcrypt | pending |
-| [OB-002-A-005](./OB-002-A-005.md) | Registrar consentimiento de visibilidad | pending |
+| [OB-002-A-001](./OB-002-A-001.md) | Crear entidad User con TypeORM | done |
+| [OB-002-A-002](./OB-002-A-002.md) | Implementar endpoint de registro | done |
+| [OB-002-A-003](./OB-002-A-003.md) | Validar datos de registro | done |
+| [OB-002-A-004](./OB-002-A-004.md) | Implementar hash de contrasena con bcrypt | done |
+| [OB-002-A-005](./OB-002-A-005.md) | Registrar consentimiento de visibilidad | done |
 
 ## Criterios de Aceptacion
 
-- [ ] El modelo User tiene todos los campos necesarios
-- [ ] El endpoint POST /api/auth/register funciona correctamente
-- [ ] La validacion rechaza datos invalidos con mensajes claros
-- [ ] Las contrasenas se almacenan hasheadas, nunca en texto plano
-- [ ] El consentimiento de visibilidad se registra obligatoriamente
+- [x] El modelo User tiene todos los campos necesarios
+- [x] El endpoint POST /api/auth/register funciona correctamente
+- [x] La validacion rechaza datos invalidos con mensajes claros
+- [x] Las contrasenas se almacenan hasheadas, nunca en texto plano
+- [x] El consentimiento de visibilidad se registra obligatoriamente
 
 ## Notas Tecnicas
 

@@ -8,3 +8,5 @@ export {
   UpdateAuditFields,
   DeletionAuditFields,
 } from './audit';
+
+export { UserRole, UserResponse, CreateUserData } from './user';
