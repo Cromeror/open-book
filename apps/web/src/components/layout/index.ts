@@ -1,0 +1,9 @@
+/**
+ * Layout components for the dashboard
+ */
+
+export { DashboardShell } from './DashboardShell';
+export { Sidebar } from './Sidebar';
+export { Header } from './Header';
+export { Breadcrumbs } from './Breadcrumbs';
+export { Icon } from './Icon';

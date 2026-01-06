@@ -5,7 +5,7 @@
 | Campo | Valor |
 |-------|-------|
 | Epic | OB-014 - Configuracion de Vistas por Permisos y Modulos |
-| Status | pending |
+| Status | done |
 | Priority | high |
 | Created | 2026-01-05 |
 | Updated | 2026-01-06 |
@@ -30,20 +30,20 @@ Implementar el layout principal de la aplicacion que se adapta dinamicamente seg
 
 | ID | Titulo | Status |
 |----|--------|--------|
-| [OB-014-B-001](./OB-014-B-001.md) | Crear DashboardLayout con sidebar dinamico | pending |
-| [OB-014-B-002](./OB-014-B-002.md) | Implementar Header con info de usuario y permisos | pending |
-| [OB-014-B-003](./OB-014-B-003.md) | Crear estructura de rutas por modulos | pending |
+| [OB-014-B-001](./OB-014-B-001.md) | Crear DashboardLayout con sidebar dinamico | done |
+| [OB-014-B-002](./OB-014-B-002.md) | Implementar Header con info de usuario y permisos | done |
+| [OB-014-B-003](./OB-014-B-003.md) | Crear estructura de rutas por modulos | done |
 
 ## Criterios de Aceptacion
 
-- [ ] Layout con sidebar que muestra solo modulos accesibles
-- [ ] Header con info de usuario y opcion logout
-- [ ] SuperAdmin ve todas las secciones
-- [ ] Usuarios ven solo modulos asignados
-- [ ] Menu de navegacion generado dinamicamente segun permisos
-- [ ] Indicador de seccion/modulo activo
-- [ ] Responsive para mobile, tablet y desktop
-- [ ] Breadcrumbs para navegacion contextual
+- [x] Layout con sidebar que muestra solo modulos accesibles
+- [x] Header con info de usuario y opcion logout
+- [x] SuperAdmin ve todas las secciones
+- [x] Usuarios ven solo modulos asignados
+- [x] Menu de navegacion generado dinamicamente segun permisos
+- [x] Indicador de seccion/modulo activo
+- [x] Responsive para mobile, tablet y desktop
+- [x] Breadcrumbs para navegacion contextual
 
 ## Estructura del Layout
 

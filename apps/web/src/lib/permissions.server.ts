@@ -14,10 +14,22 @@ import type {
 } from './types';
 
 /**
+ * User info from authentication
+ */
+export interface AuthUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  isSuperAdmin: boolean;
+}
+
+/**
  * Server-side permissions object returned by getServerPermissions()
  */
 export interface ServerPermissions {
   userId: string | null;
+  user: AuthUser | null;
   isSuperAdmin: boolean;
   isAuthenticated: boolean;
   modules: ModuleCode[];
@@ -49,6 +61,7 @@ export interface ServerPermissions {
 function createEmptyPermissions(): ServerPermissions {
   return {
     userId: null,
+    user: null,
     isSuperAdmin: false,
     isAuthenticated: false,
     modules: [],
@@ -62,9 +75,10 @@ function createEmptyPermissions(): ServerPermissions {
 /**
  * Create permissions object for SuperAdmin
  */
-function createSuperAdminPermissions(userId: string): ServerPermissions {
+function createSuperAdminPermissions(user: AuthUser): ServerPermissions {
   return {
-    userId,
+    userId: user.id,
+    user,
     isSuperAdmin: true,
     isAuthenticated: true,
     modules: [], // SuperAdmin doesn't need explicit modules
@@ -79,12 +93,15 @@ function createSuperAdminPermissions(userId: string): ServerPermissions {
  * Create permissions object for regular user
  */
 function createUserPermissions(
-  userId: string,
+  user: AuthUser,
   modules: ModuleCode[],
   permissions: UserPermission[]
 ): ServerPermissions {
+  const userId = user.id;
+
   return {
     userId,
+    user,
     isSuperAdmin: false,
     isAuthenticated: true,
     modules,
@@ -233,14 +250,23 @@ export async function getServerPermissions(): Promise<ServerPermissions> {
     return createEmptyPermissions();
   }
 
+  // Map user data
+  const user: AuthUser = {
+    id: authData.user.id,
+    email: authData.user.email,
+    firstName: authData.user.firstName,
+    lastName: authData.user.lastName,
+    isSuperAdmin: authData.user.isSuperAdmin,
+  };
+
   // SuperAdmin bypass
   if (authData.user.isSuperAdmin) {
-    return createSuperAdminPermissions(authData.user.id);
+    return createSuperAdminPermissions(user);
   }
 
   // Regular user with specific permissions
   return createUserPermissions(
-    authData.user.id,
+    user,
     authData.modules,
     authData.permissions
   );

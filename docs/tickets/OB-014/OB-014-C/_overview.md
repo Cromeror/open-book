@@ -5,7 +5,7 @@
 | Campo | Valor |
 |-------|-------|
 | Epic | OB-014 - Configuracion de Vistas por Permisos y Modulos |
-| Status | pending |
+| Status | done |
 | Priority | high |
 | Created | 2026-01-05 |
 | Updated | 2026-01-06 |
@@ -30,19 +30,19 @@ Implementar el sistema de navegacion que se adapta dinamicamente segun los modul
 
 | ID | Titulo | Status |
 |----|--------|--------|
-| [OB-014-C-001](./OB-014-C-001.md) | Crear DynamicNav basado en modulos | pending |
-| [OB-014-C-002](./OB-014-C-002.md) | Implementar submenus por permisos granulares | pending |
-| [OB-014-C-003](./OB-014-C-003.md) | Crear navegacion mobile responsiva | pending |
+| [OB-014-C-001](./OB-014-C-001.md) | Crear DynamicNav basado en modulos | done |
+| [OB-014-C-002](./OB-014-C-002.md) | Implementar submenus por permisos granulares | done |
+| [OB-014-C-003](./OB-014-C-003.md) | Crear navegacion mobile responsiva | done |
 
 ## Criterios de Aceptacion
 
-- [ ] Navegacion filtra items segun modulos accesibles
-- [ ] SuperAdmin ve todas las opciones
-- [ ] Usuarios ven solo modulos asignados
-- [ ] Submenus muestran acciones segun permisos granulares
-- [ ] Indicador visual de seccion activa
-- [ ] Responsive con menu hamburguesa en mobile
-- [ ] Transiciones suaves al expandir/contraer
+- [x] Navegacion filtra items segun modulos accesibles
+- [x] SuperAdmin ve todas las opciones
+- [x] Usuarios ven solo modulos asignados
+- [x] Submenus muestran acciones segun permisos granulares
+- [x] Indicador visual de seccion activa
+- [x] Responsive con menu hamburguesa en mobile
+- [x] Transiciones suaves al expandir/contraer
 
 ## Sistema de Navegacion por Modulos
 
