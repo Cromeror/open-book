@@ -1,56 +1,96 @@
-# OB-014-E: Sistema de permisos granulares
+# OB-014-E: Integracion completa del sistema de permisos
 
 ## Metadata
 
 | Campo | Valor |
 |-------|-------|
-| Epic | OB-014 - Configuracion de Vistas por Rol y Sistema de Permisos Granulares |
+| Epic | OB-014 - Configuracion de Vistas por Permisos y Modulos |
 | Status | pending |
 | Priority | high |
 | Created | 2026-01-05 |
-| Updated | 2026-01-05 |
-| Labels | story, frontend, permissions, rbac, security |
-| Depends on | OB-014-A |
+| Updated | 2026-01-06 |
+| Labels | story, frontend, permissions, modulos, integration |
+| Depends on | OB-014-A, OB-014-D, OB-002-C |
 
 ## User Story
 
 **Como** desarrollador del proyecto
-**Quiero** un sistema de permisos granulares basado en recursos y acciones
-**Para** controlar el acceso fino a funcionalidades especificas mas alla del simple rol
+**Quiero** un sistema de permisos completo integrado entre frontend y backend
+**Para** garantizar que la UI refleje correctamente los permisos definidos en OB-002-C
 
 ## Descripcion
 
-Esta story implementa un sistema completo de permisos granulares (RBAC) que permite controlar el acceso a nivel de recurso y accion. El sistema define permisos usando el patron `recurso:accion` y provee hooks y componentes para verificacion declarativa de permisos en el frontend.
+Esta story implementa la integracion completa del sistema de permisos por modulos entre el frontend y el backend. Sincroniza los tipos, asegura que el endpoint `/api/auth/me` retorne los permisos correctamente, y verifica que toda la UI respete los permisos.
+
+**IMPORTANTE**: Este sistema reemplaza completamente los roles predefinidos (admin/resident):
+- **SuperAdmin**: Usuario unico con acceso total (`isSuperAdmin: true` en JWT)
+- **Modulos**: Unidades funcionales del sistema
+- **Permisos Granulares**: Acciones especificas dentro de modulos (create, read, update, delete)
+- **Scopes**: Alcance del permiso (own, copropiedad, all)
 
 ## Tareas
 
 | ID | Titulo | Status |
 |----|--------|--------|
-| [OB-014-E-001](./OB-014-E-001.md) | Definir tipos y constantes de permisos | pending |
-| [OB-014-E-002](./OB-014-E-002.md) | Implementar hook usePermissions | pending |
-| [OB-014-E-003](./OB-014-E-003.md) | Crear componentes Can, CanAny, CanAll | pending |
-| [OB-014-E-004](./OB-014-E-004.md) | Implementar PermissionGuard para rutas | pending |
-| [OB-014-E-005](./OB-014-E-005.md) | Integrar permisos en navegacion | pending |
+| [OB-014-E-001](./OB-014-E-001.md) | Sincronizar tipos de permisos frontend/backend | pending |
+| [OB-014-E-002](./OB-014-E-002.md) | Implementar endpoint /api/auth/me con permisos | pending |
+| [OB-014-E-003](./OB-014-E-003.md) | Crear tests de integracion de permisos | pending |
+| [OB-014-E-004](./OB-014-E-004.md) | Implementar cache de permisos en frontend | pending |
+| [OB-014-E-005](./OB-014-E-005.md) | Documentar sistema de permisos | pending |
 
 ## Criterios de Aceptacion
 
-- [ ] Tipos de permisos definidos y sincronizados con backend
-- [ ] Hook usePermissions disponible con metodos can, canAny, canAll
-- [ ] Componente Can renderiza contenido condicionalmente
-- [ ] Componente CanAny verifica cualquier permiso de lista
-- [ ] Componente CanAll verifica todos los permisos de lista
-- [ ] PermissionGuard protege rutas por permiso especifico
-- [ ] Navegacion filtra items segun permisos del usuario
-- [ ] Permisos se cargan desde JWT o endpoint /api/auth/me
-- [ ] Sistema soporta wildcards (ej: `users:*`)
+- [ ] Tipos de permisos sincronizados entre frontend y backend
+- [ ] GET /api/auth/me retorna user, modules, permissions
+- [ ] Cache de permisos en cliente con invalidacion
+- [ ] Tests de integracion para flujo completo de permisos
+- [ ] SuperAdmin bypasea todas las verificaciones en frontend
+- [ ] Scopes (own, copropiedad, all) respetados en UI
+- [ ] Documentacion completa del sistema
 
-## Arquitectura
+## Arquitectura de Integracion
 
-### Tipos de Permisos
+### Flujo de Permisos
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                       LOGIN FLOW                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  1. POST /api/auth/login                                     │
+│     └─> Retorna: { accessToken, refreshToken }              │
+│     └─> accessToken contiene: userId, isSuperAdmin          │
+│                                                              │
+│  2. GET /api/auth/me (con accessToken)                      │
+│     └─> Backend carga permisos del usuario                  │
+│     └─> Retorna:                                            │
+│         {                                                    │
+│           user: { id, email, firstName, isSuperAdmin },     │
+│           modules: ['objetivos', 'aportes', 'pqr'],         │
+│           permissions: [                                     │
+│             { module: 'objetivos', action: 'read', scope: 'copropiedad', scopeId: '...' },
+│             { module: 'objetivos', action: 'create', scope: 'copropiedad', scopeId: '...' },
+│             { module: 'aportes', action: 'read', scope: 'own' },
+│           ]                                                  │
+│         }                                                    │
+│                                                              │
+│  3. Frontend cachea permisos en PermissionsContext          │
+│                                                              │
+│  4. usePermissions() verifica acceso:                       │
+│     - hasModule('objetivos') → true                         │
+│     - can('objetivos:create', { copropiedadId }) → true     │
+│     - can('aportes:create') → false                         │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Tipos Compartidos
 
 ```typescript
-// lib/permissions.types.ts
-export type Resource =
+// libs/shared/src/types/permissions.ts
+// (Compartido entre frontend y backend)
+
+export type ModuleCode =
   | 'users'
   | 'copropiedades'
   | 'apartamentos'
@@ -61,88 +101,172 @@ export type Resource =
   | 'pqr'
   | 'reportes'
   | 'auditoria'
+  | 'notificaciones'
   | 'configuracion';
 
-export type Action =
+export type PermissionAction =
   | 'create'
   | 'read'
   | 'update'
   | 'delete'
-  | 'approve'
   | 'export'
-  | 'manage'
-  | '*';  // Wildcard para todos
+  | 'manage';
 
-export type Permission = `${Resource}:${Action}`;
+export type PermissionScope = 'own' | 'copropiedad' | 'all';
+
+export interface UserPermission {
+  module: ModuleCode;
+  action: PermissionAction;
+  scope: PermissionScope;
+  scopeId?: string;
+}
+
+export interface AuthMeResponse {
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    isSuperAdmin: boolean;
+  };
+  modules: ModuleCode[];
+  permissions: UserPermission[];
+}
+
+// Helper type para permisos en formato string
+export type PermissionString = `${ModuleCode}:${PermissionAction}`;
 ```
 
-### Hook usePermissions
+### Endpoint /api/auth/me
 
 ```typescript
-// hooks/usePermissions.ts
-interface UsePermissionsReturn {
-  permissions: Permission[];
-  can: (permission: Permission) => boolean;
-  canAny: (permissions: Permission[]) => boolean;
-  canAll: (permissions: Permission[]) => boolean;
-  loading: boolean;
-}
+// apps/api/src/modules/auth/auth.controller.ts
+@Get('me')
+@UseGuards(JwtAuthGuard)
+async getMe(@CurrentUser() user: User): Promise<AuthMeResponse> {
+  // SuperAdmin tiene acceso total
+  if (user.isSuperAdmin) {
+    return {
+      user: this.mapUser(user),
+      modules: ALL_MODULES,
+      permissions: [], // No necesita permisos, tiene acceso total
+    };
+  }
 
-export function usePermissions(): UsePermissionsReturn {
-  const { user } = useAuth();
+  // Usuario regular: cargar permisos efectivos
+  const { modules, permissions } = await this.permissionsService.getEffectivePermissions(user.id);
 
-  const can = useCallback((permission: Permission) => {
-    if (!user?.permissions) return false;
-
-    const [resource, action] = permission.split(':');
-
-    // Check exact match
-    if (user.permissions.includes(permission)) return true;
-
-    // Check wildcard
-    if (user.permissions.includes(`${resource}:*`)) return true;
-
-    return false;
-  }, [user?.permissions]);
-
-  // ...
+  return {
+    user: this.mapUser(user),
+    modules,
+    permissions,
+  };
 }
 ```
 
-### Componentes de Permisos
+### Cache de Permisos
 
 ```typescript
-// components/permissions/Can.tsx
-interface CanProps {
-  permission: Permission;
-  children: ReactNode;
-  fallback?: ReactNode;
+// apps/web/src/lib/permissions-cache.ts
+const CACHE_KEY = 'user_permissions';
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+
+interface CachedPermissions {
+  modules: string[];
+  permissions: UserPermission[];
+  timestamp: number;
 }
 
-export function Can({ permission, children, fallback = null }: CanProps) {
-  const { can, loading } = usePermissions();
+export function getCachedPermissions(): CachedPermissions | null {
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (!cached) return null;
 
-  if (loading) return null;
-  if (!can(permission)) return fallback;
+  const data = JSON.parse(cached) as CachedPermissions;
+  if (Date.now() - data.timestamp > CACHE_TTL) {
+    localStorage.removeItem(CACHE_KEY);
+    return null;
+  }
 
-  return <>{children}</>;
+  return data;
 }
+
+export function setCachedPermissions(modules: string[], permissions: UserPermission[]): void {
+  const data: CachedPermissions = {
+    modules,
+    permissions,
+    timestamp: Date.now(),
+  };
+  localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+}
+
+export function invalidatePermissionsCache(): void {
+  localStorage.removeItem(CACHE_KEY);
+}
+```
+
+## Modulos del Sistema
+
+| Codigo | Permisos Disponibles | Descripcion |
+|--------|---------------------|-------------|
+| `users` | read, update | Gestion de usuarios |
+| `copropiedades` | read, update | Copropiedades |
+| `apartamentos` | create, read, update, delete | Apartamentos |
+| `objetivos` | create, read, update, delete | Objetivos de recaudo |
+| `actividades` | create, read, update, delete | Actividades de recaudo |
+| `compromisos` | create, read, update | Compromisos |
+| `aportes` | create, read, update | Aportes reales |
+| `pqr` | create, read, manage | PQR |
+| `reportes` | read, export | Reportes |
+| `auditoria` | read | Auditoria |
+| `notificaciones` | read, create | Notificaciones |
+| `configuracion` | read, update | Configuracion |
+
+## Testing de Integracion
+
+```typescript
+// tests/permissions.integration.spec.ts
+describe('Permissions Integration', () => {
+  it('should load user permissions correctly', async () => {
+    // Login como usuario con permisos limitados
+    const loginResponse = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'test@example.com', password: 'password' });
+
+    // Obtener permisos
+    const meResponse = await request(app)
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${loginResponse.body.accessToken}`);
+
+    expect(meResponse.body.user.isSuperAdmin).toBe(false);
+    expect(meResponse.body.modules).toContain('objetivos');
+    expect(meResponse.body.permissions).toContainEqual({
+      module: 'objetivos',
+      action: 'read',
+      scope: 'copropiedad',
+      scopeId: expect.any(String),
+    });
+  });
+
+  it('SuperAdmin should have empty permissions array', async () => {
+    const loginResponse = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'superadmin@example.com', password: 'password' });
+
+    const meResponse = await request(app)
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${loginResponse.body.accessToken}`);
+
+    expect(meResponse.body.user.isSuperAdmin).toBe(true);
+    expect(meResponse.body.permissions).toEqual([]);
+  });
+});
 ```
 
 ## Notas Tecnicas
 
-- Los permisos se almacenan en el JWT o se obtienen de /api/auth/me
-- El frontend solo oculta elementos de UI, la seguridad real esta en backend
-- Usar memoizacion para evitar recalculos innecesarios
-- Considerar cache de permisos para reducir llamadas
-- Los wildcards (`*`) simplifican la asignacion de permisos a admins
-
-## Testing
-
-- [ ] usePermissions retorna permisos correctos
-- [ ] can() verifica permisos exactos
-- [ ] can() soporta wildcards
-- [ ] canAny() retorna true si tiene alguno
-- [ ] canAll() retorna true si tiene todos
-- [ ] Can renderiza solo con permiso
-- [ ] PermissionGuard redirige sin permiso
+- Los tipos deben estar en `libs/shared` para compartir entre apps
+- Cache de permisos usa localStorage con TTL de 5 minutos
+- Invalidar cache al cambiar permisos o hacer logout
+- SuperAdmin no necesita permisos cargados - siempre pasa
+- Scopes se verifican tanto en frontend como backend (defense in depth)
+- El frontend solo oculta UI - la seguridad real esta en backend
