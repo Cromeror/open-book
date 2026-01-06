@@ -5,7 +5,7 @@
 | Campo | Valor |
 |-------|-------|
 | Epic | OB-002 - Gestion de Usuarios y Autenticacion |
-| Status | pending |
+| Status | done |
 | Priority | critical |
 | Created | 2025-12-31 |
 | Updated | 2026-01-05 |
@@ -59,14 +59,14 @@ Usuario Juan:
 
 | ID | Titulo | Status |
 |----|--------|--------|
-| [OB-002-C-001](./OB-002-C-001.md) | Definir estructura de modulos y permisos | pending |
-| [OB-002-C-002](./OB-002-C-002.md) | Crear middleware de autorizacion | pending |
-| [OB-002-C-003](./OB-002-C-003.md) | Implementar decoradores de permisos | pending |
-| [OB-002-C-004](./OB-002-C-004.md) | Crear sistema de pools de usuarios | pending |
-| [OB-002-C-005](./OB-002-C-005.md) | Implementar permisos por contexto (scope) | pending |
-| [OB-002-C-006](./OB-002-C-006.md) | Crear sistema de registro de modulos | pending |
-| [OB-002-C-007](./OB-002-C-007.md) | Implementar cache de permisos | pending |
-| [OB-002-C-008](./OB-002-C-008.md) | Crear endpoints de gestion de permisos (superadmin) | pending |
+| [OB-002-C-001](./OB-002-C-001.md) | Definir estructura de modulos y permisos | done |
+| [OB-002-C-002](./OB-002-C-002.md) | Crear middleware de autorizacion | done |
+| [OB-002-C-003](./OB-002-C-003.md) | Implementar decoradores de permisos | done |
+| [OB-002-C-004](./OB-002-C-004.md) | Crear sistema de pools de usuarios | done |
+| [OB-002-C-005](./OB-002-C-005.md) | Implementar permisos por contexto (scope) | done |
+| [OB-002-C-006](./OB-002-C-006.md) | Crear sistema de registro de modulos | done |
+| [OB-002-C-007](./OB-002-C-007.md) | Implementar cache de permisos | done |
+| [OB-002-C-008](./OB-002-C-008.md) | Crear endpoints de gestion de permisos (superadmin) | done |
 
 ## Criterios de Aceptacion
 
