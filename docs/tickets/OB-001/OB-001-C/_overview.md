@@ -26,18 +26,18 @@ Esta story cubre la configuracion del framework de testing (Vitest o Jest), la c
 
 | ID | Titulo | Status |
 |----|--------|--------|
-| [OB-001-C-001](./OB-001-C-001.md) | Configurar Vitest como framework de testing | pending |
-| [OB-001-C-002](./OB-001-C-002.md) | Configurar base de datos de testing | pending |
-| [OB-001-C-003](./OB-001-C-003.md) | Crear utilidades de testing y factories | pending |
+| [OB-001-C-001](./OB-001-C-001.md) | Configurar Vitest como framework de testing | done |
+| [OB-001-C-002](./OB-001-C-002.md) | Configurar base de datos de testing | done |
+| [OB-001-C-003](./OB-001-C-003.md) | Crear utilidades de testing y factories | done |
 | [OB-001-C-004](./OB-001-C-004.md) | Configurar GitHub Actions para CI | pending |
 
 ## Criterios de Aceptacion
 
-- [ ] Vitest configurado y ejecutando tests de ejemplo
-- [ ] Base de datos separada para tests
-- [ ] Factories para crear datos de prueba
-- [ ] GitHub Actions ejecutando lint y tests en cada PR
-- [ ] Reporte de cobertura de codigo generado
+- [x] Vitest configurado y ejecutando tests de ejemplo
+- [x] Base de datos separada para tests
+- [x] Factories para crear datos de prueba
+- [ ] GitHub Actions ejecutando lint y tests en cada PR (pendiente OB-001-C-004)
+- [x] Reporte de cobertura de codigo generado (test:coverage)
 
 ## Notas Tecnicas
 
