@@ -30,7 +30,7 @@ export default async function AdminPage() {
         </a>
 
         <a
-          href="/admin/permisos"
+          href="/admin/permissions"
           className="rounded-lg border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md"
         >
           <h3 className="font-semibold text-gray-900">Gestion de Permisos</h3>
@@ -40,7 +40,7 @@ export default async function AdminPage() {
         </a>
 
         <a
-          href="/admin/modulos"
+          href="/admin/modules"
           className="rounded-lg border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md"
         >
           <h3 className="font-semibold text-gray-900">Modulos del Sistema</h3>

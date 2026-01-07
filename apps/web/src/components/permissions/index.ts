@@ -32,3 +32,6 @@ export { ShowForModule } from './ShowForModule';
 export { ShowForPermission } from './ShowForPermission';
 export { ShowForSuperAdmin } from './ShowForSuperAdmin';
 export { ShowForAnyModule } from './ShowForAnyModule';
+export { PermissionGate } from './PermissionGate';
+export { AccessDenied } from './AccessDenied';
+export { ModulePlaceholder } from './ModulePlaceholder';

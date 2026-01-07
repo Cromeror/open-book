@@ -5,7 +5,7 @@
 | Campo | Valor |
 |-------|-------|
 | Epic | OB-014 - Configuracion de Vistas por Permisos y Modulos |
-| Status | pending |
+| Status | done |
 | Priority | medium |
 | Created | 2026-01-05 |
 | Updated | 2026-01-06 |
@@ -36,167 +36,154 @@ Crear la estructura de archivos (scaffolding) para todos los modulos visuales de
 
 | ID | Titulo | Status |
 |----|--------|--------|
-| [OB-014-D-001](./OB-014-D-001.md) | Scaffold modulo Objetivos de Recaudo | pending |
-| [OB-014-D-002](./OB-014-D-002.md) | Scaffold modulo Actividades de Recaudo | pending |
-| [OB-014-D-003](./OB-014-D-003.md) | Scaffold modulo Compromisos | pending |
-| [OB-014-D-004](./OB-014-D-004.md) | Scaffold modulo Aportes Reales | pending |
-| [OB-014-D-005](./OB-014-D-005.md) | Scaffold modulo PQR | pending |
-| [OB-014-D-006](./OB-014-D-006.md) | Scaffold modulo Estados de Cuenta | pending |
-| [OB-014-D-007](./OB-014-D-007.md) | Scaffold modulo Reportes | pending |
-| [OB-014-D-008](./OB-014-D-008.md) | Scaffold modulo Copropiedades y Apartamentos | pending |
-| [OB-014-D-009](./OB-014-D-009.md) | Scaffold modulo Usuarios y Perfiles | pending |
-| [OB-014-D-010](./OB-014-D-010.md) | Scaffold modulo Auditoria | pending |
-| [OB-014-D-011](./OB-014-D-011.md) | Scaffold modulo Notificaciones | pending |
-| [OB-014-D-012](./OB-014-D-012.md) | Crear componentes compartidos de permisos | pending |
+| [OB-014-D-001](./OB-014-D-001.md) | Scaffold modulo Objetivos de Recaudo | done |
+| [OB-014-D-002](./OB-014-D-002.md) | Scaffold modulo Actividades de Recaudo | done |
+| [OB-014-D-003](./OB-014-D-003.md) | Scaffold modulo Compromisos | done |
+| [OB-014-D-004](./OB-014-D-004.md) | Scaffold modulo Aportes Reales | done |
+| [OB-014-D-005](./OB-014-D-005.md) | Scaffold modulo PQR | done |
+| [OB-014-D-006](./OB-014-D-006.md) | Scaffold modulo Estados de Cuenta | done |
+| [OB-014-D-007](./OB-014-D-007.md) | Scaffold modulo Reportes | done |
+| [OB-014-D-008](./OB-014-D-008.md) | Scaffold modulo Copropiedades y Apartamentos | done |
+| [OB-014-D-009](./OB-014-D-009.md) | Scaffold modulo Usuarios y Perfiles | done |
+| [OB-014-D-010](./OB-014-D-010.md) | Scaffold modulo Auditoria | done |
+| [OB-014-D-011](./OB-014-D-011.md) | Scaffold modulo Notificaciones | done |
+| [OB-014-D-012](./OB-014-D-012.md) | Crear componentes compartidos de permisos | done |
 
 ## Criterios de Aceptacion
 
-- [ ] Cada modulo tiene su estructura de carpetas creada
-- [ ] Todas las paginas verifican permisos antes de renderizar
-- [ ] Paginas placeholder indican claramente que implementar
-- [ ] Types basicos definidos para cada modulo
-- [ ] Navegacion ya conectada a cada modulo
-- [ ] Build pasa sin errores
+- [x] Cada modulo tiene su estructura de carpetas creada
+- [x] Todas las paginas verifican permisos antes de renderizar
+- [x] Paginas placeholder indican claramente que implementar
+- [x] Types basicos definidos para cada modulo
+- [x] Navegacion ya conectada a cada modulo
+- [x] Build pasa sin errores
 
 ## Modulos a Crear
 
-### 1. Objetivos de Recaudo (OB-004)
+### 1. Fundraising Goals (OB-004)
 ```
-(dashboard)/objetivos/
-├── page.tsx                    # Lista objetivos - requireModule('objetivos')
-├── nuevo/page.tsx              # Crear objetivo - requirePermission('objetivos:create')
-├── [id]/
-│   ├── page.tsx                # Detalle objetivo - requirePermission('objetivos:read')
-│   ├── editar/page.tsx         # Editar objetivo - requirePermission('objetivos:update')
-│   └── estados/page.tsx        # Gestionar estados - requirePermission('objetivos:manage')
-└── _components/                # Componentes locales del modulo
-```
-
-### 2. Actividades de Recaudo (OB-005)
-```
-(dashboard)/actividades/
-├── page.tsx                    # Lista actividades - requireModule('actividades')
-├── nueva/page.tsx              # Crear actividad - requirePermission('actividades:create')
-├── [id]/
-│   ├── page.tsx                # Detalle actividad
-│   ├── editar/page.tsx         # Editar actividad
-│   └── metas/page.tsx          # Configurar metas
-└── _components/
+(dashboard)/goals/
+├── page.tsx                    # List goals - requireModule('objetivos')
+├── new/page.tsx                # Create goal - requirePermission('objetivos:create')
+└── [id]/
+    ├── page.tsx                # Goal detail - requirePermission('objetivos:read')
+    ├── edit/page.tsx           # Edit goal - requirePermission('objetivos:update')
+    └── states/page.tsx         # Manage states - requirePermission('objetivos:manage')
 ```
 
-### 3. Compromisos (OB-006)
+### 2. Fundraising Activities (OB-005)
 ```
-(dashboard)/compromisos/
-├── page.tsx                    # Lista compromisos - requireModule('compromisos')
-├── nuevo/page.tsx              # Crear compromiso - requirePermission('compromisos:create')
-├── [id]/
-│   ├── page.tsx                # Detalle compromiso
-│   └── aportes/page.tsx        # Ver aportes asociados
-└── _components/
+(dashboard)/activities/
+├── page.tsx                    # List activities - requireModule('actividades')
+├── new/page.tsx                # Create activity - requirePermission('actividades:create')
+└── [id]/
+    ├── page.tsx                # Activity detail
+    ├── edit/page.tsx           # Edit activity
+    └── targets/page.tsx        # Configure targets
 ```
 
-### 4. Aportes Reales (OB-007)
+### 3. Commitments (OB-006)
 ```
-(dashboard)/aportes/
-├── page.tsx                    # Lista aportes - requireModule('aportes')
-├── registrar/page.tsx          # Registrar aporte - requirePermission('aportes:create')
-├── [id]/
-│   ├── page.tsx                # Detalle aporte
-│   └── anular/page.tsx         # Anular aporte - requirePermission('aportes:manage')
-└── _components/
+(dashboard)/commitments/
+├── page.tsx                    # List commitments - requireModule('compromisos')
+├── new/page.tsx                # Create commitment - requirePermission('compromisos:create')
+└── [id]/
+    ├── page.tsx                # Commitment detail
+    └── contributions/page.tsx  # View associated contributions
+```
+
+### 4. Contributions (OB-007)
+```
+(dashboard)/contributions/
+├── page.tsx                    # List contributions - requireModule('aportes')
+├── register/page.tsx           # Register contribution - requirePermission('aportes:create')
+└── [id]/
+    ├── page.tsx                # Contribution detail
+    └── void/page.tsx           # Void contribution - requirePermission('aportes:manage')
 ```
 
 ### 5. PQR (OB-010)
 ```
 (dashboard)/pqr/
-├── page.tsx                    # Mis PQR - requireModule('pqr')
-├── nuevo/page.tsx              # Crear PQR - requirePermission('pqr:create')
-├── gestionar/page.tsx          # Gestionar PQR - requirePermission('pqr:manage')
-├── [numero]/
-│   ├── page.tsx                # Detalle PQR
-│   └── responder/page.tsx      # Responder PQR - requirePermission('pqr:manage')
-└── _components/
+├── page.tsx                    # My PQRs - requireModule('pqr')
+├── new/page.tsx                # Create PQR - requirePermission('pqr:create')
+├── manage/page.tsx             # Manage PQRs - requirePermission('pqr:manage')
+└── [number]/
+    ├── page.tsx                # PQR detail
+    └── respond/page.tsx        # Respond to PQR - requirePermission('pqr:manage')
 ```
 
-### 6. Estados de Cuenta (OB-011)
+### 6. Account Statements (OB-011)
 ```
-(dashboard)/estados-cuenta/
-├── page.tsx                    # Mi estado de cuenta - requireModule('estados_cuenta')
-├── configuracion/page.tsx      # Privacidad publica/privada
-├── publicos/page.tsx           # Ver estados publicos (si soy publico)
-└── _components/
-```
-
-### 7. Reportes (OB-009)
-```
-(dashboard)/reportes/
-├── page.tsx                    # Centro de reportes - requireModule('reportes')
-├── aportes/page.tsx            # Reporte de aportes - requirePermission('reportes:read')
-├── compromisos/page.tsx        # Reporte de compromisos
-├── avance/page.tsx             # Reporte de avance
-├── exportar/page.tsx           # Exportar datos - requirePermission('reportes:export')
-└── _components/
+(dashboard)/account-statements/
+├── page.tsx                    # My account statement - requireModule('estados_cuenta')
+├── settings/page.tsx           # Public/private privacy settings
+└── public/page.tsx             # View public statements (if I'm public)
 ```
 
-### 8. Copropiedades y Apartamentos (OB-003)
+### 7. Reports (OB-009)
 ```
-(dashboard)/copropiedades/
-├── page.tsx                    # Lista copropiedades - requireModule('copropiedades')
-├── [id]/
-│   ├── page.tsx                # Detalle copropiedad
-│   └── apartamentos/page.tsx   # Apartamentos de la copropiedad
-└── _components/
-
-(dashboard)/apartamentos/
-├── page.tsx                    # Lista apartamentos - requireModule('apartamentos')
-├── nuevo/page.tsx              # Crear apartamento - requirePermission('apartamentos:create')
-├── [id]/
-│   ├── page.tsx                # Detalle apartamento
-│   └── residentes/page.tsx     # Residentes asignados
-└── _components/
+(dashboard)/reports/
+├── page.tsx                    # Reports center - requireModule('reportes')
+├── contributions/page.tsx      # Contributions report - requirePermission('reportes:read')
+├── commitments/page.tsx        # Commitments report
+├── progress/page.tsx           # Progress report
+└── export/page.tsx             # Export data - requirePermission('reportes:export')
 ```
 
-### 9. Usuarios y Perfiles (OB-002)
+### 8. Properties and Apartments (OB-003)
 ```
-(dashboard)/usuarios/
-├── page.tsx                    # Lista usuarios - requireModule('users')
-├── [id]/
-│   ├── page.tsx                # Detalle usuario
-│   ├── permisos/page.tsx       # Gestionar permisos - requireSuperAdmin()
-│   └── privacidad/page.tsx     # Cambiar privacidad - requirePermission('users:manage')
-└── _components/
+(dashboard)/properties/
+├── page.tsx                    # List properties - requireModule('copropiedades')
+└── [id]/
+    ├── page.tsx                # Property detail
+    └── apartments/page.tsx     # Property apartments
 
-(dashboard)/perfil/
-├── page.tsx                    # Mi perfil (siempre accesible)
-├── editar/page.tsx             # Editar mi perfil
-└── notificaciones/page.tsx     # Preferencias de notificacion
-```
-
-### 10. Auditoria (OB-012)
-```
-(dashboard)/auditoria/
-├── page.tsx                    # Logs de auditoria - requireModule('auditoria')
-├── [recurso]/
-│   └── [id]/page.tsx           # Historial de un recurso
-└── _components/
+(dashboard)/apartments/
+├── page.tsx                    # List apartments - requireModule('apartamentos')
+├── new/page.tsx                # Create apartment - requirePermission('apartamentos:create')
+└── [id]/
+    ├── page.tsx                # Apartment detail
+    └── residents/page.tsx      # Assigned residents
 ```
 
-### 11. Notificaciones (OB-013)
+### 9. Users and Profiles (OB-002)
 ```
-(dashboard)/notificaciones/
-├── page.tsx                    # Centro de notificaciones - requireModule('notificaciones')
-├── preferencias/page.tsx       # Configurar preferencias
-└── _components/
+(dashboard)/users/
+├── page.tsx                    # List users - requireModule('users')
+└── [id]/
+    ├── page.tsx                # User detail
+    ├── permissions/page.tsx    # Manage permissions - requireSuperAdmin()
+    └── privacy/page.tsx        # Change privacy - requirePermission('users:manage')
+
+(dashboard)/profile/
+├── page.tsx                    # My profile (always accessible)
+├── edit/page.tsx               # Edit my profile
+└── notifications/page.tsx      # Notification preferences
 ```
 
-### 12. Administracion (Solo SuperAdmin)
+### 10. Audit (OB-012)
+```
+(dashboard)/audit/
+├── page.tsx                    # Audit logs - requireModule('auditoria')
+└── [resource]/
+    └── [id]/page.tsx           # Resource history
+```
+
+### 11. Notifications (OB-013)
+```
+(dashboard)/notifications/
+├── page.tsx                    # Notifications center - requireModule('notificaciones')
+└── preferences/page.tsx        # Configure preferences
+```
+
+### 12. Administration (SuperAdmin Only)
 ```
 (dashboard)/admin/
-├── page.tsx                    # Panel admin - requireSuperAdmin()
-├── pools/page.tsx              # Pools de usuarios
-├── permisos/page.tsx           # Gestion de permisos
-├── modulos/page.tsx            # Modulos del sistema
-└── _components/
+├── page.tsx                    # Admin panel - requireSuperAdmin()
+├── pools/page.tsx              # User pools
+├── permissions/page.tsx        # Permission management
+└── modules/page.tsx            # System modules
 ```
 
 ## Estructura de Pagina Placeholder
@@ -256,7 +243,7 @@ export default async function CrearObjetivoPage() {
 ## Notas Tecnicas
 
 - Usar `requireModule()` y `requirePermission()` de lib/permissions.server.ts
-- Cada modulo tiene su carpeta `_components/` para componentes locales
+- **IMPORTANTE**: Todos los componentes deben estar en `src/components/`, NO usar carpetas `_components/` locales
 - Las paginas son Server Components por defecto
 - Los placeholders indican claramente que epic implementa cada funcionalidad
 - El build debe pasar sin errores despues de crear el scaffolding

@@ -38,55 +38,55 @@ export const NAV_CONFIG: NavItem[] = [
     module: null,
   },
 
-  // Objetivos module
+  // Goals module (Objetivos)
   {
-    path: '/objetivos',
+    path: '/goals',
     label: 'Objetivos',
     icon: 'Target',
     module: 'objetivos',
     children: [
-      { path: '/objetivos', label: 'Ver todos', icon: 'List', permission: 'objetivos:read' },
-      { path: '/objetivos/nuevo', label: 'Crear', icon: 'Plus', permission: 'objetivos:create' },
+      { path: '/goals', label: 'Ver todos', icon: 'List', permission: 'objetivos:read' },
+      { path: '/goals/new', label: 'Crear', icon: 'Plus', permission: 'objetivos:create' },
     ],
   },
 
-  // Actividades module
+  // Activities module (Actividades)
   {
-    path: '/actividades',
+    path: '/activities',
     label: 'Actividades',
     icon: 'Calendar',
     module: 'actividades',
     children: [
-      { path: '/actividades', label: 'Ver todas', icon: 'List', permission: 'actividades:read' },
-      { path: '/actividades/nuevo', label: 'Crear', icon: 'Plus', permission: 'actividades:create' },
+      { path: '/activities', label: 'Ver todas', icon: 'List', permission: 'actividades:read' },
+      { path: '/activities/new', label: 'Crear', icon: 'Plus', permission: 'actividades:create' },
     ],
   },
 
-  // Compromisos module
+  // Commitments module (Compromisos)
   {
-    path: '/compromisos',
+    path: '/commitments',
     label: 'Compromisos',
     icon: 'Handshake',
     module: 'compromisos',
     children: [
-      { path: '/compromisos', label: 'Ver todos', icon: 'List', permission: 'compromisos:read' },
-      { path: '/compromisos/nuevo', label: 'Crear', icon: 'Plus', permission: 'compromisos:create' },
+      { path: '/commitments', label: 'Ver todos', icon: 'List', permission: 'compromisos:read' },
+      { path: '/commitments/new', label: 'Crear', icon: 'Plus', permission: 'compromisos:create' },
     ],
   },
 
-  // Aportes module
+  // Contributions module (Aportes)
   {
-    path: '/aportes',
+    path: '/contributions',
     label: 'Aportes',
     icon: 'Banknote',
     module: 'aportes',
     children: [
-      { path: '/aportes', label: 'Ver todos', icon: 'List', permission: 'aportes:read' },
-      { path: '/aportes/registrar', label: 'Registrar', icon: 'Plus', permission: 'aportes:create' },
+      { path: '/contributions', label: 'Ver todos', icon: 'List', permission: 'aportes:read' },
+      { path: '/contributions/register', label: 'Registrar', icon: 'Plus', permission: 'aportes:create' },
     ],
   },
 
-  // PQR module
+  // PQR module (kept as acronym - Peticiones, Quejas, Reclamos)
   {
     path: '/pqr',
     label: 'PQR',
@@ -94,76 +94,76 @@ export const NAV_CONFIG: NavItem[] = [
     module: 'pqr',
     children: [
       { path: '/pqr', label: 'Mis PQR', icon: 'List', permission: 'pqr:read' },
-      { path: '/pqr/nuevo', label: 'Nueva solicitud', icon: 'Plus', permission: 'pqr:create' },
-      { path: '/pqr/gestionar', label: 'Gestionar', icon: 'Settings', permission: 'pqr:manage' },
+      { path: '/pqr/new', label: 'Nueva solicitud', icon: 'Plus', permission: 'pqr:create' },
+      { path: '/pqr/manage', label: 'Gestionar', icon: 'Settings', permission: 'pqr:manage' },
     ],
   },
 
-  // Reportes module
+  // Reports module (Reportes)
   {
-    path: '/reportes',
+    path: '/reports',
     label: 'Reportes',
     icon: 'BarChart3',
     module: 'reportes',
     children: [
-      { path: '/reportes', label: 'Ver reportes', icon: 'FileText', permission: 'reportes:read' },
-      { path: '/reportes/exportar', label: 'Exportar', icon: 'Download', permission: 'reportes:export' },
+      { path: '/reports', label: 'Ver reportes', icon: 'FileText', permission: 'reportes:read' },
+      { path: '/reports/export', label: 'Exportar', icon: 'Download', permission: 'reportes:export' },
     ],
   },
 
-  // Users module
+  // Users module (Usuarios)
   {
-    path: '/usuarios',
+    path: '/users',
     label: 'Usuarios',
     icon: 'Users',
     module: 'users',
     children: [
-      { path: '/usuarios', label: 'Ver usuarios', icon: 'List', permission: 'users:read' },
+      { path: '/users', label: 'Ver usuarios', icon: 'List', permission: 'users:read' },
     ],
   },
 
-  // Copropiedades module
+  // Properties module (Copropiedades)
   {
-    path: '/copropiedades',
+    path: '/properties',
     label: 'Copropiedades',
     icon: 'Building2',
     module: 'copropiedades',
     children: [
-      { path: '/copropiedades', label: 'Ver todas', icon: 'List', permission: 'copropiedades:read' },
+      { path: '/properties', label: 'Ver todas', icon: 'List', permission: 'copropiedades:read' },
     ],
   },
 
-  // Apartamentos module
+  // Apartments module (Apartamentos)
   {
-    path: '/apartamentos',
+    path: '/apartments',
     label: 'Apartamentos',
     icon: 'DoorOpen',
     module: 'apartamentos',
     children: [
-      { path: '/apartamentos', label: 'Ver todos', icon: 'List', permission: 'apartamentos:read' },
-      { path: '/apartamentos/nuevo', label: 'Crear', icon: 'Plus', permission: 'apartamentos:create' },
+      { path: '/apartments', label: 'Ver todos', icon: 'List', permission: 'apartamentos:read' },
+      { path: '/apartments/new', label: 'Crear', icon: 'Plus', permission: 'apartamentos:create' },
     ],
   },
 
-  // Auditoria module
+  // Audit module (Auditoria)
   {
-    path: '/auditoria',
+    path: '/audit',
     label: 'Auditoria',
     icon: 'ClipboardList',
     module: 'auditoria',
   },
 
-  // Notificaciones module
+  // Notifications module (Notificaciones)
   {
-    path: '/notificaciones',
+    path: '/notifications',
     label: 'Notificaciones',
     icon: 'Bell',
     module: 'notificaciones',
   },
 
-  // Configuracion module
+  // Settings module (Configuracion)
   {
-    path: '/configuracion',
+    path: '/settings',
     label: 'Configuracion',
     icon: 'Settings',
     module: 'configuracion',
@@ -177,8 +177,8 @@ export const NAV_CONFIG: NavItem[] = [
     superAdminOnly: true,
     children: [
       { path: '/admin/pools', label: 'Pools de Usuarios', icon: 'Users' },
-      { path: '/admin/permisos', label: 'Gestion de Permisos', icon: 'Key' },
-      { path: '/admin/modulos', label: 'Modulos del Sistema', icon: 'Boxes' },
+      { path: '/admin/permissions', label: 'Gestion de Permisos', icon: 'Key' },
+      { path: '/admin/modules', label: 'Modulos del Sistema', icon: 'Boxes' },
     ],
   },
 ];
