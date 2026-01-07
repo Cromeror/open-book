@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { getServerPermissions } from '@/lib/permissions.server';
-import type { ModuleCode, PermissionContext, PermissionString } from '@/lib/types';
+import type { PermissionContext } from '@/lib/types';
 
 import { AccessDenied } from './AccessDenied';
 
@@ -15,8 +15,8 @@ interface BaseProps {
 
 type PermissionGateProps = BaseProps &
   (
-    | { type: 'permission'; permission: PermissionString | string; context?: PermissionContext }
-    | { type: 'module'; module: ModuleCode | string }
+    | { type: 'permission'; permission: string; context?: PermissionContext }
+    | { type: 'module'; module: string }
     | { type: 'superAdmin' }
   );
 

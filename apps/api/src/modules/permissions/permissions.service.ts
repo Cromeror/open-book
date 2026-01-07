@@ -15,6 +15,7 @@ import {
   PoolPermission,
 } from './entities';
 import { PermissionsCacheService } from './permissions-cache.service';
+import type { ModuleWithActions, ModuleAction } from './types/module-actions.types';
 
 /**
  * Service for checking user permissions
@@ -402,5 +403,117 @@ export class PermissionsService {
     }
 
     return Array.from(permissionMap.values());
+  }
+
+  /**
+   * Get all modules with segregated actions for a user
+   *
+   * Returns modules the user has access to, with only the actions
+   * they have permission for. Action code = Permission code.
+   *
+   * @param userId - User ID
+   * @returns Array of modules with their allowed actions
+   */
+  async getModulesWithActionsForUser(userId: string): Promise<ModuleWithActions[]> {
+    const isSuperAdmin = await this.isSuperAdmin(userId);
+
+    if (isSuperAdmin) {
+      // SuperAdmin gets all modules with all actions
+      return this.getAllModulesWithAllActions();
+    }
+
+    // Get user's module codes
+    const moduleCodes = await this.getUserModuleCodes(userId);
+
+    if (moduleCodes.length === 0) {
+      return [];
+    }
+
+    // Get full module data for accessible modules
+    const modules = await this.moduleRepo.find({
+      where: moduleCodes.map((code) => ({ code, isActive: true })),
+      order: { order: 'ASC' },
+    });
+
+    // Build response with segregated actions
+    const result: ModuleWithActions[] = [];
+
+    for (const module of modules) {
+      // Get user's permissions for this module
+      const userPermissions = await this.getUserModulePermissions(userId, module.code);
+      const permissionCodes = new Set(userPermissions.map((p) => p.code));
+
+      // Filter actions based on permissions
+      const allActions = (module.actionsConfig || []) as ModuleAction[];
+      const allowedActions = allActions.filter((action) =>
+        permissionCodes.has(action.code),
+      );
+
+      // Skip module if user has no allowed actions
+      if (allowedActions.length === 0) {
+        continue;
+      }
+
+      const moduleWithActions: ModuleWithActions = {
+        code: module.code,
+        label: module.name,
+        description: module.description || '',
+        icon: module.icon || 'FileText',
+        type: module.type as 'crud' | 'specialized',
+        nav: module.navConfig || { path: `/m/${module.code}`, order: module.order },
+        actions: allowedActions,
+      };
+
+      // Add CRUD-specific fields
+      if (module.type === 'crud') {
+        moduleWithActions.entity = module.entity;
+        moduleWithActions.endpoint = module.endpoint;
+      }
+
+      // Add specialized-specific fields
+      if (module.type === 'specialized') {
+        moduleWithActions.component = module.component;
+      }
+
+      result.push(moduleWithActions);
+    }
+
+    // Sort by nav order
+    result.sort((a, b) => a.nav.order - b.nav.order);
+
+    return result;
+  }
+
+  /**
+   * Get all modules with all actions (for SuperAdmin)
+   */
+  private async getAllModulesWithAllActions(): Promise<ModuleWithActions[]> {
+    const modules = await this.moduleRepo.find({
+      where: { isActive: true },
+      order: { order: 'ASC' },
+    });
+
+    return modules.map((module) => {
+      const moduleWithActions: ModuleWithActions = {
+        code: module.code,
+        label: module.name,
+        description: module.description || '',
+        icon: module.icon || 'FileText',
+        type: module.type as 'crud' | 'specialized',
+        nav: module.navConfig || { path: `/m/${module.code}`, order: module.order },
+        actions: (module.actionsConfig || []) as ModuleAction[],
+      };
+
+      if (module.type === 'crud') {
+        moduleWithActions.entity = module.entity;
+        moduleWithActions.endpoint = module.endpoint;
+      }
+
+      if (module.type === 'specialized') {
+        moduleWithActions.component = module.component;
+      }
+
+      return moduleWithActions;
+    });
   }
 }

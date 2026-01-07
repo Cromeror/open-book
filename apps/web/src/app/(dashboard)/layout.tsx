@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 
 import { DashboardShell } from '@/components/layout';
-import { filterNavItems, getUserForHeader } from '@/lib/nav-filter.server';
+import { ModuleRegistryProvider } from '@/lib/module-registry.context';
+import { getNavFromModules, getModulesForContext, getUserForHeader } from '@/lib/nav-filter.server';
 import { getServerPermissions } from '@/lib/permissions.server';
 
 export default async function DashboardLayout({
@@ -16,19 +17,27 @@ export default async function DashboardLayout({
     redirect('/login');
   }
 
-  // Filter navigation items based on user permissions
-  const navItems = filterNavItems(permissions);
+  // Generate navigation items from user's modules
+  const navItems = getNavFromModules(permissions);
+
+  // Get modules for client-side context
+  const modules = getModulesForContext(permissions);
 
   // Get user data for header
   const user = getUserForHeader(permissions);
 
   return (
-    <DashboardShell
-      user={user}
-      navItems={navItems}
-      isSuperAdmin={permissions.isSuperAdmin}
+    <ModuleRegistryProvider
+      initialModules={modules}
+      initialIsSuperAdmin={permissions.isSuperAdmin}
     >
-      {children}
-    </DashboardShell>
+      <DashboardShell
+        user={user}
+        navItems={navItems}
+        isSuperAdmin={permissions.isSuperAdmin}
+      >
+        {children}
+      </DashboardShell>
+    </ModuleRegistryProvider>
   );
 }

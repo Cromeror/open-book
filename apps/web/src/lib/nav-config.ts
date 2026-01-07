@@ -1,9 +1,10 @@
 /**
  * Navigation configuration for the application
  * Items are filtered based on user permissions
+ *
+ * NOTE: This static configuration is being replaced by dynamic navigation
+ * from /api/auth/me modules. See OB-014-E-004 for details.
  */
-
-import type { ModuleCode } from './types';
 
 /**
  * Navigation item structure
@@ -15,9 +16,9 @@ export interface NavItem {
   label: string;
   /** Icon name (lucide-react icon) */
   icon: string;
-  /** Module required to see this item (null = always visible) */
-  module?: ModuleCode | null;
-  /** Permission required to see this item */
+  /** Module code required to see this item (null = always visible) */
+  module?: string | null;
+  /** Permission required to see this item (format: "module:action") */
   permission?: string;
   /** Only visible for SuperAdmin */
   superAdminOnly?: boolean;

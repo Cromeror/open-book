@@ -1,35 +1,15 @@
 /**
- * Permission types shared between frontend components
- * These mirror the backend types from OB-002-C
+ * Permission and module types for the frontend
+ *
+ * Re-exports types from ./types/modules.ts and provides
+ * utility functions for runtime permission checks.
  */
 
-/**
- * Available modules in the system
- */
-export type ModuleCode =
-  | 'users'
-  | 'copropiedades'
-  | 'apartamentos'
-  | 'objetivos'
-  | 'actividades'
-  | 'compromisos'
-  | 'aportes'
-  | 'pqr'
-  | 'reportes'
-  | 'auditoria'
-  | 'notificaciones'
-  | 'configuracion';
+// Re-export all module types
+export * from './types/modules';
 
-/**
- * Available actions for permissions
- */
-export type PermissionAction =
-  | 'create'
-  | 'read'
-  | 'update'
-  | 'delete'
-  | 'export'
-  | 'manage';
+// Import for local use
+import type { ModuleWithActions } from './types/modules';
 
 /**
  * Scope of a permission
@@ -40,31 +20,6 @@ export type PermissionAction =
 export type PermissionScope = 'own' | 'copropiedad' | 'all';
 
 /**
- * A single permission entry
- */
-export interface UserPermission {
-  module: ModuleCode;
-  action: PermissionAction;
-  scope: PermissionScope;
-  scopeId?: string;
-}
-
-/**
- * Response from GET /api/auth/me
- */
-export interface AuthMeResponse {
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    isSuperAdmin: boolean;
-  };
-  modules: ModuleCode[];
-  permissions: UserPermission[];
-}
-
-/**
  * Context for permission checks (e.g., copropiedad scope)
  */
 export interface PermissionContext {
@@ -72,7 +27,43 @@ export interface PermissionContext {
   resourceOwnerId?: string;
 }
 
+// ============================================
+// Runtime Validation Helpers
+// ============================================
+
 /**
- * Permission string format: module:action
+ * Check if user has access to a module
+ * Runtime validation using generic strings
  */
-export type PermissionString = `${ModuleCode}:${PermissionAction}`;
+export function hasModule(
+  modules: ModuleWithActions[],
+  moduleCode: string
+): boolean {
+  return modules.some((m) => m.code === moduleCode);
+}
+
+/**
+ * Check if user has a specific action in a module
+ * Action code = Permission code
+ */
+export function hasAction(
+  modules: ModuleWithActions[],
+  moduleCode: string,
+  actionCode: string
+): boolean {
+  const module = modules.find((m) => m.code === moduleCode);
+  return module?.actions.some((a) => a.code === actionCode) ?? false;
+}
+
+/**
+ * Get action settings with type casting
+ */
+export function getActionSettings<T>(
+  modules: ModuleWithActions[],
+  moduleCode: string,
+  actionCode: string
+): T | undefined {
+  const module = modules.find((m) => m.code === moduleCode);
+  const action = module?.actions.find((a) => a.code === actionCode);
+  return action?.settings as T | undefined;
+}

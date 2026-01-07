@@ -7,10 +7,8 @@ import { publicEnv } from '@/config/env';
 
 import type {
   AuthMeResponse,
-  ModuleCode,
+  ModuleWithActions,
   PermissionContext,
-  PermissionString,
-  UserPermission,
 } from './types';
 
 /**
@@ -26,33 +24,40 @@ export interface AuthUser {
 
 /**
  * Server-side permissions object returned by getServerPermissions()
+ *
+ * Now uses ModuleWithActions from /api/auth/me
+ * Action code = Permission code
  */
 export interface ServerPermissions {
   userId: string | null;
   user: AuthUser | null;
   isSuperAdmin: boolean;
   isAuthenticated: boolean;
-  modules: ModuleCode[];
-  permissions: UserPermission[];
+  /** User's modules with their allowed actions */
+  modules: ModuleWithActions[];
 
   /**
    * Check if user has access to a module
    */
-  hasModule: (module: ModuleCode | string) => boolean;
+  hasModule: (moduleCode: string) => boolean;
 
   /**
-   * Check if user has a specific permission
+   * Check if user has a specific action in a module
+   * Action code = Permission code
    * Format: "module:action" (e.g., "objetivos:create")
    */
-  can: (permission: PermissionString | string, context?: PermissionContext) => boolean;
+  can: (permission: string, context?: PermissionContext) => boolean;
 
   /**
-   * Check if user has permission within a specific scope
+   * Check if user has a specific action in a module
+   * Alternative API using separate parameters
    */
-  canInScope: (
-    permission: PermissionString | string,
-    scopeId: string
-  ) => boolean;
+  hasAction: (moduleCode: string, actionCode: string) => boolean;
+
+  /**
+   * Get a module's metadata
+   */
+  getModule: (moduleCode: string) => ModuleWithActions | undefined;
 }
 
 /**
@@ -65,27 +70,30 @@ function createEmptyPermissions(): ServerPermissions {
     isSuperAdmin: false,
     isAuthenticated: false,
     modules: [],
-    permissions: [],
     hasModule: () => false,
     can: () => false,
-    canInScope: () => false,
+    hasAction: () => false,
+    getModule: () => undefined,
   };
 }
 
 /**
  * Create permissions object for SuperAdmin
  */
-function createSuperAdminPermissions(user: AuthUser): ServerPermissions {
+function createSuperAdminPermissions(
+  user: AuthUser,
+  modules: ModuleWithActions[]
+): ServerPermissions {
   return {
     userId: user.id,
     user,
     isSuperAdmin: true,
     isAuthenticated: true,
-    modules: [], // SuperAdmin doesn't need explicit modules
-    permissions: [], // SuperAdmin doesn't need explicit permissions
+    modules, // SuperAdmin gets all modules with all actions
     hasModule: () => true, // SuperAdmin has access to all modules
     can: () => true, // SuperAdmin can do everything
-    canInScope: () => true, // SuperAdmin can do everything in any scope
+    hasAction: () => true, // SuperAdmin has all actions
+    getModule: (code) => modules.find((m) => m.code === code),
   };
 }
 
@@ -94,89 +102,42 @@ function createSuperAdminPermissions(user: AuthUser): ServerPermissions {
  */
 function createUserPermissions(
   user: AuthUser,
-  modules: ModuleCode[],
-  permissions: UserPermission[]
+  modules: ModuleWithActions[]
 ): ServerPermissions {
-  const userId = user.id;
-
   return {
-    userId,
+    userId: user.id,
     user,
     isSuperAdmin: false,
     isAuthenticated: true,
     modules,
-    permissions,
 
-    hasModule: (module: ModuleCode | string) => {
-      return modules.includes(module as ModuleCode);
+    hasModule: (moduleCode: string) => {
+      return modules.some((m) => m.code === moduleCode);
     },
 
-    can: (permission: PermissionString | string, context?: PermissionContext) => {
-      const [module, action] = permission.split(':');
+    can: (permission: string, context?: PermissionContext) => {
+      const [moduleCode, actionCode] = permission.split(':');
 
-      // Must have access to the module first
-      if (!modules.includes(module as ModuleCode)) {
+      if (!moduleCode || !actionCode) {
         return false;
       }
 
-      // Find matching permission
-      const perm = permissions.find(
-        (p) => p.module === module && p.action === action
-      );
-
-      if (!perm) {
+      // Find the module
+      const module = modules.find((m) => m.code === moduleCode);
+      if (!module) {
         return false;
       }
 
-      // If no context needed, just check if permission exists
-      if (!context) {
-        return true;
-      }
-
-      // Check scope-based permissions
-      if (perm.scope === 'all') {
-        return true;
-      }
-
-      if (perm.scope === 'copropiedad' && context.copropiedadId) {
-        return perm.scopeId === context.copropiedadId;
-      }
-
-      if (perm.scope === 'own' && context.resourceOwnerId) {
-        return context.resourceOwnerId === userId;
-      }
-
-      return false;
+      // Check if user has the action
+      return module.actions.some((a) => a.code === actionCode);
     },
 
-    canInScope: (permission: PermissionString | string, scopeId: string) => {
-      const [module, action] = permission.split(':');
-
-      // Must have access to the module first
-      if (!modules.includes(module as ModuleCode)) {
-        return false;
-      }
-
-      // Find matching permission
-      const perm = permissions.find(
-        (p) => p.module === module && p.action === action
-      );
-
-      if (!perm) {
-        return false;
-      }
-
-      // Check scope
-      if (perm.scope === 'all') {
-        return true;
-      }
-
-      if (perm.scope === 'copropiedad') {
-        return perm.scopeId === scopeId;
-      }
-
-      return false;
+    hasAction: (moduleCode: string, actionCode: string) => {
+      const module = modules.find((m) => m.code === moduleCode);
+      return module?.actions.some((a) => a.code === actionCode) ?? false;
     },
+
+    getModule: (code) => modules.find((m) => m.code === code),
   };
 }
 
@@ -259,17 +220,13 @@ export async function getServerPermissions(): Promise<ServerPermissions> {
     isSuperAdmin: authData.user.isSuperAdmin,
   };
 
-  // SuperAdmin bypass
+  // SuperAdmin has all modules with all actions
   if (authData.user.isSuperAdmin) {
-    return createSuperAdminPermissions(user);
+    return createSuperAdminPermissions(user, authData.modules);
   }
 
-  // Regular user with specific permissions
-  return createUserPermissions(
-    user,
-    authData.modules,
-    authData.permissions
-  );
+  // Regular user with specific modules and actions
+  return createUserPermissions(user, authData.modules);
 }
 
 /**
@@ -305,19 +262,19 @@ export async function requireAuth(): Promise<ServerPermissions> {
  * ```
  */
 export async function requireModule(
-  module: ModuleCode | string
+  moduleCode: string
 ): Promise<ServerPermissions> {
   const permissions = await requireAuth();
 
-  if (!permissions.hasModule(module)) {
-    throw new Error(`No tienes acceso al módulo: ${module}`);
+  if (!permissions.hasModule(moduleCode)) {
+    throw new Error(`No tienes acceso al módulo: ${moduleCode}`);
   }
 
   return permissions;
 }
 
 /**
- * Require a specific permission - throws error if not allowed
+ * Require a specific action/permission - throws error if not allowed
  *
  * @example
  * ```tsx
@@ -328,13 +285,37 @@ export async function requireModule(
  * ```
  */
 export async function requirePermission(
-  permission: PermissionString | string,
+  permission: string,
   context?: PermissionContext
 ): Promise<ServerPermissions> {
   const permissions = await requireAuth();
 
   if (!permissions.can(permission, context)) {
     throw new Error(`No tienes permiso para: ${permission}`);
+  }
+
+  return permissions;
+}
+
+/**
+ * Require a specific action in a module - throws error if not allowed
+ *
+ * @example
+ * ```tsx
+ * export async function createObjetivo(data: FormData) {
+ *   const permissions = await requireAction('objetivos', 'create');
+ *   // ... user definitely can create objetivos
+ * }
+ * ```
+ */
+export async function requireAction(
+  moduleCode: string,
+  actionCode: string
+): Promise<ServerPermissions> {
+  const permissions = await requireAuth();
+
+  if (!permissions.hasAction(moduleCode, actionCode)) {
+    throw new Error(`No tienes permiso para: ${moduleCode}:${actionCode}`);
   }
 
   return permissions;

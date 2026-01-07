@@ -2,16 +2,15 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
-import { ChevronDown, ChevronRight, X } from 'lucide-react';
+import { Home, Shield, X } from 'lucide-react';
 
-import type { NavItem } from '@/lib/nav-config';
+import type { NavItem } from '@/lib/types/modules';
 
 import { Icon } from './Icon';
 import { LogoutButton } from './LogoutButton';
 
 interface SidebarProps {
-  /** Navigation items filtered by permissions (from server) */
+  /** Navigation items from user modules */
   navItems: NavItem[];
   /** Whether user is SuperAdmin */
   isSuperAdmin: boolean;
@@ -23,82 +22,16 @@ interface SidebarProps {
 
 /**
  * Sidebar navigation component
- * Receives pre-filtered nav items from server based on permissions
+ * Receives navigation items derived from user's modules
  */
 export function Sidebar({ navItems, isSuperAdmin, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-
-  const toggleExpanded = (path: string) => {
-    setExpandedItems((prev) => {
-      const next = new Set(prev);
-      if (next.has(path)) {
-        next.delete(path);
-      } else {
-        next.add(path);
-      }
-      return next;
-    });
-  };
 
   const isActive = (path: string) => {
     if (path === '/dashboard') {
       return pathname === '/dashboard' || pathname === '/';
     }
     return pathname === path || pathname.startsWith(`${path}/`);
-  };
-
-  const renderNavItem = (item: NavItem, depth = 0) => {
-    const hasChildren = item.children && item.children.length > 0;
-    const isExpanded = expandedItems.has(item.path);
-    const active = isActive(item.path);
-
-    return (
-      <li key={item.path}>
-        {hasChildren ? (
-          <>
-            <button
-              onClick={() => toggleExpanded(item.path)}
-              className={`
-                w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm
-                transition-colors duration-150
-                ${active ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}
-                ${depth > 0 ? 'pl-8' : ''}
-              `}
-            >
-              <span className="flex items-center gap-3">
-                <Icon name={item.icon} className="h-5 w-5" />
-                <span>{item.label}</span>
-              </span>
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </button>
-            {isExpanded && (
-              <ul className="mt-1 space-y-1">
-                {item.children!.map((child) => renderNavItem(child, depth + 1))}
-              </ul>
-            )}
-          </>
-        ) : (
-          <Link
-            href={item.path}
-            onClick={onClose}
-            className={`
-              flex items-center gap-3 px-3 py-2 rounded-lg text-sm
-              transition-colors duration-150
-              ${active ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-100'}
-              ${depth > 0 ? 'pl-8' : ''}
-            `}
-          >
-            <Icon name={item.icon} className="h-5 w-5" />
-            <span>{item.label}</span>
-          </Link>
-        )}
-      </li>
-    );
   };
 
   return (
@@ -145,7 +78,58 @@ export function Sidebar({ navItems, isSuperAdmin, isOpen, onClose }: SidebarProp
           )}
 
           <ul className="space-y-1 flex-1">
-            {navItems.map((item) => renderNavItem(item))}
+            {/* Dashboard - always visible */}
+            <li>
+              <Link
+                href="/dashboard"
+                onClick={onClose}
+                className={`
+                  flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+                  transition-colors duration-150
+                  ${isActive('/dashboard') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-100'}
+                `}
+              >
+                <Home className="h-5 w-5" />
+                <span>Inicio</span>
+              </Link>
+            </li>
+
+            {/* Dynamic module navigation */}
+            {navItems.map((item) => (
+              <li key={item.path}>
+                <Link
+                  href={item.path}
+                  onClick={onClose}
+                  data-module={item.module}
+                  className={`
+                    flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+                    transition-colors duration-150
+                    ${isActive(item.path) ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-100'}
+                  `}
+                >
+                  <Icon name={item.icon} className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </Link>
+              </li>
+            ))}
+
+            {/* Admin section - SuperAdmin only */}
+            {isSuperAdmin && (
+              <li>
+                <Link
+                  href="/admin"
+                  onClick={onClose}
+                  className={`
+                    flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+                    transition-colors duration-150
+                    ${isActive('/admin') ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-100'}
+                  `}
+                >
+                  <Shield className="h-5 w-5" />
+                  <span>Administracion</span>
+                </Link>
+              </li>
+            )}
           </ul>
 
           {/* Logout button at bottom */}

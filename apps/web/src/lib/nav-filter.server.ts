@@ -1,52 +1,38 @@
 import 'server-only';
 
 import type { ServerPermissions } from './permissions.server';
-import type { NavItem } from './nav-config';
-import { NAV_CONFIG } from './nav-config';
+import type { NavItem, ModuleWithActions } from './types/modules';
 
 /**
- * Filter navigation items based on user permissions
- * This runs on the server to ensure navigation is secure
+ * Generate navigation items from user's modules
  *
- * @param permissions - Server permissions object
- * @returns Filtered navigation items
+ * This function creates navigation items dynamically from the modules
+ * returned by /api/auth/me. The modules are already filtered by the backend
+ * based on user permissions.
+ *
+ * @param permissions - Server permissions object containing modules
+ * @returns Navigation items derived from user's modules
  */
-export function filterNavItems(permissions: ServerPermissions): NavItem[] {
-  const filterItems = (items: NavItem[]): NavItem[] => {
-    return items
-      .filter((item) => {
-        // SuperAdmin sees everything
-        if (permissions.isSuperAdmin) {
-          return true;
-        }
+export function getNavFromModules(permissions: ServerPermissions): NavItem[] {
+  // Dashboard is always visible (handled separately in Sidebar)
+  // Modules are already filtered by backend permissions
 
-        // Items only for SuperAdmin
-        if (item.superAdminOnly) {
-          return false;
-        }
+  return permissions.modules
+    .slice()
+    .sort((a, b) => a.nav.order - b.nav.order)
+    .map((m) => ({
+      path: m.nav.path,
+      label: m.label,
+      icon: m.icon,
+      module: m.code,
+    }));
+}
 
-        // Check module access if required
-        if (item.module && !permissions.hasModule(item.module)) {
-          return false;
-        }
-
-        // Check permission if required
-        if (item.permission && !permissions.can(item.permission)) {
-          return false;
-        }
-
-        return true;
-      })
-      .map((item) => ({
-        ...item,
-        // Recursively filter children
-        children: item.children ? filterItems(item.children) : undefined,
-      }))
-      // Remove items with no visible children (if they had children)
-      .filter((item) => !item.children || item.children.length > 0);
-  };
-
-  return filterItems(NAV_CONFIG);
+/**
+ * Get user modules for the ModuleRegistry context
+ */
+export function getModulesForContext(permissions: ServerPermissions): ModuleWithActions[] {
+  return permissions.modules;
 }
 
 /**

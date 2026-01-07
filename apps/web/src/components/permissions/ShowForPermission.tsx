@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
 
 import { getServerPermissions } from '@/lib/permissions.server';
-import type { PermissionContext, PermissionString } from '@/lib/types';
+import type { PermissionContext } from '@/lib/types';
 
 interface ShowForPermissionProps {
-  permission: PermissionString | string;
+  /** Permission string in format "module:action" (e.g., "objetivos:create") */
+  permission: string;
   context?: PermissionContext;
   children: ReactNode;
   fallback?: ReactNode;

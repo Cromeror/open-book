@@ -4,6 +4,8 @@ import { User } from '../../entities/user.entity';
 import { UserResponse } from '../../types/user';
 import { comparePassword } from '../../utils/password';
 import { UsersService } from '../users/users.service';
+import { PermissionsService } from '../permissions/permissions.service';
+import type { ModuleWithActions } from '../permissions/types/module-actions.types';
 
 import { AuthLogService } from './auth-log.service';
 import { RegisterDto } from './dto/register.dto';
@@ -27,17 +29,7 @@ export interface RefreshResponse {
 }
 
 /**
- * User permission with module, action and scope
- */
-export interface UserPermission {
-  module: string;
-  action: string;
-  scope: 'own' | 'copropiedad' | 'all';
-  scopeId?: string;
-}
-
-/**
- * Auth me response with user info and permissions
+ * Auth me response with user info and modules with segregated actions
  * Used by frontend to verify authentication and load permissions
  */
 export interface AuthMeResponse {
@@ -48,8 +40,7 @@ export interface AuthMeResponse {
     lastName: string;
     isSuperAdmin: boolean;
   };
-  modules: string[];
-  permissions: UserPermission[];
+  modules: ModuleWithActions[];
 }
 
 /**
@@ -60,14 +51,19 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly tokenService: TokenService,
-    private readonly authLogService: AuthLogService
+    private readonly authLogService: AuthLogService,
+    private readonly permissionsService: PermissionsService
   ) {}
 
   /**
-   * Get current authenticated user info with permissions
+   * Get current authenticated user info with modules and segregated actions
+   *
+   * Returns user data along with modules the user has access to.
+   * Each module includes only the actions the user has permission for.
+   * Action code = Permission code (e.g., 'read', 'create', 'update', 'delete')
    *
    * @param user - Authenticated user from JWT validation
-   * @returns User data with modules and permissions
+   * @returns User data with modules and their allowed actions
    */
   async getMe(user: User): Promise<AuthMeResponse> {
     // Map user to response format
@@ -79,22 +75,14 @@ export class AuthService {
       isSuperAdmin: user.isSuperAdmin,
     };
 
-    // SuperAdmin has access to all modules - return empty permissions array
-    // (frontend will handle SuperAdmin bypass logic)
-    if (user.isSuperAdmin) {
-      return {
-        user: userResponse,
-        modules: [], // SuperAdmin doesn't need explicit modules
-        permissions: [], // SuperAdmin doesn't need explicit permissions
-      };
-    }
+    // Get modules with segregated actions for the user
+    // SuperAdmin receives all modules with all actions
+    // Regular users receive only modules they have access to with only allowed actions
+    const modules = await this.permissionsService.getModulesWithActionsForUser(user.id);
 
-    // TODO: Load actual permissions from permission system (OB-002-C)
-    // For now, return empty arrays - users have no permissions until assigned
     return {
       user: userResponse,
-      modules: [],
-      permissions: [],
+      modules,
     };
   }
 

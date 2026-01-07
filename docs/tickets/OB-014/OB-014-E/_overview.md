@@ -1,4 +1,4 @@
-# OB-014-E: Integracion completa del sistema de permisos
+# OB-014-E: Sistema de Permisos Gobernado por Backend
 
 ## Metadata
 
@@ -9,117 +9,670 @@
 | Priority | high |
 | Created | 2026-01-05 |
 | Updated | 2026-01-06 |
-| Labels | story, frontend, permissions, modulos, integration |
+| Labels | story, frontend, backend, permissions, modulos, integration |
 | Depends on | OB-014-A, OB-014-D, OB-002-C |
 
 ## User Story
 
 **Como** desarrollador del proyecto
-**Quiero** un sistema de permisos completo integrado entre frontend y backend
-**Para** garantizar que la UI refleje correctamente los permisos definidos en OB-002-C
+**Quiero** un sistema de permisos donde el backend sea la unica fuente de verdad
+**Para** evitar sincronizacion de tipos y permitir que el frontend se adapte dinamicamente
 
 ## Descripcion
 
-Esta story implementa la integracion completa del sistema de permisos por modulos entre el frontend y el backend. Sincroniza los tipos, asegura que el endpoint `/api/auth/me` retorne los permisos correctamente, y verifica que toda la UI respete los permisos.
+Esta story implementa un sistema donde:
+1. **Backend es la unica fuente de verdad** - No hay tipos hardcodeados en frontend
+2. **Modulos CRUD son genericos** - Se renderizan automaticamente segun metadatos del backend
+3. **Modulos especializados se registran** - Graficos, calculos complejos se construyen en frontend pero se registran en backend
+4. **Metadata segregada por accion** - Cada modulo entrega solo la metadata de las acciones permitidas
 
-**IMPORTANTE**: Este sistema reemplaza completamente los roles predefinidos (admin/resident):
-- **SuperAdmin**: Usuario unico con acceso total (`isSuperAdmin: true` en JWT)
-- **Modulos**: Unidades funcionales del sistema
-- **Permisos Granulares**: Acciones especificas dentro de modulos (create, read, update, delete)
-- **Scopes**: Alcance del permiso (own, copropiedad, all)
+### Principios de Diseno
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    BACKEND = FUENTE DE VERDAD                        │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐ │
+│  │  Modulos CRUD   │    │    Metadatos    │    │   Permisos      │ │
+│  │  (Genericos)    │    │   de Modulos    │    │   de Usuario    │ │
+│  └────────┬────────┘    └────────┬────────┘    └────────┬────────┘ │
+│           │                      │                      │          │
+│           └──────────────────────┴──────────────────────┘          │
+│                                  │                                  │
+│                         GET /api/auth/me                            │
+│                 (autenticado, solo datos del usuario)               │
+│                                  │                                  │
+└──────────────────────────────────┼──────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                         FRONTEND DINAMICO                            │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  1. Login obtiene modulos + metadata del usuario                    │
+│  2. Genera navegacion dinamicamente                                 │
+│  3. Renderiza modulos CRUD genericos                                │
+│  4. Carga modulos especializados bajo demanda                       │
+│                                                                      │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐ │
+│  │  GenericCRUD    │    │  ChartModule    │    │  ReportModule   │ │
+│  │  (dinamico)     │    │  (registrado)   │    │  (registrado)   │ │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘ │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
 ## Tareas
 
 | ID | Titulo | Status |
 |----|--------|--------|
-| [OB-014-E-001](./OB-014-E-001.md) | Sincronizar tipos de permisos frontend/backend | pending |
-| [OB-014-E-002](./OB-014-E-002.md) | Implementar endpoint /api/auth/me con permisos | pending |
-| [OB-014-E-003](./OB-014-E-003.md) | Crear tests de integracion de permisos | pending |
-| [OB-014-E-004](./OB-014-E-004.md) | Implementar cache de permisos en frontend | pending |
-| [OB-014-E-005](./OB-014-E-005.md) | Documentar sistema de permisos | pending |
+| [OB-014-E-001](./OB-014-E-001.md) | Extender /api/auth/me con modulos y metadata | pending |
+| [OB-014-E-002](./OB-014-E-002.md) | Implementar ModuleRegistry en frontend | pending |
+| [OB-014-E-003](./OB-014-E-003.md) | Crear componente GenericCRUDModule | pending |
+| [OB-014-E-004](./OB-014-E-004.md) | Adaptar navegacion a metadatos dinamicos | pending |
+| [OB-014-E-005](./OB-014-E-005.md) | Registrar modulos especializados | pending |
+| [OB-014-E-006](./OB-014-E-006.md) | Eliminar tipos hardcodeados del frontend | pending |
+| [OB-014-E-007](./OB-014-E-007.md) | Tests de integracion | pending |
 
 ## Criterios de Aceptacion
 
-- [ ] Tipos de permisos sincronizados entre frontend y backend
-- [ ] GET /api/auth/me retorna user, modules, permissions
-- [ ] Cache de permisos en cliente con invalidacion
-- [ ] Tests de integracion para flujo completo de permisos
-- [ ] SuperAdmin bypasea todas las verificaciones en frontend
-- [ ] Scopes (own, copropiedad, all) respetados en UI
-- [ ] Documentacion completa del sistema
+- [ ] No existen tipos de permisos hardcodeados en frontend
+- [ ] /api/auth/me retorna modulos con metadata completa (solo los autorizados)
+- [ ] Frontend genera navegacion desde respuesta de /api/auth/me
+- [ ] Modulos CRUD se renderizan con componente generico
+- [ ] Modulos especializados se registran y cargan bajo demanda
+- [ ] SuperAdmin recibe todos los modulos con todos los permisos
+- [ ] Agregar un modulo CRUD no requiere cambios en frontend
+- [ ] Metadata CRUD segregada por accion (read, create, update, delete)
+- [ ] Tests de integracion validan el flujo completo
 
-## Arquitectura de Integracion
+## Arquitectura
 
-### Flujo de Permisos
+### 1. Endpoint Consolidado /api/auth/me
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                       LOGIN FLOW                             │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  1. POST /api/auth/login                                     │
-│     └─> Retorna: { accessToken, refreshToken }              │
-│     └─> accessToken contiene: userId, isSuperAdmin          │
-│                                                              │
-│  2. GET /api/auth/me (con accessToken)                      │
-│     └─> Backend carga permisos del usuario                  │
-│     └─> Retorna:                                            │
-│         {                                                    │
-│           user: { id, email, firstName, isSuperAdmin },     │
-│           modules: ['objetivos', 'aportes', 'pqr'],         │
-│           permissions: [                                     │
-│             { module: 'objetivos', action: 'read', scope: 'copropiedad', scopeId: '...' },
-│             { module: 'objetivos', action: 'create', scope: 'copropiedad', scopeId: '...' },
-│             { module: 'aportes', action: 'read', scope: 'own' },
-│           ]                                                  │
-│         }                                                    │
-│                                                              │
-│  3. Frontend cachea permisos en PermissionsContext          │
-│                                                              │
-│  4. usePermissions() verifica acceso:                       │
-│     - hasModule('objetivos') → true                         │
-│     - can('objetivos:create', { copropiedadId }) → true     │
-│     - can('aportes:create') → false                         │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
-```
+Un solo endpoint autenticado que retorna:
+- Datos del usuario
+- Modulos a los que tiene acceso (con su metadata completa)
+- Permisos por modulo
 
-### Tipos Compartidos
+**IMPORTANTE**: La metadata CRUD se segrega por accion. Si el usuario solo tiene permiso `read`, solo recibe la metadata necesaria para leer (listColumns). Si tiene `create`, recibe los fields del formulario, etc.
 
 ```typescript
-// libs/shared/src/types/permissions.ts
-// (Compartido entre frontend y backend)
+// GET /api/auth/me (requiere autenticacion)
 
-export type ModuleCode =
-  | 'users'
-  | 'copropiedades'
-  | 'apartamentos'
-  | 'objetivos'
-  | 'actividades'
-  | 'compromisos'
-  | 'aportes'
-  | 'pqr'
-  | 'reportes'
-  | 'auditoria'
-  | 'notificaciones'
-  | 'configuracion';
-
-export type PermissionAction =
-  | 'create'
-  | 'read'
-  | 'update'
-  | 'delete'
-  | 'export'
-  | 'manage';
-
-export type PermissionScope = 'own' | 'copropiedad' | 'all';
-
-export interface UserPermission {
-  module: ModuleCode;
-  action: PermissionAction;
-  scope: PermissionScope;
-  scopeId?: string;
+interface AuthMeResponse {
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    isSuperAdmin: boolean;
+  };
+  modules: ModuleWithPermissions[];
 }
+
+interface ModuleWithPermissions {
+  code: string;                    // 'objetivos', 'aportes', etc.
+  label: string;                   // 'Objetivos de Recaudo'
+  description: string;             // 'Gestiona los objetivos...'
+  icon: string;                    // 'Target' (lucide icon)
+  type: 'crud' | 'specialized';    // Tipo de modulo
+
+  // Navegacion
+  nav: {
+    path: string;                  // '/goals'
+    order: number;                 // Orden en menu
+  };
+
+  // Config base para modulos CRUD
+  entity?: string;                 // 'Objetivo' (solo CRUD)
+  endpoint?: string;               // '/api/goals' (solo CRUD)
+
+  // Config para modulos especializados
+  component?: string;              // 'ReportsModule' (solo specialized)
+
+  // ACCIONES - Unificado para CRUD y specialized
+  // Solo se incluyen las acciones que el usuario tiene permiso
+  actions: ModuleAction[];
+}
+
+// Accion del modulo - el codigo coincide con el codigo de permiso
+interface ModuleAction {
+  code: string;                    // 'read', 'create', 'update', 'delete', 'view', 'export'
+  label: string;                   // 'Ver', 'Crear', 'Editar', 'Eliminar'
+  description?: string;            // 'Permite ver registros'
+  settings: ActionSettings;        // Tipado segun tipo de modulo
+}
+
+// ============================================
+// Settings tipados para acciones CRUD
+// ============================================
+
+type ActionSettings = CrudActionSettings | GenericActionSettings;
+
+// Settings para acciones CRUD (tipados)
+type CrudActionSettings =
+  | ReadActionSettings
+  | CreateActionSettings
+  | UpdateActionSettings
+  | DeleteActionSettings;
+
+interface ReadActionSettings {
+  type: 'read';
+  listColumns: ColumnDefinition[];
+  filters?: FilterDefinition[];
+  sortable?: string[];
+  defaultSort?: { field: string; order: 'asc' | 'desc' };
+}
+
+interface CreateActionSettings {
+  type: 'create';
+  fields: FieldDefinition[];
+  validation?: ValidationRules;
+}
+
+interface UpdateActionSettings {
+  type: 'update';
+  fields: FieldDefinition[];
+  validation?: ValidationRules;
+}
+
+interface DeleteActionSettings {
+  type: 'delete';
+  confirmation: string;            // Mensaje de confirmacion
+  soft?: boolean;                  // Soft delete?
+}
+
+// ============================================
+// Settings genericos para acciones especializadas
+// ============================================
+
+interface GenericActionSettings {
+  type: 'generic';
+  [key: string]: unknown;          // Cualquier configuracion adicional
+}
+
+// ============================================
+// Definiciones de campos y columnas
+// ============================================
+
+interface FieldDefinition {
+  name: string;                    // 'name', 'amount', etc.
+  label: string;                   // 'Nombre', 'Monto'
+  type: 'text' | 'number' | 'date' | 'select' | 'money' | 'textarea' | 'boolean';
+  required?: boolean;
+  options?: Array<{ value: string; label: string }>;  // Para select
+  min?: number;
+  max?: number;
+  placeholder?: string;
+}
+
+interface ColumnDefinition {
+  field: string;                   // 'name', 'createdAt'
+  label: string;                   // 'Nombre', 'Fecha'
+  sortable?: boolean;
+  format?: 'date' | 'money' | 'boolean';
+}
+
+interface FilterDefinition {
+  field: string;
+  label: string;
+  type: 'text' | 'select' | 'date' | 'dateRange';
+  options?: Array<{ value: string; label: string }>;
+}
+
+interface ValidationRules {
+  [field: string]: {
+    required?: boolean;
+    min?: number;
+    max?: number;
+    pattern?: string;
+    message?: string;
+  };
+}
+```
+
+### Ejemplo de Respuesta
+
+```json
+{
+  "user": {
+    "id": "user-123",
+    "email": "admin@copropiedad.com",
+    "firstName": "Juan",
+    "lastName": "Perez",
+    "isSuperAdmin": false
+  },
+  "modules": [
+    {
+      "code": "objetivos",
+      "label": "Objetivos de Recaudo",
+      "description": "Gestiona los objetivos de recaudo de la copropiedad",
+      "icon": "Target",
+      "type": "crud",
+      "nav": { "path": "/goals", "order": 10 },
+      "entity": "Objetivo",
+      "endpoint": "/api/goals",
+      "actions": [
+        {
+          "code": "read",
+          "label": "Ver",
+          "settings": {
+            "type": "read",
+            "listColumns": [
+              { "field": "name", "label": "Nombre", "sortable": true },
+              { "field": "targetAmount", "label": "Meta", "format": "money" },
+              { "field": "deadline", "label": "Fecha Limite", "format": "date" }
+            ],
+            "filters": [
+              { "field": "status", "label": "Estado", "type": "select", "options": [] }
+            ]
+          }
+        },
+        {
+          "code": "create",
+          "label": "Crear",
+          "settings": {
+            "type": "create",
+            "fields": [
+              { "name": "name", "label": "Nombre", "type": "text", "required": true },
+              { "name": "targetAmount", "label": "Meta", "type": "money", "required": true },
+              { "name": "deadline", "label": "Fecha Limite", "type": "date", "required": true }
+            ]
+          }
+        },
+        {
+          "code": "update",
+          "label": "Editar",
+          "settings": {
+            "type": "update",
+            "fields": [
+              { "name": "name", "label": "Nombre", "type": "text", "required": true },
+              { "name": "targetAmount", "label": "Meta", "type": "money", "required": true },
+              { "name": "deadline", "label": "Fecha Limite", "type": "date", "required": true }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "code": "aportes",
+      "label": "Aportes Reales",
+      "description": "Registro de aportes recibidos",
+      "icon": "DollarSign",
+      "type": "crud",
+      "nav": { "path": "/contributions", "order": 20 },
+      "entity": "Aporte",
+      "endpoint": "/api/contributions",
+      "actions": [
+        {
+          "code": "read",
+          "label": "Ver",
+          "settings": {
+            "type": "read",
+            "listColumns": [
+              { "field": "amount", "label": "Monto", "format": "money" },
+              { "field": "date", "label": "Fecha", "format": "date" },
+              { "field": "source", "label": "Origen" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "code": "reportes",
+      "label": "Reportes y Estadisticas",
+      "description": "Graficos y exportacion de datos",
+      "icon": "BarChart3",
+      "type": "specialized",
+      "nav": { "path": "/reports", "order": 60 },
+      "component": "ReportsModule",
+      "actions": [
+        {
+          "code": "view",
+          "label": "Ver reportes",
+          "description": "Visualizar reportes",
+          "settings": { "type": "generic" }
+        },
+        {
+          "code": "export",
+          "label": "Exportar",
+          "description": "Exportar a PDF/Excel",
+          "settings": {
+            "type": "generic",
+            "formats": ["pdf", "excel", "csv"]
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+### 2. ModuleRegistry (Frontend)
+
+```typescript
+// apps/web/src/lib/module-registry.ts
+
+type ModuleComponent = React.ComponentType<ModuleProps>;
+
+interface ModuleProps {
+  moduleCode: string;
+  metadata: ModuleWithPermissions;
+}
+
+class ModuleRegistry {
+  private specializedModules = new Map<string, ModuleComponent>();
+  private loadedModules: ModuleWithPermissions[] = [];
+
+  // Registrar modulo especializado (llamado al iniciar app)
+  register(code: string, component: ModuleComponent): void {
+    this.specializedModules.set(code, component);
+  }
+
+  // Cargar modulos del usuario (despues de login)
+  setUserModules(modules: ModuleWithPermissions[]): void {
+    this.loadedModules = modules;
+  }
+
+  // Obtener metadata de un modulo
+  getMetadata(code: string): ModuleWithPermissions | undefined {
+    return this.loadedModules.find(m => m.code === code);
+  }
+
+  // Obtener componente para un modulo
+  getComponent(code: string): ModuleComponent | null {
+    const meta = this.getMetadata(code);
+    if (!meta) return null;
+
+    if (meta.type === 'specialized') {
+      return this.specializedModules.get(code) || null;
+    }
+
+    // Modulo CRUD generico
+    return GenericCRUDModule;
+  }
+
+  // Generar config de navegacion
+  getNavConfig(): NavItem[] {
+    return this.loadedModules
+      .sort((a, b) => a.nav.order - b.nav.order)
+      .map(m => ({
+        path: m.nav.path,
+        label: m.label,
+        icon: m.icon,
+        module: m.code,
+      }));
+  }
+
+  // Verificar si tiene acceso a un modulo
+  hasModule(code: string): boolean {
+    return this.loadedModules.some(m => m.code === code);
+  }
+
+  // Verificar si tiene una accion especifica
+  // El codigo de accion coincide con el codigo de permiso
+  hasAction(moduleCode: string, actionCode: string): boolean {
+    const module = this.getMetadata(moduleCode);
+    return module?.actions.some(a => a.code === actionCode) ?? false;
+  }
+
+  // Obtener settings de una accion
+  getActionSettings<T extends ActionSettings>(
+    moduleCode: string,
+    actionCode: string
+  ): T | undefined {
+    const module = this.getMetadata(moduleCode);
+    const action = module?.actions.find(a => a.code === actionCode);
+    return action?.settings as T | undefined;
+  }
+
+  // Obtener todos los codigos de accion de un modulo (equivale a permisos)
+  getPermissions(moduleCode: string): string[] {
+    const module = this.getMetadata(moduleCode);
+    return module?.actions.map(a => a.code) ?? [];
+  }
+}
+
+export const moduleRegistry = new ModuleRegistry();
+```
+
+### 3. Modulos CRUD Genericos
+
+```typescript
+// apps/web/src/components/modules/GenericCRUDModule.tsx
+
+export function GenericCRUDModule({ moduleCode, metadata }: ModuleProps) {
+  const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Obtener settings de cada accion (si existe, tiene permiso)
+  const readSettings = getActionByCode<ReadActionSettings>(metadata.actions, 'read');
+  const createSettings = getActionByCode<CreateActionSettings>(metadata.actions, 'create');
+  const updateSettings = getActionByCode<UpdateActionSettings>(metadata.actions, 'update');
+  const deleteSettings = getActionByCode<DeleteActionSettings>(metadata.actions, 'delete');
+
+  if (!readSettings) {
+    return <ModuleError message="Sin permiso para ver este modulo" />;
+  }
+
+  return (
+    <div className="space-y-6">
+      <ModuleHeader
+        title={metadata.label}
+        description={metadata.description}
+      />
+
+      {view === 'list' && (
+        <>
+          {createSettings && (
+            <Button onClick={() => setView('create')}>
+              Crear {metadata.entity}
+            </Button>
+          )}
+          <GenericList
+            config={readSettings.settings}
+            endpoint={metadata.endpoint!}
+            onEdit={updateSettings ? (id) => { setSelectedId(id); setView('edit'); } : undefined}
+            onDelete={deleteSettings ? handleDelete : undefined}
+          />
+        </>
+      )}
+
+      {view === 'create' && createSettings && (
+        <GenericForm
+          config={createSettings.settings}
+          endpoint={metadata.endpoint!}
+          mode="create"
+          onSuccess={() => setView('list')}
+          onCancel={() => setView('list')}
+        />
+      )}
+
+      {view === 'edit' && selectedId && updateSettings && (
+        <GenericForm
+          config={updateSettings.settings}
+          endpoint={`${metadata.endpoint}/${selectedId}`}
+          mode="edit"
+          onSuccess={() => setView('list')}
+          onCancel={() => setView('list')}
+        />
+      )}
+    </div>
+  );
+}
+
+// Helper para obtener accion por codigo
+function getActionByCode<T extends ActionSettings>(
+  actions: ModuleAction[],
+  code: string
+): ModuleAction & { settings: T } | undefined {
+  const action = actions.find(a => a.code === code);
+  if (!action) return undefined;
+  return action as ModuleAction & { settings: T };
+}
+```
+
+### 4. Modulos Especializados
+
+Los modulos especializados (NO CRUD) siguen un flujo de dos pasos:
+
+1. **Desarrollo**: Se construyen como componentes React en el frontend
+2. **Registro**: El SuperAdmin los registra desde la UI de administracion
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│              FLUJO DE MODULOS ESPECIALIZADOS                         │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  DESARROLLO (codigo)                                                │
+│  ─────────────────────                                              │
+│  1. Desarrollador crea componente React                             │
+│     └─> apps/web/src/modules/reports/ReportsModule.tsx              │
+│                                                                      │
+│  2. Registra componente como "disponible"                           │
+│     └─> moduleRegistry.registerComponent(meta, ReportsModule)       │
+│                                                                      │
+│  3. Deploy (componente incluido en bundle)                          │
+│                                                                      │
+│  REGISTRO (admin UI)                                                │
+│  ─────────────────────                                              │
+│  4. SuperAdmin va a Admin > Modulos > Registrar                     │
+│     └─> Ve lista de componentes disponibles                        │
+│     └─> Selecciona "ReportsModule"                                  │
+│     └─> Configura: label, icon, path, orden                         │
+│     └─> Guarda en backend                                           │
+│                                                                      │
+│  5. SuperAdmin asigna permisos a usuarios                           │
+│     └─> Admin > Permisos > Asignar modulo                          │
+│                                                                      │
+│  6. Usuario ve modulo en navegacion                                 │
+│     └─> /api/auth/me incluye el modulo                             │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+#### Registro de Componentes Disponibles
+
+```typescript
+// apps/web/src/modules/index.ts
+import { moduleRegistry } from '@/lib/module-registry';
+import { ReportsModule } from './reports';
+
+// Hacer componente DISPONIBLE para que admin lo registre
+moduleRegistry.registerModule({
+  code: 'reportes',
+  name: 'ReportsModule',
+  label: 'Reportes y Estadisticas',
+  description: 'Graficos y exportacion de datos',
+  defaultIcon: 'BarChart3',
+  defaultActions: [
+    {
+      code: 'view',
+      label: 'Ver reportes',
+      description: 'Visualizar reportes',
+      settings: { type: 'generic' }
+    },
+    {
+      code: 'export',
+      label: 'Exportar',
+      description: 'Exportar a PDF/Excel',
+      settings: { type: 'generic', formats: ['pdf', 'excel', 'csv'] }
+    },
+  ],
+}, ReportsModule);
+```
+
+#### Componente Especializado
+
+```typescript
+// apps/web/src/modules/reports/ReportsModule.tsx
+export function ReportsModule({ moduleCode, metadata }: ModuleProps) {
+  // Verificar si tiene la accion 'export' (codigo = permiso)
+  const hasExportAction = metadata.actions.some(a => a.code === 'export');
+
+  return (
+    <div className="space-y-6">
+      <h1>{metadata.label}</h1>
+
+      {/* UI compleja con graficos */}
+      <ContributionsChart />
+      <ProgressChart />
+
+      {hasExportAction && <ExportButton />}
+    </div>
+  );
+}
+```
+
+#### Estructura Unificada de Acciones
+
+Tanto modulos CRUD como especializados usan la misma estructura `ModuleAction`:
+
+```typescript
+// Estructura unificada para todas las acciones
+interface ModuleAction {
+  code: string;                   // 'read', 'create', 'view', 'export', etc.
+  label: string;                  // 'Ver', 'Crear', 'Exportar'
+  description?: string;           // 'Permite ver registros'
+  settings: ActionSettings;       // Tipado o generico segun el tipo
+}
+
+// Para acciones CRUD - settings tipados
+type CrudActionSettings =
+  | ReadActionSettings     // type: 'read'
+  | CreateActionSettings   // type: 'create'
+  | UpdateActionSettings   // type: 'update'
+  | DeleteActionSettings;  // type: 'delete'
+
+// Para acciones especializadas - settings genericos
+interface GenericActionSettings {
+  type: 'generic';
+  [key: string]: unknown;  // Cualquier config adicional
+}
+```
+
+### 5. Flujo de Carga
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        APP INITIALIZATION                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. Usuario hace login                                          │
+│     └─> POST /api/auth/login                                    │
+│     └─> Recibe token JWT                                        │
+│                                                                  │
+│  2. Obtener datos del usuario + modulos                         │
+│     └─> GET /api/auth/me (con token)                            │
+│     └─> Recibe: { user, modules[] }                             │
+│     └─> modules incluye SOLO los que tiene acceso               │
+│     └─> cada modulo incluye SOLO la metadata de sus permisos    │
+│                                                                  │
+│  3. Cargar en ModuleRegistry                                    │
+│     └─> moduleRegistry.setUserModules(response.modules)         │
+│                                                                  │
+│  4. Generar navegacion                                          │
+│     └─> moduleRegistry.getNavConfig()                           │
+│     └─> Sidebar muestra solo modulos autorizados                │
+│                                                                  │
+│  5. Usuario navega a /goals                                     │
+│     └─> moduleRegistry.getComponent('objetivos')                │
+│     └─> Retorna GenericCRUDModule                               │
+│     └─> GenericCRUDModule lee crud.read, crud.create, etc.      │
+│     └─> Solo renderiza lo que existe en metadata                │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Tipos en Frontend (Dinamicos)
+
+**IMPORTANTE**: El frontend NO tiene tipos hardcodeados para modulos/permisos.
+
+```typescript
+// apps/web/src/lib/types.ts
+// Solo interfaces para respuestas del API - strings genericos
 
 export interface AuthMeResponse {
   user: {
@@ -129,144 +682,132 @@ export interface AuthMeResponse {
     lastName: string;
     isSuperAdmin: boolean;
   };
-  modules: ModuleCode[];
-  permissions: UserPermission[];
+  modules: ModuleWithPermissions[];
 }
 
-// Helper type para permisos en formato string
-export type PermissionString = `${ModuleCode}:${PermissionAction}`;
-```
+// Validacion en runtime, no en compile time
+// El codigo de accion ES el codigo de permiso
+export function hasAction(
+  modules: ModuleWithPermissions[],
+  moduleCode: string,
+  actionCode: string
+): boolean {
+  const module = modules.find(m => m.code === moduleCode);
+  return module?.actions.some(a => a.code === actionCode) ?? false;
+}
 
-### Endpoint /api/auth/me
-
-```typescript
-// apps/api/src/modules/auth/auth.controller.ts
-@Get('me')
-@UseGuards(JwtAuthGuard)
-async getMe(@CurrentUser() user: User): Promise<AuthMeResponse> {
-  // SuperAdmin tiene acceso total
-  if (user.isSuperAdmin) {
-    return {
-      user: this.mapUser(user),
-      modules: ALL_MODULES,
-      permissions: [], // No necesita permisos, tiene acceso total
-    };
-  }
-
-  // Usuario regular: cargar permisos efectivos
-  const { modules, permissions } = await this.permissionsService.getEffectivePermissions(user.id);
-
-  return {
-    user: this.mapUser(user),
-    modules,
-    permissions,
-  };
+// Helper para obtener settings tipados
+export function getActionSettings<T extends ActionSettings>(
+  modules: ModuleWithPermissions[],
+  moduleCode: string,
+  actionCode: string
+): T | undefined {
+  const module = modules.find(m => m.code === moduleCode);
+  const action = module?.actions.find(a => a.code === actionCode);
+  return action?.settings as T | undefined;
 }
 ```
 
-### Cache de Permisos
+## Segregacion de Acciones por Permiso
 
-```typescript
-// apps/web/src/lib/permissions-cache.ts
-const CACHE_KEY = 'user_permissions';
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+Las acciones se entregan **solo si el usuario tiene el permiso correspondiente**:
 
-interface CachedPermissions {
-  modules: string[];
-  permissions: UserPermission[];
-  timestamp: number;
+| Permiso (codigo) | Accion incluida |
+|------------------|-----------------|
+| `read` | Accion con `code: 'read'` y `ReadActionSettings` |
+| `create` | Accion con `code: 'create'` y `CreateActionSettings` |
+| `update` | Accion con `code: 'update'` y `UpdateActionSettings` |
+| `delete` | Accion con `code: 'delete'` y `DeleteActionSettings` |
+| `view` | Accion con `code: 'view'` y `GenericActionSettings` |
+| `export` | Accion con `code: 'export'` y `GenericActionSettings` |
+
+**El codigo de la accion coincide exactamente con el codigo del permiso.**
+
+### Ejemplo: Usuario con solo READ
+
+```json
+{
+  "modules": [{
+    "code": "objetivos",
+    "type": "crud",
+    "entity": "Objetivo",
+    "endpoint": "/api/goals",
+    "actions": [
+      {
+        "code": "read",
+        "label": "Ver",
+        "settings": {
+          "type": "read",
+          "listColumns": [...]
+        }
+      }
+    ]
+  }]
 }
+```
+No recibe acciones de `create`, `update`, ni `delete`.
 
-export function getCachedPermissions(): CachedPermissions | null {
-  const cached = localStorage.getItem(CACHE_KEY);
-  if (!cached) return null;
+### Ejemplo: Usuario con READ + CREATE
 
-  const data = JSON.parse(cached) as CachedPermissions;
-  if (Date.now() - data.timestamp > CACHE_TTL) {
-    localStorage.removeItem(CACHE_KEY);
-    return null;
-  }
-
-  return data;
-}
-
-export function setCachedPermissions(modules: string[], permissions: UserPermission[]): void {
-  const data: CachedPermissions = {
-    modules,
-    permissions,
-    timestamp: Date.now(),
-  };
-  localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-}
-
-export function invalidatePermissionsCache(): void {
-  localStorage.removeItem(CACHE_KEY);
+```json
+{
+  "modules": [{
+    "code": "objetivos",
+    "type": "crud",
+    "entity": "Objetivo",
+    "endpoint": "/api/goals",
+    "actions": [
+      {
+        "code": "read",
+        "label": "Ver",
+        "settings": {
+          "type": "read",
+          "listColumns": [...]
+        }
+      },
+      {
+        "code": "create",
+        "label": "Crear",
+        "settings": {
+          "type": "create",
+          "fields": [...]
+        }
+      }
+    ]
+  }]
 }
 ```
 
-## Modulos del Sistema
+## Tabla de Modulos
 
-| Codigo | Permisos Disponibles | Descripcion |
-|--------|---------------------|-------------|
-| `users` | read, update | Gestion de usuarios |
-| `copropiedades` | read, update | Copropiedades |
-| `apartamentos` | create, read, update, delete | Apartamentos |
-| `objetivos` | create, read, update, delete | Objetivos de recaudo |
-| `actividades` | create, read, update, delete | Actividades de recaudo |
-| `compromisos` | create, read, update | Compromisos |
-| `aportes` | create, read, update | Aportes reales |
-| `pqr` | create, read, manage | PQR |
-| `reportes` | read, export | Reportes |
-| `auditoria` | read | Auditoria |
-| `notificaciones` | read, create | Notificaciones |
-| `configuracion` | read, update | Configuracion |
+| Codigo | Tipo | Descripcion |
+|--------|------|-------------|
+| `users` | crud | Gestion de usuarios |
+| `copropiedades` | crud | Copropiedades |
+| `apartamentos` | crud | Apartamentos |
+| `objetivos` | crud | Objetivos de recaudo |
+| `actividades` | crud | Actividades de recaudo |
+| `compromisos` | crud | Compromisos |
+| `aportes` | crud | Aportes reales |
+| `pqr` | crud | Peticiones, Quejas, Reclamos |
+| `reportes` | specialized | Reportes y graficos |
+| `auditoria` | specialized | Logs de auditoria (solo lectura) |
+| `notificaciones` | crud | Centro de notificaciones |
+| `configuracion` | specialized | Configuracion del sistema |
 
-## Testing de Integracion
+## Beneficios
 
-```typescript
-// tests/permissions.integration.spec.ts
-describe('Permissions Integration', () => {
-  it('should load user permissions correctly', async () => {
-    // Login como usuario con permisos limitados
-    const loginResponse = await request(app)
-      .post('/api/auth/login')
-      .send({ email: 'test@example.com', password: 'password' });
-
-    // Obtener permisos
-    const meResponse = await request(app)
-      .get('/api/auth/me')
-      .set('Authorization', `Bearer ${loginResponse.body.accessToken}`);
-
-    expect(meResponse.body.user.isSuperAdmin).toBe(false);
-    expect(meResponse.body.modules).toContain('objetivos');
-    expect(meResponse.body.permissions).toContainEqual({
-      module: 'objetivos',
-      action: 'read',
-      scope: 'copropiedad',
-      scopeId: expect.any(String),
-    });
-  });
-
-  it('SuperAdmin should have empty permissions array', async () => {
-    const loginResponse = await request(app)
-      .post('/api/auth/login')
-      .send({ email: 'superadmin@example.com', password: 'password' });
-
-    const meResponse = await request(app)
-      .get('/api/auth/me')
-      .set('Authorization', `Bearer ${loginResponse.body.accessToken}`);
-
-    expect(meResponse.body.user.isSuperAdmin).toBe(true);
-    expect(meResponse.body.permissions).toEqual([]);
-  });
-});
-```
+1. **Sin sincronizacion** - No hay endpoint publico, todo viene en /api/auth/me
+2. **Seguridad** - Usuario solo recibe metadata de lo que puede hacer
+3. **Menos codigo** - Modulos CRUD no requieren codigo especifico
+4. **Flexibilidad** - Modulos complejos se construyen a medida
+5. **Type safety en backend** - Backend mantiene los enums, frontend usa strings
+6. **Principio de minimo privilegio** - Solo la informacion necesaria
 
 ## Notas Tecnicas
 
-- Los tipos deben estar en `libs/shared` para compartir entre apps
-- Cache de permisos usa localStorage con TTL de 5 minutos
-- Invalidar cache al cambiar permisos o hacer logout
-- SuperAdmin no necesita permisos cargados - siempre pasa
-- Scopes se verifican tanto en frontend como backend (defense in depth)
+- /api/auth/me se llama una vez despues de login
+- Datos se cachean en memoria hasta logout o refresh
+- SuperAdmin recibe TODOS los modulos con TODAS las acciones
+- El backend valida permisos en cada request (defense in depth)
 - El frontend solo oculta UI - la seguridad real esta en backend

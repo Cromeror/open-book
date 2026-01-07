@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 
-import type { NavItem } from '@/lib/nav-config';
+import type { NavItem } from '@/lib/types/modules';
 
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
@@ -19,7 +19,7 @@ interface DashboardShellProps {
     lastName: string;
     isSuperAdmin: boolean;
   } | null;
-  /** Navigation items pre-filtered by server based on permissions */
+  /** Navigation items derived from user's modules */
   navItems: NavItem[];
   /** Whether user is SuperAdmin */
   isSuperAdmin: boolean;
@@ -29,7 +29,7 @@ interface DashboardShellProps {
  * Dashboard shell component that wraps the main content
  * This is a Client Component that manages sidebar state
  *
- * The navItems are pre-filtered on the server based on user permissions
+ * The navItems are generated from user's modules (already filtered by backend)
  */
 export function DashboardShell({
   children,

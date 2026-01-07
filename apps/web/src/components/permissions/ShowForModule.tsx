@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 
 import { getServerPermissions } from '@/lib/permissions.server';
-import type { ModuleCode } from '@/lib/types';
 
 interface ShowForModuleProps {
-  module: ModuleCode | string;
+  /** Module code (e.g., 'objetivos', 'aportes') */
+  module: string;
   children: ReactNode;
   fallback?: ReactNode;
 }

@@ -7,6 +7,7 @@ import { jwtConfig } from '../../config/env';
 import { AuthLog } from '../../entities/auth-log.entity';
 import { RefreshToken } from '../../entities/refresh-token.entity';
 import { UsersModule } from '../users/users.module';
+import { PermissionsModule } from '../permissions/permissions.module';
 
 import { AuthLogService } from './auth-log.service';
 import { AuthController } from './auth.controller';
@@ -24,10 +25,12 @@ import { TokenService } from './token.service';
  * - Refresh token rotation
  * - Logout (single and all devices)
  * - Authentication audit logging
+ * - User modules and permissions via /api/auth/me
  */
 @Module({
   imports: [
     UsersModule,
+    PermissionsModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: jwtConfig.secret,

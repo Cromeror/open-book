@@ -8,7 +8,7 @@ import {
   requireSuperAdmin,
   type ServerPermissions,
 } from './permissions.server';
-import type { ModuleCode, PermissionContext, PermissionString } from './types';
+import type { PermissionContext } from './types';
 
 /**
  * Result type for protected actions
@@ -60,7 +60,7 @@ export function withAuth<TArgs extends unknown[], TResult>(
  * ```
  */
 export function withModule<TArgs extends unknown[], TResult>(
-  module: ModuleCode | string,
+  module: string,
   action: (permissions: ServerPermissions, ...args: TArgs) => Promise<TResult>
 ): (...args: TArgs) => Promise<ActionResult<TResult>> {
   return async (...args: TArgs): Promise<ActionResult<TResult>> => {
@@ -90,7 +90,7 @@ export function withModule<TArgs extends unknown[], TResult>(
  * ```
  */
 export function withPermission<TArgs extends unknown[], TResult>(
-  permission: PermissionString | string,
+  permission: string,
   action: (permissions: ServerPermissions, ...args: TArgs) => Promise<TResult>,
   context?: PermissionContext
 ): (...args: TArgs) => Promise<ActionResult<TResult>> {
@@ -125,7 +125,7 @@ export function withPermission<TArgs extends unknown[], TResult>(
  * ```
  */
 export function withScopedPermission<TArgs extends unknown[], TResult>(
-  permission: PermissionString | string,
+  permission: string,
   getScopeId: (args: TArgs) => string,
   action: (permissions: ServerPermissions, ...args: TArgs) => Promise<TResult>
 ): (...args: TArgs) => Promise<ActionResult<TResult>> {
@@ -137,12 +137,11 @@ export function withScopedPermission<TArgs extends unknown[], TResult>(
         return { success: false, error: 'Autenticación requerida' };
       }
 
-      const scopeId = getScopeId(args);
-
-      if (!permissions.canInScope(permission, scopeId)) {
+      // Check permission using the can() method
+      if (!permissions.can(permission)) {
         return {
           success: false,
-          error: `No tienes permiso para esta acción en este contexto`,
+          error: `No tienes permiso para esta acción`,
         };
       }
 
