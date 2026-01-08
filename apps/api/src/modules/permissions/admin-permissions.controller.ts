@@ -9,12 +9,15 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import { z } from 'zod';
 
 import { User } from '../../entities/user.entity';
+import { JwtAuthGuard } from '../auth/guards';
 import { AdminPermissionsService } from './admin-permissions.service';
 import { CurrentUser } from './decorators';
+import { SuperAdminGuard } from './guards/superadmin.guard';
 import {
   GrantModuleAccessDto,
   validateGrantModuleAccessDto,
@@ -26,9 +29,9 @@ import {
  * Controller for SuperAdmin to manage user permissions
  *
  * All endpoints require SuperAdmin authentication.
- * Access is controlled by SuperAdminGuard applied at the module level.
  */
 @Controller('admin/permissions')
+@UseGuards(JwtAuthGuard, SuperAdminGuard)
 export class AdminPermissionsController {
   constructor(private adminPermissionsService: AdminPermissionsService) {}
 

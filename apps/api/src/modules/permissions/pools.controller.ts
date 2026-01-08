@@ -9,12 +9,15 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import { z } from 'zod';
 
 import { User } from '../../entities/user.entity';
+import { JwtAuthGuard } from '../auth/guards';
 import { PoolsService } from './pools.service';
 import { CurrentUser } from './decorators';
+import { SuperAdminGuard } from './guards/superadmin.guard';
 import {
   CreatePoolDto,
   validateCreatePoolDto,
@@ -30,9 +33,9 @@ import {
  * Controller for SuperAdmin to manage user pools
  *
  * All endpoints require SuperAdmin authentication.
- * Access is controlled by SuperAdminGuard applied at the module level.
  */
 @Controller('admin/pools')
+@UseGuards(JwtAuthGuard, SuperAdminGuard)
 export class PoolsController {
   constructor(private poolsService: PoolsService) {}
 
