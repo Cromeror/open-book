@@ -97,32 +97,7 @@ export default async function AdminPermissionsPage() {
           <span className="text-gray-900">Gestion de Permisos</span>
         </nav>
         <h1 className="text-2xl font-bold text-gray-900">Gestion de Permisos</h1>
-        <p className="text-gray-600">Configura los permisos granulares del sistema</p>
-      </div>
-
-      {/* Modules Overview */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Modulos del Sistema</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {modules.map((module) => (
-            <div
-              key={module.id}
-              className={`rounded-lg border p-3 ${
-                module.isActive
-                  ? 'border-green-200 bg-green-50'
-                  : 'border-gray-200 bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-900">{module.name}</span>
-                <span className={`h-2 w-2 rounded-full ${
-                  module.isActive ? 'bg-green-500' : 'bg-gray-400'
-                }`} />
-              </div>
-              <code className="text-xs text-gray-500">{module.code}</code>
-            </div>
-          ))}
-        </div>
+        <p className="text-gray-600">Asigna modulos y permisos granulares a los usuarios</p>
       </div>
 
       {/* Permissions Manager (Client Component) */}

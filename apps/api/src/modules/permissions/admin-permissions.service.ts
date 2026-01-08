@@ -220,13 +220,32 @@ export class AdminPermissionsService {
       throw new NotFoundException('Módulo no encontrado');
     }
 
-    // Check if already has access
+    // Check if record exists (active or inactive)
     const existing = await this.userModuleRepo.findOne({
-      where: { userId, moduleId: dto.moduleId, isActive: true },
+      where: { userId, moduleId: dto.moduleId },
     });
 
     if (existing) {
-      throw new ConflictException('Usuario ya tiene acceso a este módulo');
+      if (existing.isActive) {
+        throw new ConflictException('Usuario ya tiene acceso a este módulo');
+      }
+
+      // Reactivate existing record
+      existing.isActive = true;
+      existing.grantedBy = superAdminId;
+      existing.grantedAt = new Date();
+      existing.expiresAt = dto.expiresAt ? new Date(dto.expiresAt) : null;
+
+      await this.userModuleRepo.save(existing);
+
+      // Invalidate cache
+      this.cacheService.invalidate(userId);
+
+      this.logger.log(
+        `Module access reactivated: ${module.code} to user ${userId} by ${superAdminId}`,
+      );
+
+      return existing;
     }
 
     const userModule = this.userModuleRepo.create({
@@ -331,19 +350,37 @@ export class AdminPermissionsService {
       );
     }
 
-    // Check for duplicate
+    // Check for existing record (active or inactive)
     const existing = await this.userPermissionRepo.findOne({
       where: {
         userId,
         modulePermissionId: dto.modulePermissionId,
         scope: dto.scope,
         scopeId: dto.scopeId || IsNull(),
-        isActive: true,
       },
     });
 
     if (existing) {
-      throw new ConflictException('Usuario ya tiene este permiso');
+      if (existing.isActive) {
+        throw new ConflictException('Usuario ya tiene este permiso');
+      }
+
+      // Reactivate existing record
+      existing.isActive = true;
+      existing.grantedBy = superAdminId;
+      existing.grantedAt = new Date();
+      existing.expiresAt = dto.expiresAt ? new Date(dto.expiresAt) : null;
+
+      await this.userPermissionRepo.save(existing);
+
+      // Invalidate cache
+      this.cacheService.invalidate(userId);
+
+      this.logger.log(
+        `Permission reactivated: ${modulePermission.module.code}:${modulePermission.code} to user ${userId} by ${superAdminId}`,
+      );
+
+      return existing;
     }
 
     const userPermission = this.userPermissionRepo.create({
