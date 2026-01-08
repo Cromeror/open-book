@@ -30,9 +30,9 @@ export enum Scope {
  * Format: "module:action" or "module:action:scope"
  *
  * Examples:
- * - "objetivos:create" - Create objectives
- * - "aportes:read:own" - Read own contributions
- * - "reportes:export:copropiedad" - Export reports for assigned copropiedad
+ * - "goals:create" - Create goals
+ * - "contributions:read:own" - Read own contributions
+ * - "reports:export:copropiedad" - Export reports for assigned copropiedad
  */
 export type Permission = `${string}:${Action}` | `${string}:${Action}:${Scope}`;
 

@@ -76,7 +76,7 @@ Esta story implementa el sistema de autenticacion y permisos con enfoque **Serve
 ### Flujo de Verificacion
 
 ```
-Request a /objetivos
+Request a /goals
        │
        ▼
 ┌─────────────────┐
@@ -103,10 +103,10 @@ Request a /objetivos
          ▼
 ┌─────────────────┐
 │  SERVER PAGE    │
-│ /objetivos      │
+│ /goals          │
 │                 │
 │ ¿hasModule      │
-│ ('objetivos')? │──NO──> redirect('/acceso-denegado')
+│ ('goals')?     │──NO──> redirect('/acceso-denegado')
 │       │         │
 │      YES        │
 │       │         │
@@ -119,7 +119,7 @@ Request a /objetivos
 │ CLIENT COMPONENT│
 │                 │
 │ Recibe:         │
-│ - objetivos[]   │  (ya filtrados)
+│ - goals[]       │  (ya filtrados)
 │ - canUpdate     │  (boolean del server)
 │ - canDelete     │  (boolean del server)
 └─────────────────┘
@@ -139,11 +139,11 @@ interface AuthMeResponse {
     lastName: string;
     isSuperAdmin: boolean;
   };
-  modules: string[];  // ['objetivos', 'aportes', 'pqr']
+  modules: string[];  // ['goals', 'contributions', 'pqr']
   permissions: {
     module: string;
     action: string;
-    scope: 'own' | 'copropiedad' | 'all';
+    scope: 'own' | 'property' | 'all';
     scopeId?: string;
   }[];
 }
@@ -186,10 +186,10 @@ export async function getServerPermissions() {
 }
 
 // Uso en Server Component
-export default async function ObjetivosPage() {
+export default async function GoalsPage() {
   const permissions = await getServerPermissions();
 
-  if (!permissions.hasModule('objetivos')) {
+  if (!permissions.hasModule('goals')) {
     redirect('/acceso-denegado');
   }
 

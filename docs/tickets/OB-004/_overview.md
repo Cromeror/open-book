@@ -4,7 +4,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| Status | pending |
+| Status | done |
 | Priority | critical |
 | Created | 2025-12-31 |
 | Updated | 2025-12-31 |

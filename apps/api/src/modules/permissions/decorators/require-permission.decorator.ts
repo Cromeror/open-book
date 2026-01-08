@@ -20,8 +20,8 @@ export interface PermissionOptions {
  *
  * The permission string format is: "module:action"
  * Examples:
- * - "objetivos:create" - Create objectives
- * - "aportes:read" - Read contributions
+ * - "goals:create" - Create goals
+ * - "contributions:read" - Read contributions
  * - "pqr:manage" - Manage PQR
  *
  * @param permission - Permission string in format "module:action"
@@ -29,17 +29,17 @@ export interface PermissionOptions {
  *
  * @example
  * ```typescript
- * @Controller('objetivos')
+ * @Controller('goals')
  * @UseGuards(JwtAuthGuard, PermissionsGuard)
- * export class ObjetivosController {
+ * export class GoalsController {
  *   @Post()
- *   @RequirePermission('objetivos:create')
- *   create(@Body() dto: CreateObjetivoDto) {
+ *   @RequirePermission('goals:create')
+ *   create(@Body() dto: CreateGoalDto) {
  *     return this.service.create(dto);
  *   }
  *
  *   @Get(':id')
- *   @RequirePermission('objetivos:read', { checkOwnership: true })
+ *   @RequirePermission('goals:read', { checkOwnership: true })
  *   findOne(@Param('id') id: string) {
  *     return this.service.findOne(id);
  *   }

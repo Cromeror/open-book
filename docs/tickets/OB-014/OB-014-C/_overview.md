@@ -66,25 +66,25 @@ const NAV_CONFIG: NavItem[] = [
 
   // Modulo Objetivos
   {
-    path: '/objetivos',
+    path: '/goals',
     label: 'Objetivos',
     icon: TargetIcon,
-    module: 'objetivos',
+    module: 'goals',
     children: [
-      { path: '/objetivos', label: 'Ver todos', permission: 'objetivos:read' },
-      { path: '/objetivos/nuevo', label: 'Crear', permission: 'objetivos:create' },
+      { path: '/goals', label: 'Ver todos', permission: 'goals:read' },
+      { path: '/goals/new', label: 'Crear', permission: 'goals:create' },
     ],
   },
 
   // Modulo Aportes
   {
-    path: '/aportes',
+    path: '/contributions',
     label: 'Aportes',
     icon: MoneyIcon,
-    module: 'aportes',
+    module: 'contributions',
     children: [
-      { path: '/aportes', label: 'Ver todos', permission: 'aportes:read' },
-      { path: '/aportes/registrar', label: 'Registrar', permission: 'aportes:create' },
+      { path: '/contributions', label: 'Ver todos', permission: 'contributions:read' },
+      { path: '/contributions/register', label: 'Registrar', permission: 'contributions:create' },
     ],
   },
 
@@ -96,20 +96,20 @@ const NAV_CONFIG: NavItem[] = [
     module: 'pqr',
     children: [
       { path: '/pqr', label: 'Mis PQR', permission: 'pqr:read' },
-      { path: '/pqr/nuevo', label: 'Nueva solicitud', permission: 'pqr:create' },
-      { path: '/pqr/gestionar', label: 'Gestionar', permission: 'pqr:manage' },
+      { path: '/pqr/new', label: 'Nueva solicitud', permission: 'pqr:create' },
+      { path: '/pqr/manage', label: 'Gestionar', permission: 'pqr:manage' },
     ],
   },
 
   // Modulo Reportes
   {
-    path: '/reportes',
+    path: '/reports',
     label: 'Reportes',
     icon: ChartIcon,
-    module: 'reportes',
+    module: 'reports',
     children: [
-      { path: '/reportes', label: 'Ver reportes', permission: 'reportes:read' },
-      { path: '/reportes/exportar', label: 'Exportar', permission: 'reportes:export' },
+      { path: '/reports', label: 'Ver reportes', permission: 'reports:read' },
+      { path: '/reports/export', label: 'Exportar', permission: 'reports:export' },
     ],
   },
 
@@ -123,8 +123,8 @@ const NAV_CONFIG: NavItem[] = [
     superAdminOnly: true,
     children: [
       { path: '/admin/pools', label: 'Pools de Usuarios' },
-      { path: '/admin/permisos', label: 'Gestion de Permisos' },
-      { path: '/admin/modulos', label: 'Modulos del Sistema' },
+      { path: '/admin/permissions', label: 'Gestion de Permisos' },
+      { path: '/admin/modules', label: 'Modulos del Sistema' },
     ],
   },
 ];

@@ -23,13 +23,13 @@ import { AuditFields } from '../types/audit';
  *
  * @example
  * ```typescript
- * @Entity('usuarios')
- * export class Usuario extends BaseEntity {
+ * @Entity('users')
+ * export class User extends BaseEntity {
  *   @Column()
  *   email: string;
  *
  *   @Column()
- *   nombre: string;
+ *   name: string;
  * }
  * ```
  */

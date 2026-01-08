@@ -60,6 +60,37 @@ Use for effort estimation. Outputs CSV with:
 - 25% buffer calculation
 - Uses comma as decimal separator (Spanish format: 8,5 not 8.5)
 
+## Coding Conventions
+
+### Language in Source Code
+**All source code must be in English**. This includes:
+- Module, class, and function names
+- Variable and constant names
+- File and folder names
+- Code comments
+- API routes and endpoints
+
+Domain concepts mapping (Spanish domain → English code):
+| Domain (Spanish) | Code (English) | Module Code |
+|------------------|----------------|-------------|
+| Objetivo de Recaudo | Goal | goals |
+| Actividad de Recaudo | Activity | activities |
+| Compromiso | Commitment | commitments |
+| Aporte Real | Contribution | contributions |
+| Copropiedad | Property | properties |
+| Apartamento | Apartment | apartments |
+| Usuario | User | users |
+| PQR | PQR | pqr |
+| Estado de Cuenta | Account Statement | account_statements |
+| Reporte | Report | reports |
+| Auditoría | Audit | audit |
+| Notificación | Notification | notifications |
+
+**Note**: Some legacy code may still use Spanish names (e.g., `objetivos` module). New code should use English naming.
+
+### Components Location
+All React components must be in `src/components/`. Do NOT create `_components/` folders inside route directories.
+
 ## Legal Compliance Requirements
 
 Colombian Law 1581/2012 (Habeas Data) applies to resident data:

@@ -1,6 +1,6 @@
 import { Module as NestModule, Global } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { APP_GUARD } from '@nestjs/core';
 
 import {
   Module,
@@ -52,6 +52,7 @@ import { PermissionsGuard } from './guards/permissions.guard';
 @Global()
 @NestModule({
   imports: [
+    ConfigModule,
     TypeOrmModule.forFeature([
       Module,
       ModulePermission,

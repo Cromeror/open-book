@@ -11,23 +11,23 @@ export const MODULE_KEY = 'required_module';
  * Use this when you want to restrict access to users who have any
  * permission in a module, without requiring a specific action.
  *
- * @param moduleCode - Module code (e.g., 'objetivos', 'aportes')
+ * @param moduleCode - Module code (e.g., 'goals', 'contributions')
  *
  * @example
  * ```typescript
- * @Controller('objetivos')
+ * @Controller('goals')
  * @UseGuards(JwtAuthGuard, PermissionsGuard)
- * export class ObjetivosController {
+ * export class GoalsController {
  *   @Get()
- *   @RequireModule('objetivos')
+ *   @RequireModule('goals')
  *   findAll() {
- *     // Any user with access to the 'objetivos' module can access this
+ *     // Any user with access to the 'goals' module can access this
  *     return this.service.findAll();
  *   }
  *
  *   @Post()
- *   @RequirePermission('objetivos:create')
- *   create(@Body() dto: CreateObjetivoDto) {
+ *   @RequirePermission('goals:create')
+ *   create(@Body() dto: CreateGoalDto) {
  *     // Only users with specific 'create' permission can access this
  *     return this.service.create(dto);
  *   }

@@ -5,7 +5,7 @@
 | Campo | Valor |
 |-------|-------|
 | Epic | OB-004 - Objetivos de Recaudo |
-| Status | pending |
+| Status | done |
 | Priority | high |
 | Created | 2025-12-31 |
 | Updated | 2025-12-31 |

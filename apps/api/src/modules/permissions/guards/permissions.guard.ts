@@ -28,15 +28,15 @@ import { PermissionContext } from '../permissions.enum';
  *
  * @example
  * ```typescript
- * @Controller('objetivos')
+ * @Controller('goals')
  * @UseGuards(JwtAuthGuard, PermissionsGuard)
- * export class ObjetivosController {
+ * export class GoalsController {
  *   @Post()
- *   @RequirePermission('objetivos:create')
+ *   @RequirePermission('goals:create')
  *   create() {}
  *
  *   @Get()
- *   @RequireModule('objetivos')
+ *   @RequireModule('goals')
  *   findAll() {}
  * }
  * ```

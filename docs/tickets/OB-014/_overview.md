@@ -174,22 +174,22 @@ export async function middleware(request: NextRequest) {
 // ============================================
 // 2. SERVER COMPONENT - Verificacion de permisos
 // ============================================
-// app/(dashboard)/objetivos/page.tsx
+// app/(dashboard)/goals/page.tsx
 import { redirect } from 'next/navigation';
 import { getServerPermissions } from '@/lib/permissions.server';
-import { ObjetivosList } from './objetivos-list';
+import { GoalsList } from './goals-list';
 
-export default async function ObjetivosPage() {
+export default async function GoalsPage() {
   // Cargar permisos en el servidor
   const permissions = await getServerPermissions();
 
   // Verificar acceso al modulo
-  if (!permissions.hasModule('objetivos')) {
+  if (!permissions.hasModule('goals')) {
     redirect('/acceso-denegado');
   }
 
   // Cargar datos (solo si tiene permiso)
-  const objetivos = await fetchObjetivos(permissions);
+  const goals = await fetchGoals(permissions);
 
   // Pasar solo los permisos necesarios al cliente
   return (
@@ -197,15 +197,15 @@ export default async function ObjetivosPage() {
       <h1>Objetivos de Recaudo</h1>
 
       {/* Server-rendered: boton solo aparece si tiene permiso */}
-      {permissions.can('objetivos:create') && (
-        <CreateObjetivoButton />
+      {permissions.can('goals:create') && (
+        <CreateGoalButton />
       )}
 
       {/* Client component recibe datos ya filtrados */}
-      <ObjetivosList
-        objetivos={objetivos}
-        canUpdate={permissions.can('objetivos:update')}
-        canDelete={permissions.can('objetivos:delete')}
+      <GoalsList
+        goals={goals}
+        canUpdate={permissions.can('goals:update')}
+        canDelete={permissions.can('goals:delete')}
       />
     </div>
   );
@@ -214,34 +214,34 @@ export default async function ObjetivosPage() {
 // ============================================
 // 3. SERVER ACTIONS - Operaciones protegidas
 // ============================================
-// app/(dashboard)/objetivos/actions.ts
+// app/(dashboard)/goals/actions.ts
 'use server';
 
 import { revalidatePath } from 'next/cache';
 import { getServerPermissions } from '@/lib/permissions.server';
-import { createObjetivoInDB } from '@/lib/db';
+import { createGoalInDB } from '@/lib/db';
 
-export async function createObjetivo(formData: FormData) {
+export async function createGoal(formData: FormData) {
   // Verificar permisos en el servidor
   const permissions = await getServerPermissions();
 
-  if (!permissions.can('objetivos:create')) {
+  if (!permissions.can('goals:create')) {
     throw new Error('No tienes permiso para crear objetivos');
   }
 
   // Validar datos
-  const data = validateObjetivoData(formData);
+  const data = validateGoalData(formData);
 
   // Verificar scope (copropiedad)
-  if (!permissions.canInScope('objetivos:create', data.copropiedadId)) {
+  if (!permissions.canInScope('goals:create', data.propertyId)) {
     throw new Error('No tienes permiso en esta copropiedad');
   }
 
   // Crear en base de datos
-  await createObjetivoInDB(data);
+  await createGoalInDB(data);
 
   // Revalidar cache
-  revalidatePath('/objetivos');
+  revalidatePath('/goals');
 }
 
 // ============================================
@@ -300,29 +300,29 @@ export async function getServerPermissions() {
 // ============================================
 // 5. CLIENT COMPONENT - Solo cuando necesario
 // ============================================
-// components/objetivos-list.tsx
+// components/goals-list.tsx
 'use client';
 
 import { useState } from 'react';
 
 interface Props {
-  objetivos: Objetivo[];  // Ya filtrados por el servidor
+  goals: Goal[];          // Ya filtrados por el servidor
   canUpdate: boolean;     // Pre-calculado en servidor
   canDelete: boolean;     // Pre-calculado en servidor
 }
 
-export function ObjetivosList({ objetivos, canUpdate, canDelete }: Props) {
+export function GoalsList({ goals, canUpdate, canDelete }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
 
   return (
     <ul>
-      {objetivos.map(obj => (
-        <li key={obj.id} onClick={() => setSelected(obj.id)}>
-          {obj.nombre}
+      {goals.map(goal => (
+        <li key={goal.id} onClick={() => setSelected(goal.id)}>
+          {goal.name}
 
           {/* Permisos ya vienen del servidor */}
-          {canUpdate && <EditButton id={obj.id} />}
-          {canDelete && <DeleteButton id={obj.id} />}
+          {canUpdate && <EditButton id={goal.id} />}
+          {canDelete && <DeleteButton id={goal.id} />}
         </li>
       ))}
     </ul>
@@ -335,17 +335,17 @@ export function ObjetivosList({ objetivos, canUpdate, canDelete }: Props) {
 | Modulo | Descripcion | Permisos Disponibles |
 |--------|-------------|---------------------|
 | `users` | Gestion de usuarios | read, update |
-| `copropiedades` | Copropiedades | read, update |
-| `apartamentos` | Apartamentos | create, read, update, delete |
-| `objetivos` | Objetivos de recaudo | create, read, update, delete |
-| `actividades` | Actividades de recaudo | create, read, update, delete |
-| `compromisos` | Compromisos | create, read, update |
-| `aportes` | Aportes reales | create, read, update |
+| `properties` | Copropiedades | read, update |
+| `apartments` | Apartamentos | create, read, update, delete |
+| `goals` | Objetivos de recaudo | create, read, update, delete |
+| `activities` | Actividades de recaudo | create, read, update, delete |
+| `commitments` | Compromisos | create, read, update |
+| `contributions` | Aportes reales | create, read, update |
 | `pqr` | PQR | create, read, manage |
-| `reportes` | Reportes | read, export |
-| `auditoria` | Auditoria | read |
-| `notificaciones` | Notificaciones | read, create |
-| `configuracion` | Configuracion | read, update |
+| `reports` | Reportes | read, export |
+| `audit` | Auditoria | read |
+| `notifications` | Notificaciones | read, create |
+| `settings` | Configuracion | read, update |
 
 ## Criterios de Aceptacion Globales
 
@@ -388,14 +388,14 @@ apps/web/
 │   │   ├── (dashboard)/             # Rutas protegidas
 │   │   │   ├── layout.tsx           # Server: carga permisos, renderiza nav
 │   │   │   ├── page.tsx             # Server: redirect a primera ruta
-│   │   │   ├── objetivos/
+│   │   │   ├── goals/
 │   │   │   │   ├── page.tsx         # Server: verifica modulo, carga datos
 │   │   │   │   ├── actions.ts       # Server Actions
 │   │   │   │   ├── [id]/
 │   │   │   │   │   └── page.tsx     # Server: verifica permiso read
-│   │   │   │   └── nuevo/
+│   │   │   │   └── new/
 │   │   │   │       └── page.tsx     # Server: verifica permiso create
-│   │   │   ├── aportes/
+│   │   │   ├── contributions/
 │   │   │   ├── pqr/
 │   │   │   └── ...
 │   │   ├── (superadmin)/            # Rutas solo SuperAdmin

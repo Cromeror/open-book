@@ -30,3 +30,22 @@ export interface CreateUserData {
   phone?: string;
   publicAccountConsent: boolean;
 }
+
+/**
+ * User response for admin endpoints (includes additional fields)
+ * Only SuperAdmin can access this data
+ */
+export interface AdminUserResponse {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  isActive: boolean;
+  isSuperAdmin: boolean;
+  publicAccountConsent: boolean;
+  consentDate?: Date;
+  lastLoginAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}

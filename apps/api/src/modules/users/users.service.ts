@@ -3,8 +3,33 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { User } from '../../entities/user.entity';
-import { CreateUserData, UserResponse } from '../../types/user';
+import { CreateUserData, UserResponse, AdminUserResponse } from '../../types/user';
 import { hashPassword } from '../../utils/password';
+
+/**
+ * Query options for listing users
+ */
+export interface FindAllUsersOptions {
+  search?: string;
+  isActive?: boolean;
+  page?: number;
+  limit?: number;
+  orderBy?: 'email' | 'firstName' | 'lastName' | 'createdAt' | 'lastLoginAt';
+  order?: 'asc' | 'desc';
+}
+
+/**
+ * Paginated response for user listing
+ */
+export interface PaginatedUsersResponse {
+  data: AdminUserResponse[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
 
 /**
  * Service for user management operations
@@ -117,5 +142,99 @@ export class UsersService {
       lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,
     };
+  }
+
+  /**
+   * Convert User entity to AdminUserResponse (includes admin-only fields)
+   */
+  toAdminUserResponse(user: User): AdminUserResponse {
+    return {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phone: user.phone,
+      isActive: user.isActive,
+      isSuperAdmin: user.isSuperAdmin,
+      publicAccountConsent: user.publicAccountConsent,
+      consentDate: user.consentDate,
+      lastLoginAt: user.lastLoginAt,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
+  /**
+   * Find all users with pagination and filtering (SuperAdmin only)
+   *
+   * @param options - Query options
+   * @returns Paginated list of users
+   */
+  async findAll(options: FindAllUsersOptions): Promise<PaginatedUsersResponse> {
+    const {
+      search,
+      isActive,
+      page = 1,
+      limit = 20,
+      orderBy = 'createdAt',
+      order = 'asc',
+    } = options;
+
+    const queryBuilder = this.usersRepository.createQueryBuilder('user');
+
+    // Apply search filter
+    if (search) {
+      queryBuilder.andWhere(
+        '(user.email ILIKE :search OR user.firstName ILIKE :search OR user.lastName ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    // Apply active filter
+    if (isActive !== undefined) {
+      queryBuilder.andWhere('user.isActive = :isActive', { isActive });
+    }
+
+    // Apply ordering
+    const orderColumn = `user.${orderBy}`;
+    queryBuilder.orderBy(orderColumn, order.toUpperCase() as 'ASC' | 'DESC');
+
+    // Get total count
+    const total = await queryBuilder.getCount();
+
+    // Apply pagination
+    const skip = (page - 1) * limit;
+    queryBuilder.skip(skip).take(limit);
+
+    // Execute query
+    const users = await queryBuilder.getMany();
+
+    return {
+      data: users.map((user) => this.toAdminUserResponse(user)),
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  /**
+   * Find a user by ID with admin-level details
+   *
+   * @param id - User ID
+   * @returns User with admin fields if found, null otherwise
+   */
+  async findByIdForAdmin(id: string): Promise<AdminUserResponse | null> {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return this.toAdminUserResponse(user);
   }
 }

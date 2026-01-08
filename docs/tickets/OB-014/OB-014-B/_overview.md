@@ -75,22 +75,22 @@ const NAV_ITEMS = [
   { path: '/dashboard', label: 'Inicio', icon: HomeIcon, module: null },
 
   // Visibles segun modulo asignado
-  { path: '/objetivos', label: 'Objetivos', icon: TargetIcon, module: 'objetivos' },
-  { path: '/actividades', label: 'Actividades', icon: CalendarIcon, module: 'actividades' },
-  { path: '/aportes', label: 'Aportes', icon: MoneyIcon, module: 'aportes' },
-  { path: '/compromisos', label: 'Compromisos', icon: HandshakeIcon, module: 'compromisos' },
+  { path: '/goals', label: 'Objetivos', icon: TargetIcon, module: 'goals' },
+  { path: '/activities', label: 'Actividades', icon: CalendarIcon, module: 'activities' },
+  { path: '/contributions', label: 'Aportes', icon: MoneyIcon, module: 'contributions' },
+  { path: '/commitments', label: 'Compromisos', icon: HandshakeIcon, module: 'commitments' },
   { path: '/pqr', label: 'PQR', icon: MessageIcon, module: 'pqr' },
-  { path: '/reportes', label: 'Reportes', icon: ChartIcon, module: 'reportes' },
-  { path: '/usuarios', label: 'Usuarios', icon: UsersIcon, module: 'users' },
-  { path: '/copropiedades', label: 'Copropiedades', icon: BuildingIcon, module: 'copropiedades' },
-  { path: '/apartamentos', label: 'Apartamentos', icon: DoorIcon, module: 'apartamentos' },
-  { path: '/auditoria', label: 'Auditoria', icon: ClipboardIcon, module: 'auditoria' },
-  { path: '/configuracion', label: 'Configuracion', icon: SettingsIcon, module: 'configuracion' },
+  { path: '/reports', label: 'Reportes', icon: ChartIcon, module: 'reports' },
+  { path: '/users', label: 'Usuarios', icon: UsersIcon, module: 'users' },
+  { path: '/properties', label: 'Copropiedades', icon: BuildingIcon, module: 'properties' },
+  { path: '/apartments', label: 'Apartamentos', icon: DoorIcon, module: 'apartments' },
+  { path: '/audit', label: 'Auditoria', icon: ClipboardIcon, module: 'audit' },
+  { path: '/settings', label: 'Configuracion', icon: SettingsIcon, module: 'settings' },
 
   // Solo visible para SuperAdmin
   { path: '/admin/pools', label: 'Pools', icon: GroupIcon, superAdminOnly: true },
-  { path: '/admin/permisos', label: 'Permisos', icon: KeyIcon, superAdminOnly: true },
-  { path: '/admin/modulos', label: 'Modulos', icon: ModuleIcon, superAdminOnly: true },
+  { path: '/admin/permissions', label: 'Permisos', icon: KeyIcon, superAdminOnly: true },
+  { path: '/admin/modules', label: 'Modulos', icon: ModuleIcon, superAdminOnly: true },
 ];
 ```
 

@@ -40,7 +40,7 @@ function getAction<T>(
  * Key principle: action code = permission code
  * If an action exists in the actions array, the user has permission for it
  */
-export function GenericCRUDModule({ moduleCode, metadata }: ModuleProps) {
+export function GenericCRUDModule({ metadata }: ModuleProps) {
   const [view, setView] = useState<View>('list');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);

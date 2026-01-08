@@ -113,7 +113,7 @@ interface AuthMeResponse {
 }
 
 interface ModuleWithPermissions {
-  code: string;                    // 'objetivos', 'aportes', etc.
+  code: string;                    // 'goals', 'contributions', etc.
   label: string;                   // 'Objetivos de Recaudo'
   description: string;             // 'Gestiona los objetivos...'
   icon: string;                    // 'Target' (lucide icon)
@@ -783,17 +783,17 @@ No recibe acciones de `create`, `update`, ni `delete`.
 | Codigo | Tipo | Descripcion |
 |--------|------|-------------|
 | `users` | crud | Gestion de usuarios |
-| `copropiedades` | crud | Copropiedades |
-| `apartamentos` | crud | Apartamentos |
-| `objetivos` | crud | Objetivos de recaudo |
-| `actividades` | crud | Actividades de recaudo |
-| `compromisos` | crud | Compromisos |
-| `aportes` | crud | Aportes reales |
+| `properties` | crud | Copropiedades |
+| `apartments` | crud | Apartamentos |
+| `goals` | crud | Objetivos de recaudo |
+| `activities` | crud | Actividades de recaudo |
+| `commitments` | crud | Compromisos |
+| `contributions` | crud | Aportes reales |
 | `pqr` | crud | Peticiones, Quejas, Reclamos |
-| `reportes` | specialized | Reportes y graficos |
-| `auditoria` | specialized | Logs de auditoria (solo lectura) |
-| `notificaciones` | crud | Centro de notificaciones |
-| `configuracion` | specialized | Configuracion del sistema |
+| `reports` | specialized | Reportes y graficos |
+| `audit` | specialized | Logs de auditoria (solo lectura) |
+| `notifications` | crud | Centro de notificaciones |
+| `settings` | specialized | Configuracion del sistema |
 
 ## Beneficios
 

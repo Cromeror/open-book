@@ -63,19 +63,19 @@ Crear la estructura de archivos (scaffolding) para todos los modulos visuales de
 ### 1. Fundraising Goals (OB-004)
 ```
 (dashboard)/goals/
-├── page.tsx                    # List goals - requireModule('objetivos')
-├── new/page.tsx                # Create goal - requirePermission('objetivos:create')
+├── page.tsx                    # List goals - requireModule('goals')
+├── new/page.tsx                # Create goal - requirePermission('goals:create')
 └── [id]/
-    ├── page.tsx                # Goal detail - requirePermission('objetivos:read')
-    ├── edit/page.tsx           # Edit goal - requirePermission('objetivos:update')
-    └── states/page.tsx         # Manage states - requirePermission('objetivos:manage')
+    ├── page.tsx                # Goal detail - requirePermission('goals:read')
+    ├── edit/page.tsx           # Edit goal - requirePermission('goals:update')
+    └── states/page.tsx         # Manage states - requirePermission('goals:manage')
 ```
 
 ### 2. Fundraising Activities (OB-005)
 ```
 (dashboard)/activities/
-├── page.tsx                    # List activities - requireModule('actividades')
-├── new/page.tsx                # Create activity - requirePermission('actividades:create')
+├── page.tsx                    # List activities - requireModule('activities')
+├── new/page.tsx                # Create activity - requirePermission('activities:create')
 └── [id]/
     ├── page.tsx                # Activity detail
     ├── edit/page.tsx           # Edit activity
@@ -85,8 +85,8 @@ Crear la estructura de archivos (scaffolding) para todos los modulos visuales de
 ### 3. Commitments (OB-006)
 ```
 (dashboard)/commitments/
-├── page.tsx                    # List commitments - requireModule('compromisos')
-├── new/page.tsx                # Create commitment - requirePermission('compromisos:create')
+├── page.tsx                    # List commitments - requireModule('commitments')
+├── new/page.tsx                # Create commitment - requirePermission('commitments:create')
 └── [id]/
     ├── page.tsx                # Commitment detail
     └── contributions/page.tsx  # View associated contributions
@@ -95,11 +95,11 @@ Crear la estructura de archivos (scaffolding) para todos los modulos visuales de
 ### 4. Contributions (OB-007)
 ```
 (dashboard)/contributions/
-├── page.tsx                    # List contributions - requireModule('aportes')
-├── register/page.tsx           # Register contribution - requirePermission('aportes:create')
+├── page.tsx                    # List contributions - requireModule('contributions')
+├── register/page.tsx           # Register contribution - requirePermission('contributions:create')
 └── [id]/
     ├── page.tsx                # Contribution detail
-    └── void/page.tsx           # Void contribution - requirePermission('aportes:manage')
+    └── void/page.tsx           # Void contribution - requirePermission('contributions:manage')
 ```
 
 ### 5. PQR (OB-010)
@@ -116,7 +116,7 @@ Crear la estructura de archivos (scaffolding) para todos los modulos visuales de
 ### 6. Account Statements (OB-011)
 ```
 (dashboard)/account-statements/
-├── page.tsx                    # My account statement - requireModule('estados_cuenta')
+├── page.tsx                    # My account statement - requireModule('account_statements')
 ├── settings/page.tsx           # Public/private privacy settings
 └── public/page.tsx             # View public statements (if I'm public)
 ```
@@ -124,24 +124,24 @@ Crear la estructura de archivos (scaffolding) para todos los modulos visuales de
 ### 7. Reports (OB-009)
 ```
 (dashboard)/reports/
-├── page.tsx                    # Reports center - requireModule('reportes')
-├── contributions/page.tsx      # Contributions report - requirePermission('reportes:read')
+├── page.tsx                    # Reports center - requireModule('reports')
+├── contributions/page.tsx      # Contributions report - requirePermission('reports:read')
 ├── commitments/page.tsx        # Commitments report
 ├── progress/page.tsx           # Progress report
-└── export/page.tsx             # Export data - requirePermission('reportes:export')
+└── export/page.tsx             # Export data - requirePermission('reports:export')
 ```
 
 ### 8. Properties and Apartments (OB-003)
 ```
 (dashboard)/properties/
-├── page.tsx                    # List properties - requireModule('copropiedades')
+├── page.tsx                    # List properties - requireModule('properties')
 └── [id]/
     ├── page.tsx                # Property detail
     └── apartments/page.tsx     # Property apartments
 
 (dashboard)/apartments/
-├── page.tsx                    # List apartments - requireModule('apartamentos')
-├── new/page.tsx                # Create apartment - requirePermission('apartamentos:create')
+├── page.tsx                    # List apartments - requireModule('apartments')
+├── new/page.tsx                # Create apartment - requirePermission('apartments:create')
 └── [id]/
     ├── page.tsx                # Apartment detail
     └── residents/page.tsx      # Assigned residents
@@ -165,7 +165,7 @@ Crear la estructura de archivos (scaffolding) para todos los modulos visuales de
 ### 10. Audit (OB-012)
 ```
 (dashboard)/audit/
-├── page.tsx                    # Audit logs - requireModule('auditoria')
+├── page.tsx                    # Audit logs - requireModule('audit')
 └── [resource]/
     └── [id]/page.tsx           # Resource history
 ```
@@ -173,7 +173,7 @@ Crear la estructura de archivos (scaffolding) para todos los modulos visuales de
 ### 11. Notifications (OB-013)
 ```
 (dashboard)/notifications/
-├── page.tsx                    # Notifications center - requireModule('notificaciones')
+├── page.tsx                    # Notifications center - requireModule('notifications')
 └── preferences/page.tsx        # Configure preferences
 ```
 
@@ -191,13 +191,13 @@ Crear la estructura de archivos (scaffolding) para todos los modulos visuales de
 Cada pagina placeholder seguira este patron:
 
 ```typescript
-// Ejemplo: (dashboard)/objetivos/nuevo/page.tsx
+// Ejemplo: (dashboard)/goals/new/page.tsx
 import { redirect } from 'next/navigation';
 import { requirePermission } from '@/lib/permissions.server';
 
-export default async function CrearObjetivoPage() {
+export default async function CreateGoalPage() {
   try {
-    await requirePermission('objetivos:create');
+    await requirePermission('goals:create');
   } catch {
     redirect('/acceso-denegado');
   }
@@ -218,7 +218,7 @@ export default async function CrearObjetivoPage() {
             Modulo: Objetivos de Recaudo
           </p>
           <p className="text-sm text-gray-500 mt-1">
-            Permiso requerido: objetivos:create
+            Permiso requerido: goals:create
           </p>
           <p className="text-sm text-gray-500 mt-1">
             Implementacion: OB-004
