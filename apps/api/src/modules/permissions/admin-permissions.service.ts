@@ -103,6 +103,7 @@ export class AdminPermissionsService {
       poolName?: string;
     }[];
     permissions: {
+      id?: string;
       permission: ModulePermission;
       scope: Scope;
       scopeId?: string | null;
@@ -182,6 +183,7 @@ export class AdminPermissionsService {
       ],
       permissions: [
         ...directPermissions.map((up) => ({
+          id: up.id,
           permission: up.modulePermission,
           scope: up.scope,
           scopeId: up.scopeId,
@@ -373,6 +375,21 @@ export class AdminPermissionsService {
 
       await this.userPermissionRepo.save(existing);
 
+      // Auto-grant 'read' permission for CRUD modules when granting create/update/delete
+      if (
+        modulePermission.module.type === 'crud' &&
+        ['create', 'update', 'delete'].includes(modulePermission.code)
+      ) {
+        await this.autoGrantReadPermission(
+          userId,
+          modulePermission.moduleId,
+          dto.scope,
+          dto.scopeId,
+          superAdminId,
+          dto.expiresAt,
+        );
+      }
+
       // Invalidate cache
       this.cacheService.invalidate(userId);
 
@@ -396,6 +413,21 @@ export class AdminPermissionsService {
 
     await this.userPermissionRepo.save(userPermission);
 
+    // Auto-grant 'read' permission for CRUD modules when granting create/update/delete
+    if (
+      modulePermission.module.type === 'crud' &&
+      ['create', 'update', 'delete'].includes(modulePermission.code)
+    ) {
+      await this.autoGrantReadPermission(
+        userId,
+        modulePermission.moduleId,
+        dto.scope,
+        dto.scopeId,
+        superAdminId,
+        dto.expiresAt,
+      );
+    }
+
     // Invalidate cache
     this.cacheService.invalidate(userId);
 
@@ -404,6 +436,77 @@ export class AdminPermissionsService {
     );
 
     return userPermission;
+  }
+
+  /**
+   * Auto-grant read permission when granting create/update/delete in CRUD modules
+   * Private helper method
+   */
+  private async autoGrantReadPermission(
+    userId: string,
+    moduleId: string,
+    scope: Scope,
+    scopeId: string | null | undefined,
+    superAdminId: string,
+    expiresAt: string | null | undefined,
+  ): Promise<void> {
+    // Find the 'read' permission for this module
+    const readPermission = await this.modulePermissionRepo.findOne({
+      where: { moduleId, code: 'read' },
+    });
+
+    if (!readPermission) {
+      // If no read permission exists, skip (shouldn't happen for CRUD modules)
+      this.logger.warn(
+        `No 'read' permission found for module ${moduleId}, skipping auto-grant`,
+      );
+      return;
+    }
+
+    // Check if user already has read permission with same scope
+    const existingReadPermission = await this.userPermissionRepo.findOne({
+      where: {
+        userId,
+        modulePermissionId: readPermission.id,
+        scope,
+        scopeId: scopeId || IsNull(),
+      },
+    });
+
+    if (existingReadPermission) {
+      if (!existingReadPermission.isActive) {
+        // Reactivate existing read permission
+        existingReadPermission.isActive = true;
+        existingReadPermission.grantedBy = superAdminId;
+        existingReadPermission.grantedAt = new Date();
+        existingReadPermission.expiresAt = expiresAt ? new Date(expiresAt) : null;
+        await this.userPermissionRepo.save(existingReadPermission);
+
+        this.logger.log(
+          `Read permission auto-reactivated for user ${userId} in module ${moduleId}`,
+        );
+      }
+      // If already active, do nothing
+      return;
+    }
+
+    // Create new read permission
+    const readUserPermission = this.userPermissionRepo.create({
+      userId,
+      modulePermissionId: readPermission.id,
+      scope,
+      scopeId: scopeId || null,
+      grantedBy: superAdminId,
+      grantedAt: new Date(),
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+      isActive: true,
+    });
+
+    await this.userPermissionRepo.save(readUserPermission);
+
+    this.logger.log(
+      `Read permission auto-granted for user ${userId} in module ${moduleId}`,
+    );
   }
 
   /**

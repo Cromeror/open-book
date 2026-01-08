@@ -1,9 +1,16 @@
 /**
  * Permission and module types for the frontend
  *
- * Re-exports types from ./types/modules.ts and provides
- * utility functions for runtime permission checks.
+ * Re-exports types from @openbook/business-core and ./types/modules.ts
+ * and provides utility functions for runtime permission checks.
  */
+
+// Re-export shared types from business-core
+export type { AuthMeResponse, AuthUser } from '@openbook/business-core/auth';
+export type { Scope, PermissionContext } from '@openbook/business-core/permissions';
+
+// Type alias for compatibility
+export type PermissionScope = 'own' | 'copropiedad' | 'all';
 
 // Re-export all module types
 export * from './types/modules';

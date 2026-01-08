@@ -26,6 +26,8 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "paths": {
+      "@openbook/business-core": ["libs/business-core/src/index.ts"],
+      "@openbook/business-core/*": ["libs/business-core/src/*"],
       "@openbook/shared/*": ["libs/shared/src/*"],
       "@openbook/api/*": ["apps/api/src/*"],
       "@openbook/web/*": ["apps/web/src/*"]

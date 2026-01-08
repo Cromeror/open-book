@@ -1,0 +1,21 @@
+{
+  "name": "business-core",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/business-core/src",
+  "projectType": "library",
+  "tags": ["type:types", "scope:shared"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["libs/business-core/**/*.ts"]
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/business-core/tsconfig.json"
+      }
+    }
+  }
+}

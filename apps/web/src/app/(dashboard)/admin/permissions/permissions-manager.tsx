@@ -46,6 +46,7 @@ interface UserPermissionsData {
     poolName?: string;
   }>;
   permissions: Array<{
+    id?: string;
     permission: {
       id: string;
       code: string;
@@ -86,7 +87,7 @@ export function PermissionsManager({ initialModules, initialUsers }: Props) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/admin/permissions/users/${userId}?type=permissions`);
+      const response = await fetch(`/api/admin/permissions/users/${userId}/permissions`);
       if (!response.ok) throw new Error('Error al cargar permisos');
       const data = await response.json();
       setUserPermissions(data);
@@ -113,7 +114,7 @@ export function PermissionsManager({ initialModules, initialUsers }: Props) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/admin/permissions/users/${selectedUser.id}?type=modules`, {
+      const response = await fetch(`/api/admin/permissions/users/${selectedUser.id}/modules`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ moduleId }),
@@ -142,7 +143,7 @@ export function PermissionsManager({ initialModules, initialUsers }: Props) {
 
     try {
       const response = await fetch(
-        `/api/admin/permissions/users/${selectedUser.id}?type=modules&targetId=${moduleId}`,
+        `/api/admin/permissions/users/${selectedUser.id}/modules/${moduleId}`,
         { method: 'DELETE' }
       );
 
@@ -175,7 +176,7 @@ export function PermissionsManager({ initialModules, initialUsers }: Props) {
         body.scopeId = scopeId;
       }
 
-      const response = await fetch(`/api/admin/permissions/users/${selectedUser.id}?type=permissions`, {
+      const response = await fetch(`/api/admin/permissions/users/${selectedUser.id}/permissions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -195,7 +196,7 @@ export function PermissionsManager({ initialModules, initialUsers }: Props) {
     }
   };
 
-  const handleRevokePermission = async (permissionId: string) => {
+  const handleRevokePermission = async (userPermissionId: string) => {
     if (!selectedUser) return;
 
     setLoading(true);
@@ -203,7 +204,7 @@ export function PermissionsManager({ initialModules, initialUsers }: Props) {
 
     try {
       const response = await fetch(
-        `/api/admin/permissions/users/${selectedUser.id}?type=permissions&targetId=${permissionId}`,
+        `/api/admin/permissions/users/${selectedUser.id}/permissions/${userPermissionId}`,
         { method: 'DELETE' }
       );
 
@@ -449,6 +450,7 @@ interface AssignedModuleCardProps {
   };
   moduleDefinition?: Module;
   userPermissions: Array<{
+    id?: string;
     permission: {
       id: string;
       code: string;
@@ -462,7 +464,7 @@ interface AssignedModuleCardProps {
   }>;
   onRevokeModule: () => void;
   onGrantPermission: (modulePermissionId: string, scope: PermissionScope, scopeId?: string) => void;
-  onRevokePermission: (permissionId: string) => void;
+  onRevokePermission: (userPermissionId: string) => void;
   loading: boolean;
 }
 
@@ -683,10 +685,10 @@ function AssignedModuleCard({
                   {perm.source === 'pool' && (
                     <span className="text-xs text-blue-500">pool</span>
                   )}
-                  {canEdit && perm.source === 'direct' && (
+                  {canEdit && perm.source === 'direct' && perm.id && (
                     <button
                       type="button"
-                      onClick={() => onRevokePermission(perm.permission.id)}
+                      onClick={() => onRevokePermission(perm.id!)}
                       disabled={loading}
                       className="ml-1 text-red-500 hover:text-red-700 disabled:opacity-50"
                       title="Revocar permiso"
