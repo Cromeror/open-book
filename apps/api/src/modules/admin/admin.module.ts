@@ -1,10 +1,7 @@
 import { Module } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
 import { UsersModule } from './users';
-
-// TODO: Import the modules you want to group under /admin
-// import { UsersModule } from '../users';
-// import { PermissionsModule } from '../permissions';
+import { CondominiumsModule } from './condominiums';
 
 /**
  * Admin Module
@@ -39,24 +36,15 @@ import { UsersModule } from './users';
 @Module({
   imports: [
     UsersModule,
-    // ========================================
-    // ADD YOUR ADMIN MODULES HERE
-    // ========================================
-    // UsersModule,
-    // PermissionsModule,
+    CondominiumsModule,
 
-    // ========================================
-    // ROUTER CONFIGURATION
-    // ========================================
+    // Router configuration for /admin prefix
     RouterModule.register([
       {
         path: 'admin',
         children: [
-          // ========================================
-          // ADD YOUR ROUTE MAPPINGS HERE
-          // ========================================
           { path: 'users', module: UsersModule },
-          // { path: 'permissions', module: PermissionsModule },
+          { path: 'condominiums', module: CondominiumsModule },
         ],
       },
     ]),

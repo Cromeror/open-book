@@ -6,6 +6,9 @@ import { AdminModule } from '../modules/admin';
 import { AuthModule } from '../modules/auth';
 import { UsersModule } from '../modules/users';
 import { GoalsModule } from '../modules/goals';
+import { GroupsModule } from '../modules/groups';
+import { PropertiesModule } from '../modules/properties';
+import { PropertyResidentsModule } from '../modules/property-residents';
 import { AuditSubscriber, ImmutableSubscriber } from '../subscribers';
 
 import { AppController } from './app.controller';
@@ -20,6 +23,9 @@ import { AppService } from './app.service';
     UsersModule,
     AuthModule,
     GoalsModule,
+    GroupsModule,
+    PropertiesModule,
+    PropertyResidentsModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuditSubscriber, ImmutableSubscriber],

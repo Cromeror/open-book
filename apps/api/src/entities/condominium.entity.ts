@@ -4,10 +4,13 @@ import { BaseEntity } from './base.entity';
 /**
  * Condominium entity represents a residential complex (copropiedad)
  *
- * A Condominium is the main organizational unit that contains:
- * - Apartments
+ * A Condominium is the root entity that contains:
+ * - Groups (hierarchical groupings like towers, floors, blocks)
+ * - Properties (apartments, offices, parking spaces - always leaves)
  * - Fundraising goals
- * - Activities and contributions
+ *
+ * Only SuperAdmin can create condominiums.
+ * Users with permissions can configure internal structure.
  *
  * @example
  * ```typescript
@@ -15,7 +18,6 @@ import { BaseEntity } from './base.entity';
  * condominium.name = 'Conjunto Residencial Los Pinos';
  * condominium.address = 'Calle 100 #15-20';
  * condominium.city = 'Bogotá';
- * condominium.unitCount = 150;
  * ```
  */
 @Entity('condominiums')
@@ -48,8 +50,9 @@ export class Condominium extends BaseEntity {
 
   /**
    * Total number of residential units in the condominium
+   * @deprecated Use properties count instead - kept for backwards compatibility
    */
-  @Column({ name: 'unit_count', type: 'integer' })
+  @Column({ name: 'unit_count', type: 'integer', default: 0 })
   unitCount!: number;
 
   /**
@@ -59,12 +62,23 @@ export class Condominium extends BaseEntity {
   isActive!: boolean;
 
   // ============================================
-  // Relations - Forward declarations
+  // Relations
   // ============================================
 
   /**
+   * Groups (towers, blocks, floors, etc.) in this condominium
+   */
+  @OneToMany('Group', 'condominium')
+  groups!: import('./group.entity').Group[];
+
+  /**
+   * Properties (apartments, offices, etc.) in this condominium
+   */
+  @OneToMany('Property', 'condominium')
+  properties!: import('./property.entity').Property[];
+
+  /**
    * Fundraising goals associated with this condominium
-   * Circular import handled via string reference
    */
   @OneToMany('Goal', 'condominium')
   goals!: import('./goal.entity').Goal[];
