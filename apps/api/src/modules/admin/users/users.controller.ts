@@ -17,9 +17,10 @@ import {
 } from '@nestjs/common';
 import { z } from 'zod';
 
-import { JwtAuthGuard } from '../auth/guards';
+import { SuperAdminGuard } from '../../permissions/guards/superadmin.guard';
 
 import { UsersService } from './users.service';
+import { JwtAuthGuard } from '../../auth/guards';
 
 // Zod schemas for validation
 const createUserSchema = z.object({
@@ -43,21 +44,21 @@ const updateUserSchema = z.object({
  * All endpoints require SuperAdmin authentication.
  *
  * Endpoints:
- * - GET /api/users - List all users with pagination
- * - GET /api/users/:id - Get a specific user by ID
- * - POST /api/users - Create a new user
- * - PATCH /api/users/:id - Update a user
- * - DELETE /api/users/:id - Delete (soft) a user
+ * - GET /api/admin/users - List all users with pagination
+ * - GET /api/admin/users/:id - Get a specific user by ID
+ * - POST /api/admin/users - Create a new user
+ * - PATCH /api/admin/users/:id - Update a user
+ * - DELETE /api/admin/users/:id - Delete (soft) a user
  */
-@Controller('users')
-@UseGuards(JwtAuthGuard)
+@Controller()
+@UseGuards(JwtAuthGuard, SuperAdminGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   /**
    * List all users with pagination and optional search
    *
-   * GET /api/users
+   * GET /api/admin/users
    *
    * Query params:
    * - search: Search by email, firstName, or lastName (partial match)
@@ -91,7 +92,7 @@ export class UsersController {
   /**
    * Get a specific user by ID
    *
-   * GET /api/users/:id
+   * GET /api/admin/users/:id
    *
    * @returns User details (200)
    * @throws NotFoundException if user not found (404)
@@ -108,7 +109,7 @@ export class UsersController {
   /**
    * Create a new user
    *
-   * POST /api/users
+   * POST /api/admin/users
    *
    * @returns Created user (201)
    * @throws BadRequestException for validation errors (400)
@@ -133,7 +134,7 @@ export class UsersController {
   /**
    * Update a user
    *
-   * PATCH /api/users/:id
+   * PATCH /api/admin/users/:id
    *
    * @returns Updated user (200)
    * @throws BadRequestException for validation errors (400)
@@ -164,7 +165,7 @@ export class UsersController {
   /**
    * Replace a user (full update)
    *
-   * PUT /api/users/:id
+   * PUT /api/admin/users/:id
    *
    * @returns Updated user (200)
    * @throws BadRequestException for validation errors (400)
@@ -195,7 +196,7 @@ export class UsersController {
   /**
    * Delete (soft) a user
    *
-   * DELETE /api/users/:id
+   * DELETE /api/admin/users/:id
    *
    * @returns 204 No Content
    * @throws NotFoundException if user not found (404)

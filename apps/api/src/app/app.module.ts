@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { typeOrmConfigFactory } from '../config';
+import { AdminModule } from '../modules/admin';
 import { AuthModule } from '../modules/auth';
 import { UsersModule } from '../modules/users';
 import { GoalsModule } from '../modules/goals';
@@ -15,6 +16,7 @@ import { AppService } from './app.service';
     TypeOrmModule.forRootAsync({
       useFactory: typeOrmConfigFactory,
     }),
+    AdminModule,
     UsersModule,
     AuthModule,
     GoalsModule,
