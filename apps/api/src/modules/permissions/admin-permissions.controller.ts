@@ -194,10 +194,17 @@ export class AdminPermissionsController {
 
   /**
    * GET /api/admin/permissions/users/by-module/:moduleCode
-   * Get users who have access to a specific module
+   * Get module info with actions filtered by current user's permissions
+   * SuperAdmin gets all actions, regular users get only their assigned actions
    */
   @Get('users/by-module/:moduleCode')
-  async getUsersByModule(@Param('moduleCode') moduleCode: string) {
-    return this.adminPermissionsService.getUsersByModule(moduleCode);
+  async getModuleWithUserActions(
+    @CurrentUser() currentUser: User,
+    @Param('moduleCode') moduleCode: string,
+  ) {
+    return this.adminPermissionsService.getModuleWithUserActions(
+      moduleCode,
+      currentUser,
+    );
   }
 }

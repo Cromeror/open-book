@@ -4,7 +4,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| Status | pending |
+| Status | done |
 | Priority | high |
 | Created | 2026-01-05 |
 | Updated | 2026-01-06 |

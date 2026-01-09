@@ -95,12 +95,21 @@ export interface FilterDefinition {
 export interface FieldDefinition {
   name: string;
   label: string;
-  type: 'text' | 'number' | 'date' | 'select' | 'textarea' | 'boolean' | 'money';
+  type: 'text' | 'number' | 'date' | 'select' | 'textarea' | 'boolean' | 'money' | 'email' | 'password' | 'checkbox' | 'multiselect';
   required?: boolean;
   options?: Array<{ value: string; label: string }>;
   min?: number;
   max?: number;
   placeholder?: string;
+  helpText?: string;
+  validation?: {
+    min?: number;
+    max?: number;
+    minLength?: number;
+    maxLength?: number;
+    pattern?: string;
+    custom?: string;
+  };
 }
 
 /**

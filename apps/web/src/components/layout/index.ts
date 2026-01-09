@@ -4,6 +4,7 @@
 
 export { DashboardShell } from './DashboardShell';
 export { Sidebar } from './Sidebar';
+export { SuperSidebar } from './SuperSidebar';
 export { Header } from './Header';
 export { Breadcrumbs } from './Breadcrumbs';
 export { Icon } from './Icon';

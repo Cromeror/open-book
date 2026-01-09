@@ -7,19 +7,21 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * - icon, type, entity, endpoint, component
  * - nav_config (path and order)
  * - actions_config (full action definitions)
+ *
+ * Uses English module codes and endpoints as per CLAUDE.md conventions.
  */
 export class SeedModuleMetadata1736166000000 implements MigrationInterface {
   name = 'SeedModuleMetadata1736166000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Update modules with metadata
+    // Update modules with metadata (English endpoints)
     await queryRunner.query(`
       UPDATE modules SET
         icon = 'Users',
         type = 'crud',
         entity = 'Usuario',
-        endpoint = '/api/users',
-        nav_config = '{"path": "/m/users", "order": 10}'::jsonb,
+        endpoint = '/api/admin/users',
+        nav_config = '{"path": "/admin/users", "order": 10}'::jsonb,
         actions_config = '[
           {
             "code": "read",
@@ -41,6 +43,21 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
             }
           },
           {
+            "code": "create",
+            "label": "Crear",
+            "description": "Crear nuevos usuarios",
+            "settings": {
+              "type": "create",
+              "fields": [
+                {"name": "email", "label": "Email", "type": "email", "required": true},
+                {"name": "firstName", "label": "Nombre", "type": "text", "required": true},
+                {"name": "lastName", "label": "Apellido", "type": "text", "required": true},
+                {"name": "phone", "label": "Telefono", "type": "text"},
+                {"name": "password", "label": "Contraseña", "type": "password", "required": true}
+              ]
+            }
+          },
+          {
             "code": "update",
             "label": "Editar",
             "description": "Editar usuarios",
@@ -53,6 +70,16 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
                 {"name": "isActive", "label": "Activo", "type": "boolean"}
               ]
             }
+          },
+          {
+            "code": "delete",
+            "label": "Eliminar",
+            "description": "Eliminar usuarios del sistema",
+            "settings": {
+              "type": "delete",
+              "confirmation": "¿Esta seguro que desea eliminar este usuario?",
+              "soft": true
+            }
           }
         ]'::jsonb,
         "order" = 10
@@ -64,8 +91,8 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
         icon = 'Building2',
         type = 'crud',
         entity = 'Copropiedad',
-        endpoint = '/api/copropiedades',
-        nav_config = '{"path": "/m/copropiedades", "order": 20}'::jsonb,
+        endpoint = '/api/properties',
+        nav_config = '{"path": "/m/properties", "order": 20}'::jsonb,
         actions_config = '[
           {
             "code": "read",
@@ -98,7 +125,7 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
           }
         ]'::jsonb,
         "order" = 20
-      WHERE code = 'copropiedades'
+      WHERE code = 'properties'
     `);
 
     await queryRunner.query(`
@@ -106,8 +133,8 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
         icon = 'Home',
         type = 'crud',
         entity = 'Apartamento',
-        endpoint = '/api/apartamentos',
-        nav_config = '{"path": "/m/apartamentos", "order": 30}'::jsonb,
+        endpoint = '/api/apartments',
+        nav_config = '{"path": "/m/apartments", "order": 30}'::jsonb,
         actions_config = '[
           {
             "code": "read",
@@ -160,7 +187,7 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
           }
         ]'::jsonb,
         "order" = 30
-      WHERE code = 'apartamentos'
+      WHERE code = 'apartments'
     `);
 
     await queryRunner.query(`
@@ -168,8 +195,8 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
         icon = 'Target',
         type = 'crud',
         entity = 'Objetivo',
-        endpoint = '/api/objetivos',
-        nav_config = '{"path": "/m/objetivos", "order": 40}'::jsonb,
+        endpoint = '/api/condominiums/:condominiumId/goals',
+        nav_config = '{"path": "/m/goals", "order": 40}'::jsonb,
         actions_config = '[
           {
             "code": "read",
@@ -230,7 +257,7 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
           }
         ]'::jsonb,
         "order" = 40
-      WHERE code = 'objetivos'
+      WHERE code = 'goals'
     `);
 
     await queryRunner.query(`
@@ -238,8 +265,8 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
         icon = 'Calendar',
         type = 'crud',
         entity = 'Actividad',
-        endpoint = '/api/actividades',
-        nav_config = '{"path": "/m/actividades", "order": 50}'::jsonb,
+        endpoint = '/api/activities',
+        nav_config = '{"path": "/m/activities", "order": 50}'::jsonb,
         actions_config = '[
           {
             "code": "read",
@@ -297,7 +324,7 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
           }
         ]'::jsonb,
         "order" = 50
-      WHERE code = 'actividades'
+      WHERE code = 'activities'
     `);
 
     await queryRunner.query(`
@@ -305,8 +332,8 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
         icon = 'FileText',
         type = 'crud',
         entity = 'Compromiso',
-        endpoint = '/api/compromisos',
-        nav_config = '{"path": "/m/compromisos", "order": 60}'::jsonb,
+        endpoint = '/api/commitments',
+        nav_config = '{"path": "/m/commitments", "order": 60}'::jsonb,
         actions_config = '[
           {
             "code": "read",
@@ -329,7 +356,7 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
             "settings": {
               "type": "create",
               "fields": [
-                {"name": "apartamentoId", "label": "Apartamento", "type": "select", "required": true},
+                {"name": "apartmentId", "label": "Apartamento", "type": "select", "required": true},
                 {"name": "amount", "label": "Monto", "type": "money", "required": true, "min": 0}
               ]
             }
@@ -348,7 +375,7 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
           }
         ]'::jsonb,
         "order" = 60
-      WHERE code = 'compromisos'
+      WHERE code = 'commitments'
     `);
 
     await queryRunner.query(`
@@ -356,8 +383,8 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
         icon = 'DollarSign',
         type = 'crud',
         entity = 'Aporte',
-        endpoint = '/api/aportes',
-        nav_config = '{"path": "/m/aportes", "order": 70}'::jsonb,
+        endpoint = '/api/contributions',
+        nav_config = '{"path": "/m/contributions", "order": 70}'::jsonb,
         actions_config = '[
           {
             "code": "read",
@@ -383,7 +410,7 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
             "settings": {
               "type": "create",
               "fields": [
-                {"name": "apartamentoId", "label": "Apartamento", "type": "select", "required": true},
+                {"name": "apartmentId", "label": "Apartamento", "type": "select", "required": true},
                 {"name": "amount", "label": "Monto", "type": "money", "required": true, "min": 0},
                 {"name": "date", "label": "Fecha", "type": "date", "required": true},
                 {"name": "reference", "label": "Referencia", "type": "text"},
@@ -407,7 +434,7 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
           }
         ]'::jsonb,
         "order" = 70
-      WHERE code = 'aportes'
+      WHERE code = 'contributions'
     `);
 
     await queryRunner.query(`
@@ -469,7 +496,7 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
         icon = 'BarChart3',
         type = 'specialized',
         component = 'ReportsModule',
-        nav_config = '{"path": "/reports", "order": 90}'::jsonb,
+        nav_config = '{"path": "/m/reports", "order": 90}'::jsonb,
         actions_config = '[
           {
             "code": "read",
@@ -485,7 +512,7 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
           }
         ]'::jsonb,
         "order" = 90
-      WHERE code = 'reportes'
+      WHERE code = 'reports'
     `);
 
     await queryRunner.query(`
@@ -493,7 +520,7 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
         icon = 'FileText',
         type = 'specialized',
         component = 'AuditModule',
-        nav_config = '{"path": "/audit", "order": 100}'::jsonb,
+        nav_config = '{"path": "/m/audit", "order": 100}'::jsonb,
         actions_config = '[
           {
             "code": "read",
@@ -503,7 +530,7 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
           }
         ]'::jsonb,
         "order" = 100
-      WHERE code = 'auditoria'
+      WHERE code = 'audit'
     `);
 
     await queryRunner.query(`
@@ -511,7 +538,7 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
         icon = 'Bell',
         type = 'specialized',
         component = 'NotificationsModule',
-        nav_config = '{"path": "/notifications", "order": 110}'::jsonb,
+        nav_config = '{"path": "/m/notifications", "order": 110}'::jsonb,
         actions_config = '[
           {
             "code": "read",
@@ -527,7 +554,7 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
           }
         ]'::jsonb,
         "order" = 110
-      WHERE code = 'notificaciones'
+      WHERE code = 'notifications'
     `);
 
     await queryRunner.query(`
@@ -535,7 +562,7 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
         icon = 'Settings',
         type = 'specialized',
         component = 'SettingsModule',
-        nav_config = '{"path": "/settings", "order": 120}'::jsonb,
+        nav_config = '{"path": "/m/settings", "order": 120}'::jsonb,
         actions_config = '[
           {
             "code": "read",
@@ -551,7 +578,7 @@ export class SeedModuleMetadata1736166000000 implements MigrationInterface {
           }
         ]'::jsonb,
         "order" = 120
-      WHERE code = 'configuracion'
+      WHERE code = 'settings'
     `);
   }
 

@@ -10,19 +10,21 @@ export class SeedInitialModules1736162000000 implements MigrationInterface {
   name = 'SeedInitialModules1736162000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Seed modules and their permissions
+    // Seed modules and their permissions (using English module codes as per CLAUDE.md)
     const modules = [
       {
         code: 'users',
         name: 'Gestión de Usuarios',
         description: 'Administración de usuarios del sistema',
         permissions: [
+          { code: 'create', name: 'Crear usuarios', description: 'Crear nuevos usuarios en el sistema' },
           { code: 'read', name: 'Ver usuarios', description: 'Ver lista y detalle de usuarios' },
           { code: 'update', name: 'Editar usuarios', description: 'Modificar datos de usuarios' },
+          { code: 'delete', name: 'Eliminar usuarios', description: 'Eliminar usuarios del sistema' },
         ],
       },
       {
-        code: 'copropiedades',
+        code: 'properties',
         name: 'Copropiedades',
         description: 'Gestión de copropiedades/edificios',
         permissions: [
@@ -31,7 +33,7 @@ export class SeedInitialModules1736162000000 implements MigrationInterface {
         ],
       },
       {
-        code: 'apartamentos',
+        code: 'apartments',
         name: 'Apartamentos',
         description: 'Gestión de apartamentos/unidades',
         permissions: [
@@ -42,7 +44,7 @@ export class SeedInitialModules1736162000000 implements MigrationInterface {
         ],
       },
       {
-        code: 'objetivos',
+        code: 'goals',
         name: 'Objetivos de Recaudo',
         description: 'Definición de metas de recaudo',
         permissions: [
@@ -53,7 +55,7 @@ export class SeedInitialModules1736162000000 implements MigrationInterface {
         ],
       },
       {
-        code: 'actividades',
+        code: 'activities',
         name: 'Actividades de Recaudo',
         description: 'Rifas, donaciones, eventos vinculados a objetivos',
         permissions: [
@@ -64,7 +66,7 @@ export class SeedInitialModules1736162000000 implements MigrationInterface {
         ],
       },
       {
-        code: 'compromisos',
+        code: 'commitments',
         name: 'Compromisos',
         description: 'Promesas de aporte de apartamentos',
         permissions: [
@@ -74,7 +76,7 @@ export class SeedInitialModules1736162000000 implements MigrationInterface {
         ],
       },
       {
-        code: 'aportes',
+        code: 'contributions',
         name: 'Aportes Reales',
         description: 'Registro de contribuciones efectivas',
         permissions: [
@@ -94,7 +96,7 @@ export class SeedInitialModules1736162000000 implements MigrationInterface {
         ],
       },
       {
-        code: 'reportes',
+        code: 'reports',
         name: 'Reportes',
         description: 'Generación de reportes del sistema',
         permissions: [
@@ -103,7 +105,7 @@ export class SeedInitialModules1736162000000 implements MigrationInterface {
         ],
       },
       {
-        code: 'auditoria',
+        code: 'audit',
         name: 'Auditoría',
         description: 'Logs de auditoría del sistema',
         permissions: [
@@ -111,7 +113,7 @@ export class SeedInitialModules1736162000000 implements MigrationInterface {
         ],
       },
       {
-        code: 'notificaciones',
+        code: 'notifications',
         name: 'Notificaciones',
         description: 'Sistema de notificaciones',
         permissions: [
@@ -120,7 +122,7 @@ export class SeedInitialModules1736162000000 implements MigrationInterface {
         ],
       },
       {
-        code: 'configuracion',
+        code: 'settings',
         name: 'Configuración',
         description: 'Configuración del sistema',
         permissions: [

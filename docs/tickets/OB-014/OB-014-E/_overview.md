@@ -5,7 +5,7 @@
 | Campo | Valor |
 |-------|-------|
 | Epic | OB-014 - Configuracion de Vistas por Permisos y Modulos |
-| Status | pending |
+| Status | done |
 | Priority | high |
 | Created | 2026-01-05 |
 | Updated | 2026-01-06 |

@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import type { NavItem } from '@/lib/types/modules';
 
 import { Sidebar } from './Sidebar';
+import { SuperSidebar } from './SuperSidebar';
 import { Header } from './Header';
 import { Breadcrumbs } from './Breadcrumbs';
 
@@ -41,12 +42,19 @@ export function DashboardShell({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Sidebar
-        navItems={navItems}
-        isSuperAdmin={isSuperAdmin}
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-      />
+      {isSuperAdmin ? (
+        <SuperSidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+      ) : (
+        <Sidebar
+          navItems={navItems}
+          isSuperAdmin={isSuperAdmin}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+      )}
 
       <div className="lg:pl-64">
         <Header

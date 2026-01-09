@@ -6,6 +6,12 @@
  */
 
 /**
+ * Valid module types
+ */
+export const MODULE_TYPES = ['crud', 'specialized'] as const;
+export type ModuleType = (typeof MODULE_TYPES)[number];
+
+/**
  * A module with its available actions for a user
  */
 export interface ModuleWithActions {
@@ -18,7 +24,7 @@ export interface ModuleWithActions {
   /** Icon name (Lucide icon) */
   icon: string;
   /** Module type */
-  type: 'crud' | 'specialized';
+  type: ModuleType;
   /** Navigation configuration */
   nav: {
     path: string;

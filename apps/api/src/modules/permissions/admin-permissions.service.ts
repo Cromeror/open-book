@@ -606,4 +606,78 @@ export class AdminPermissionsService {
       lastName: u.lastName,
     }));
   }
+
+  /**
+   * Get module with actions filtered by current user's permissions
+   * SuperAdmin gets all actions, regular users get only their assigned actions
+   */
+  async getModuleWithUserActions(
+    moduleCode: string,
+    currentUser: User,
+  ): Promise<{
+    module: Module;
+    actions: ModulePermission[];
+    users: { id: string; email: string; firstName: string; lastName: string }[];
+  }> {
+    const module = await this.moduleRepo.findOne({
+      where: { code: moduleCode, isActive: true },
+      relations: ['permissions'],
+    });
+
+    if (!module) {
+      throw new NotFoundException(`Módulo '${moduleCode}' no encontrado`);
+    }
+
+    // Get all module permissions (actions)
+    const allActions = module.permissions || [];
+
+    let filteredActions: ModulePermission[];
+
+    if (currentUser.isSuperAdmin) {
+      // SuperAdmin gets all actions
+      filteredActions = allActions;
+    } else {
+      // Regular user: get only their assigned permissions for this module
+      const userPermissions = await this.userPermissionRepo.find({
+        where: {
+          userId: currentUser.id,
+          isActive: true,
+        },
+        relations: ['modulePermission'],
+      });
+
+      // Get permission IDs the user has for this module
+      const userPermissionIds = new Set(
+        userPermissions
+          .filter((up) => up.modulePermission.moduleId === module.id)
+          .map((up) => up.modulePermission.id),
+      );
+
+      // Also check pool permissions
+      const userPools = await this.poolsService.getUserPools(currentUser.id);
+      for (const pool of userPools) {
+        const poolPermissions =
+          await this.poolsService.getPoolPermissions(pool.id);
+        for (const pp of poolPermissions) {
+          if (pp.modulePermission.moduleId === module.id) {
+            userPermissionIds.add(pp.modulePermission.id);
+          }
+        }
+      }
+
+      // Filter actions to only those the user has
+      filteredActions = allActions.filter((action) =>
+        userPermissionIds.has(action.id),
+      );
+    }
+
+    // Get users with access to this module
+    const users = await this.getUsersByModule(moduleCode);
+
+    return {
+      module,
+      actions: filteredActions,
+      users,
+    };
+  }
 }

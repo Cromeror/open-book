@@ -10,18 +10,13 @@ async function getToken() {
 }
 
 /**
- * GET /api/admin/users
- * List all users (SuperAdmin only)
- *
- * Query params:
- * - search: Search by email, firstName, or lastName
- * - isActive: Filter by active status (true/false)
- * - page: Page number
- * - limit: Items per page
- * - orderBy: Sort field
- * - order: Sort direction (asc/desc)
+ * GET /api/admin/modules/:id
+ * Proxy to get a single module by ID
  */
-export async function GET(request: NextRequest) {
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const token = await getToken();
 
   if (!token) {
@@ -31,15 +26,10 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const { searchParams } = new URL(request.url);
-  const queryString = searchParams.toString();
+  const { id } = await params;
 
   try {
-    const url = queryString
-      ? `${API_BASE_URL}/admin/users?${queryString}`
-      : `${API_BASE_URL}/admin/users`;
-
-    const response = await fetch(url, {
+    const response = await fetch(`${API_BASE_URL}/admin/modules/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -57,10 +47,13 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST /api/admin/users
- * Create a new user (SuperAdmin only)
+ * PATCH /api/admin/modules/:id
+ * Proxy to update a module
  */
-export async function POST(request: NextRequest) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const token = await getToken();
 
   if (!token) {
@@ -70,10 +63,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const { id } = await params;
+  const body = await request.json();
+
   try {
-    const body = await request.json();
-    const response = await fetch(`${API_BASE_URL}/admin/users`, {
-      method: 'POST',
+    const response = await fetch(`${API_BASE_URL}/admin/modules/${id}`, {
+      method: 'PATCH',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',

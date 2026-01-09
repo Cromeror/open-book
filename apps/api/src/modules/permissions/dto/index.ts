@@ -4,3 +4,4 @@ export { GrantModuleAccessDto, grantModuleAccessSchema, validateGrantModuleAcces
 export { GrantPermissionDto, grantPermissionSchema, validateGrantPermissionDto } from './grant-permission.dto';
 export { GrantPoolModuleDto, grantPoolModuleSchema, validateGrantPoolModuleDto } from './grant-pool-module.dto';
 export { GrantPoolPermissionDto, grantPoolPermissionSchema, validateGrantPoolPermissionDto } from './grant-pool-permission.dto';
+export { UpdateModuleDto, updateModuleSchema, validateUpdateModuleDto } from './update-module.dto';

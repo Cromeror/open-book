@@ -237,4 +237,104 @@ export class UsersService {
 
     return this.toAdminUserResponse(user);
   }
+
+  /**
+   * Create a new user by admin (SuperAdmin only)
+   *
+   * @param data - User creation data
+   * @returns The created user
+   * @throws ConflictException if email already exists
+   */
+  async createByAdmin(data: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+  }): Promise<AdminUserResponse> {
+    // Check if email already exists
+    const existingUser = await this.usersRepository.findOne({
+      where: { email: data.email.toLowerCase() },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('El correo electrónico ya está registrado');
+    }
+
+    // Hash the password
+    const passwordHash = await hashPassword(data.password);
+
+    // Create user entity
+    const user = this.usersRepository.create({
+      email: data.email.toLowerCase(),
+      passwordHash,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone,
+      publicAccountConsent: false,
+      isActive: true,
+    });
+
+    // Save to database
+    const savedUser = await this.usersRepository.save(user);
+
+    return this.toAdminUserResponse(savedUser);
+  }
+
+  /**
+   * Update a user by admin (SuperAdmin only)
+   *
+   * @param id - User ID
+   * @param data - Fields to update
+   * @returns Updated user
+   */
+  async updateByAdmin(
+    id: string,
+    data: {
+      firstName?: string;
+      lastName?: string;
+      phone?: string;
+      isActive?: boolean;
+    },
+  ): Promise<AdminUserResponse | null> {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    // Update fields
+    if (data.firstName !== undefined) user.firstName = data.firstName;
+    if (data.lastName !== undefined) user.lastName = data.lastName;
+    if (data.phone !== undefined) user.phone = data.phone;
+    if (data.isActive !== undefined) user.isActive = data.isActive;
+
+    const savedUser = await this.usersRepository.save(user);
+
+    return this.toAdminUserResponse(savedUser);
+  }
+
+  /**
+   * Delete (soft) a user by admin (SuperAdmin only)
+   *
+   * @param id - User ID
+   * @returns true if deleted, false if not found
+   */
+  async deleteByAdmin(id: string): Promise<boolean> {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      return false;
+    }
+
+    // Soft delete: deactivate the user
+    user.isActive = false;
+    await this.usersRepository.save(user);
+
+    return true;
+  }
 }

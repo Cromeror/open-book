@@ -1,7 +1,77 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 import { requireSuperAdmin } from '@/lib/permissions.server';
+import { publicEnv } from '@/config/env';
+import { ModulesManager } from './modules-manager';
+
+interface ModulePermission {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+}
+
+interface NavConfig {
+  path: string;
+  order: number;
+}
+
+interface ActionSettings {
+  type: string;
+  listColumns?: Array<{ field: string; label: string; sortable?: boolean; format?: string }>;
+  filters?: Array<{ field: string; type: string; label: string }>;
+  defaultSort?: { field: string; order: string };
+  fields?: Array<{ name: string; label: string; type: string; required?: boolean }>;
+  confirmation?: string;
+  soft?: boolean;
+}
+
+interface ModuleAction {
+  code: string;
+  label: string;
+  description?: string;
+  settings?: ActionSettings;
+}
+
+interface Module {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  type: 'crud' | 'specialized';
+  entity?: string;
+  endpoint?: string;
+  component?: string;
+  navConfig?: NavConfig;
+  actionsConfig?: ModuleAction[];
+  order: number;
+  isActive: boolean;
+  permissions?: ModulePermission[];
+}
+
+async function getModules(): Promise<Module[]> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('access_token')?.value;
+
+  if (!token) return [];
+
+  try {
+    // Use the new admin/modules endpoint that returns all modules (including inactive)
+    const response = await fetch(`${publicEnv.NEXT_PUBLIC_API_URL}/admin/modules`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) return [];
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching modules:', error);
+    return [];
+  }
+}
 
 export default async function AdminModulesPage() {
   try {
@@ -9,6 +79,8 @@ export default async function AdminModulesPage() {
   } catch {
     redirect('/dashboard');
   }
+
+  const modules = await getModules();
 
   return (
     <div className="space-y-6">
@@ -19,26 +91,11 @@ export default async function AdminModulesPage() {
           <span className="text-gray-900">Modulos del Sistema</span>
         </nav>
         <h1 className="text-2xl font-bold text-gray-900">Modulos del Sistema</h1>
-        <p className="text-gray-600">Administra los modulos disponibles por copropiedad</p>
+        <p className="text-gray-600">Visualiza y administra los modulos disponibles en el sistema</p>
       </div>
 
-      {/* TODO: Implement in OB-002 */}
-      <div className="rounded-lg border-2 border-dashed border-amber-300 bg-amber-50 p-8">
-        <div className="text-center">
-          <h3 className="text-sm font-medium text-gray-900">Vista: Modulos del Sistema</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Permiso: <code className="rounded bg-gray-200 px-1">SuperAdmin</code> | Epic: <span className="font-medium">OB-002</span>
-          </p>
-          <div className="mt-4 text-left text-xs text-gray-400">
-            <ul className="list-inside list-disc space-y-1">
-              <li>Ver todos los modulos del sistema</li>
-              <li>Activar/desactivar modulos por copropiedad</li>
-              <li>Configurar parametros de modulos</li>
-              <li>Ver dependencias entre modulos</li>
-            </ul>
-          </div>
-        </div>
-      </div>
+      {/* Modules Manager (Client Component) */}
+      <ModulesManager initialModules={modules} />
 
       <Link href="/admin" className="inline-block rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
         Volver

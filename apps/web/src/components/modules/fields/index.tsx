@@ -43,6 +43,12 @@ export function DynamicField({
       case 'text':
         return <input type="text" className={inputClasses} {...baseProps} />;
 
+      case 'email':
+        return <input type="email" className={inputClasses} {...baseProps} />;
+
+      case 'password':
+        return <input type="password" className={inputClasses} {...baseProps} />;
+
       case 'number':
         return (
           <input
@@ -79,6 +85,7 @@ export function DynamicField({
         );
 
       case 'boolean':
+      case 'checkbox':
         return (
           <div className="flex items-center gap-2 mt-1">
             <input
@@ -103,13 +110,24 @@ export function DynamicField({
           </select>
         );
 
+      case 'multiselect':
+        return (
+          <select multiple className={`${inputClasses} min-h-[120px]`} {...baseProps}>
+            {field.options?.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        );
+
       default:
         return <input type="text" className={inputClasses} {...baseProps} />;
     }
   };
 
-  // Boolean fields render differently
-  if (field.type === 'boolean') {
+  // Boolean/checkbox fields render differently
+  if (field.type === 'boolean' || field.type === 'checkbox') {
     return (
       <div className="col-span-full">
         {renderInput()}

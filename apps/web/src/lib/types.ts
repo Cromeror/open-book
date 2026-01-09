@@ -18,22 +18,6 @@ export * from './types/modules';
 // Import for local use
 import type { ModuleWithActions } from './types/modules';
 
-/**
- * Scope of a permission
- * - own: Only user's own resources
- * - copropiedad: Resources within a specific copropiedad
- * - all: All resources (unrestricted)
- */
-export type PermissionScope = 'own' | 'copropiedad' | 'all';
-
-/**
- * Context for permission checks (e.g., copropiedad scope)
- */
-export interface PermissionContext {
-  copropiedadId?: string;
-  resourceOwnerId?: string;
-}
-
 // ============================================
 // Runtime Validation Helpers
 // ============================================
