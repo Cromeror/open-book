@@ -26,18 +26,34 @@ Esta story cubre las funcionalidades de gestion del perfil de usuario, incluyend
 
 | ID | Titulo | Status |
 |----|--------|--------|
-| [OB-002-D-001](./OB-002-D-001.md) | Crear endpoint para ver perfil propio | pending |
+| [OB-002-D-001](./OB-002-D-001.md) | Crear endpoint para ver perfil propio | done |
 | [OB-002-D-002](./OB-002-D-002.md) | Crear endpoint para editar perfil | pending |
 | [OB-002-D-003](./OB-002-D-003.md) | Implementar cambio de contrasena | pending |
 | [OB-002-D-004](./OB-002-D-004.md) | Implementar recuperacion de contrasena | pending |
 
 ## Criterios de Aceptacion
 
-- [ ] Usuario puede ver su perfil completo
+- [x] Usuario puede ver su perfil completo
 - [ ] Usuario puede editar nombre, telefono
 - [ ] Usuario puede cambiar su contrasena (requiere actual)
 - [ ] Recuperacion de contrasena via email funciona
 - [ ] Los cambios quedan registrados en auditoria
+
+## Arquitectura de Endpoints
+
+Todos los endpoints de perfil usan el prefijo `/users/me`:
+
+```
+GET    /users/me          - Ver mi perfil
+PATCH  /users/me          - Actualizar mi perfil (nombre, telefono)
+PATCH  /users/me/password - Cambiar mi contrasena
+```
+
+Recuperacion de contrasena (no requiere autenticacion):
+```
+POST   /auth/forgot-password  - Solicitar recuperacion
+POST   /auth/reset-password   - Restablecer con token
+```
 
 ## Notas Tecnicas
 
@@ -45,6 +61,7 @@ Esta story cubre las funcionalidades de gestion del perfil de usuario, incluyend
 - El cambio de contrasena requiere contrasena actual
 - La recuperacion genera token de un solo uso
 - Considerar rate limiting en recuperacion
+- `/users/me` obtiene el userId del JWT (no se pasa como parametro)
 
 ## Dependencias
 

@@ -4,10 +4,10 @@
 
 | Campo | Valor |
 |-------|-------|
-| Status | pending |
+| Status | in_progress |
 | Priority | critical |
 | Created | 2025-12-31 |
-| Updated | 2026-01-05 |
+| Updated | 2026-01-09 |
 | Labels | epic, usuarios, autenticacion, seguridad, permisos |
 | Depends on | OB-001 |
 
@@ -109,15 +109,15 @@ Implementar un sistema de autenticacion y autorizacion robusto y seguro basado e
 
 ## Criterios de Aceptacion Globales
 
-- [ ] Los usuarios pueden registrarse con email y contrasena
-- [ ] El login retorna un token JWT valido
-- [ ] Los endpoints protegidos verifican autenticacion
-- [ ] SuperAdmin tiene acceso total sin restricciones
-- [ ] Permisos se verifican a nivel de modulo y granular
-- [ ] Pools permiten asignar permisos a grupos
-- [ ] Las contrasenas se almacenan hasheadas (bcrypt)
-- [ ] El consentimiento de visibilidad se registra en el momento del registro
-- [ ] Existe auditoria de login/logout y cambios de permisos
+- [x] Los usuarios pueden registrarse con email y contrasena
+- [x] El login retorna un token JWT valido
+- [x] Los endpoints protegidos verifican autenticacion
+- [x] SuperAdmin tiene acceso total sin restricciones
+- [x] Permisos se verifican a nivel de modulo y granular
+- [x] Pools permiten asignar permisos a grupos
+- [x] Las contrasenas se almacenan hasheadas (bcrypt)
+- [x] El consentimiento de visibilidad se registra en el momento del registro
+- [x] Existe auditoria de login/logout y cambios de permisos
 
 ## Dependencias
 
