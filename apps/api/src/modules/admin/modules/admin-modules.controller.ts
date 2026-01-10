@@ -12,15 +12,16 @@ import {
 } from '@nestjs/common';
 import { z } from 'zod';
 
-import { JwtAuthGuard } from '../auth/guards';
+import { JwtAuthGuard } from '../../auth/guards';
 import { AdminModulesService } from './admin-modules.service';
-import { SuperAdminGuard } from './guards/superadmin.guard';
-import { UpdateModuleDto, validateUpdateModuleDto } from './dto/update-module.dto';
+import { SuperAdminGuard } from '../../permissions/guards/superadmin.guard';
+import { UpdateModuleDto, validateUpdateModuleDto } from '../../permissions/dto/update-module.dto';
 
 /**
  * Controller for SuperAdmin to manage system modules
  *
  * All endpoints require SuperAdmin authentication.
+ * Routed via RouterModule to /api/admin/modules
  *
  * Endpoints:
  * - GET /api/admin/modules - List all modules
@@ -28,7 +29,7 @@ import { UpdateModuleDto, validateUpdateModuleDto } from './dto/update-module.dt
  * - PATCH /api/admin/modules/:id - Update a module
  * - POST /api/admin/modules/:id/toggle - Toggle module active status
  */
-@Controller('admin/modules')
+@Controller()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
 export class AdminModulesController {
   constructor(private adminModulesService: AdminModulesService) {}

@@ -16,10 +16,8 @@ import { User } from '../../entities/user.entity';
 import { PermissionsService } from './permissions.service';
 import { PermissionsCacheService } from './permissions-cache.service';
 import { AdminPermissionsService } from './admin-permissions.service';
-import { AdminModulesService } from './admin-modules.service';
 import { PoolsService } from './pools.service';
 import { AdminPermissionsController } from './admin-permissions.controller';
-import { AdminModulesController } from './admin-modules.controller';
 import { PoolsController } from './pools.controller';
 import { SuperAdminGuard } from './guards/superadmin.guard';
 import { PermissionsGuard } from './guards/permissions.guard';
@@ -67,12 +65,11 @@ import { PermissionsGuard } from './guards/permissions.guard';
       User,
     ]),
   ],
-  controllers: [AdminPermissionsController, AdminModulesController, PoolsController],
+  controllers: [AdminPermissionsController, PoolsController],
   providers: [
     PermissionsService,
     PermissionsCacheService,
     AdminPermissionsService,
-    AdminModulesService,
     PoolsService,
     // Guards are exported but not globally applied
     // Apply them at controller/method level or register globally in AppModule

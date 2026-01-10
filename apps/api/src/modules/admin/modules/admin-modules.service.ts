@@ -6,8 +6,8 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Module } from '../../entities';
-import { UpdateModuleDto } from './dto/update-module.dto';
+import { Module } from '../../../entities';
+import { UpdateModuleDto } from '../../permissions/dto/update-module.dto';
 
 /**
  * Service for SuperAdmin to manage system modules

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
 import { UsersModule } from './users';
 import { CondominiumsModule } from './condominiums';
+import { AdminModulesModule } from './modules';
 
 /**
  * Admin Module
@@ -37,7 +38,7 @@ import { CondominiumsModule } from './condominiums';
   imports: [
     UsersModule,
     CondominiumsModule,
-
+    AdminModulesModule,
     // Router configuration for /admin prefix
     RouterModule.register([
       {
@@ -45,6 +46,7 @@ import { CondominiumsModule } from './condominiums';
         children: [
           { path: 'users', module: UsersModule },
           { path: 'condominiums', module: CondominiumsModule },
+          { path: 'modules', module: AdminModulesModule },
         ],
       },
     ]),
