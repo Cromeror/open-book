@@ -22,6 +22,7 @@ export const updateModuleSchema = z.object({
   component: z.string().max(100).nullable().optional(),
   navConfig: navConfigSchema.nullable().optional(),
   order: z.number().int().min(0).optional(),
+  tags: z.array(z.string().max(50)).optional(),
   isActive: z.boolean().optional(),
 });
 

@@ -152,6 +152,16 @@ export class Module extends BaseEntity {
   order!: number;
 
   /**
+   * Tags for categorizing and filtering modules
+   * Examples: ['navigation', 'admin', 'reports', 'financial']
+   */
+  @Column({
+    type: 'jsonb',
+    default: [],
+  })
+  tags!: string[];
+
+  /**
    * Whether the module is active
    * Inactive modules cannot have permissions granted
    */

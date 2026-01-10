@@ -97,6 +97,9 @@ export class AdminModulesService {
     if (dto.order !== undefined) {
       module.order = dto.order;
     }
+    if (dto.tags !== undefined) {
+      module.tags = dto.tags;
+    }
     if (dto.isActive !== undefined) {
       module.isActive = dto.isActive;
     }
