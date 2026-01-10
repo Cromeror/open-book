@@ -11,7 +11,7 @@ import {
   UserPoolMember,
   PoolModule,
   PoolPermission,
-} from './entities';
+} from '../../entities';
 import { User } from '../../entities/user.entity';
 import { PermissionsService } from './permissions.service';
 import { PermissionsCacheService } from './permissions-cache.service';

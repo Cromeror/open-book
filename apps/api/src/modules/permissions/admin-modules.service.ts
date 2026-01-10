@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Module } from './entities';
+import { Module } from '../../entities';
 import { UpdateModuleDto } from './dto/update-module.dto';
 
 /**

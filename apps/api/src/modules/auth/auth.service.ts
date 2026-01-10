@@ -5,7 +5,7 @@ import { UserResponse } from '../../types/user';
 import { comparePassword } from '../../utils/password';
 import { UsersService } from '../users/users.service';
 import { PermissionsService } from '../permissions/permissions.service';
-import type { ModuleWithActions } from '../permissions/types/module-actions.types';
+import type { ModuleWithActions } from '../../types/module-actions.types';
 
 import { AuthLogService } from './auth-log.service';
 import { RegisterDto } from './dto/register.dto';

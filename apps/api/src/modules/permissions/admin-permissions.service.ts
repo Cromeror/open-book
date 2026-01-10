@@ -9,13 +9,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 
 import { User } from '../../entities/user.entity';
-import { Scope } from './permissions.enum';
+import { Scope } from '../../types/permissions.enum';
 import {
   Module,
   ModulePermission,
   UserModule,
   UserPermission,
-} from './entities';
+} from '../../entities';
 import { PoolsService } from './pools.service';
 import { PermissionsCacheService } from './permissions-cache.service';
 import { GrantModuleAccessDto } from './dto/grant-module-access.dto';

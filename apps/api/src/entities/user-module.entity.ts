@@ -1,7 +1,7 @@
 import { Entity, Column, Index, ManyToOne, JoinColumn } from 'typeorm';
 
-import { BaseEntity } from '../../../entities/base.entity';
-import { User } from '../../../entities/user.entity';
+import { BaseEntity } from '../entities/base.entity';
+import { User } from '../entities/user.entity';
 
 import { Module } from './module.entity';
 

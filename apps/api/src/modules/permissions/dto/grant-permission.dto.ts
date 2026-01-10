@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { Scope } from '../permissions.enum';
+import { Scope } from '../../../types/permissions.enum';
 
 /**
  * Zod schema for granting a granular permission to a user

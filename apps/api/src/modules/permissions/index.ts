@@ -31,10 +31,10 @@ export {
   UserPoolMember,
   PoolModule,
   PoolPermission,
-} from './entities';
+} from '../../entities';
 
 // Enums and types
-export { Action, Scope, Permission, PermissionContext } from './permissions.enum';
+export { Action, Scope, Permission, PermissionContext } from '../../types/permissions.enum';
 export { SYSTEM_MODULES, ModuleDefinition } from './module-registry';
 
 // DTOs

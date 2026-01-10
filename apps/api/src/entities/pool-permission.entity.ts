@@ -1,8 +1,7 @@
 import { Entity, Column, Index, ManyToOne, JoinColumn } from 'typeorm';
 
-import { BaseEntity } from '../../../entities/base.entity';
-import { Scope } from '../permissions.enum';
-
+import { BaseEntity } from '../entities/base.entity';
+import { Scope } from '../types/permissions.enum';
 import { ModulePermission } from './module-permission.entity';
 import { UserPool } from './user-pool.entity';
 

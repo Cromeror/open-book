@@ -1,9 +1,9 @@
 import { Entity, Column, Index, OneToMany } from 'typeorm';
 
-import { BaseEntity } from '../../../entities/base.entity';
+import { BaseEntity } from '../entities/base.entity';
 
 import { ModulePermission } from './module-permission.entity';
-import type { ModuleAction } from '../types/module-actions.types';
+import { ModuleAction } from '../types/module-actions.types';
 
 /**
  * Module type - determines how the module is rendered

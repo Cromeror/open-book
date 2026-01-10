@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Scope } from './permissions.enum';
+import { Scope } from '../../types/permissions.enum';
 import {
   Module,
   ModulePermission,
@@ -16,7 +16,7 @@ import {
   UserPoolMember,
   PoolModule,
   PoolPermission,
-} from './entities';
+} from '../../entities';
 import { PermissionsCacheService } from './permissions-cache.service';
 import { CreatePoolDto } from './dto/create-pool.dto';
 import { GrantPoolPermissionDto } from './dto/grant-pool-permission.dto';

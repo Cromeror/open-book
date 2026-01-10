@@ -1,7 +1,5 @@
 import { Entity, Column, OneToMany } from 'typeorm';
-
-import { BaseEntity } from '../../../entities/base.entity';
-
+import { BaseEntity } from '../entities/base.entity';
 import { PoolModule } from './pool-module.entity';
 import { PoolPermission } from './pool-permission.entity';
 import { UserPoolMember } from './user-pool-member.entity';

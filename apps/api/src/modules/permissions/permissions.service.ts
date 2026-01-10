@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { User } from '../../entities/user.entity';
-import { PermissionContext, Scope } from './permissions.enum';
+import { PermissionContext, Scope } from '../../types/permissions.enum';
 import {
   Module,
   ModulePermission,
@@ -13,9 +13,9 @@ import {
   UserPoolMember,
   PoolModule,
   PoolPermission,
-} from './entities';
+} from '../../entities';
 import { PermissionsCacheService } from './permissions-cache.service';
-import type { ModuleWithActions, ModuleAction } from './types/module-actions.types';
+import type { ModuleWithActions, ModuleAction } from '../../types/module-actions.types';
 
 /**
  * Service for checking user permissions

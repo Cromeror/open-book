@@ -10,7 +10,7 @@ import { Reflector } from '@nestjs/core';
 import { PermissionsService } from '../permissions.service';
 import { PERMISSION_KEY, PERMISSIONS_OPTIONS_KEY, PermissionOptions } from '../decorators/require-permission.decorator';
 import { MODULE_KEY } from '../decorators/require-module.decorator';
-import { PermissionContext } from '../permissions.enum';
+import { PermissionContext } from '../../../types/permissions.enum';
 
 /**
  * Guard that checks user permissions

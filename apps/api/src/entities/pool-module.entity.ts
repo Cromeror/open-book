@@ -1,6 +1,6 @@
 import { Entity, Column, Index, ManyToOne, JoinColumn } from 'typeorm';
 
-import { BaseEntity } from '../../../entities/base.entity';
+import { BaseEntity } from '../entities/base.entity';
 
 import { Module } from './module.entity';
 import { UserPool } from './user-pool.entity';
