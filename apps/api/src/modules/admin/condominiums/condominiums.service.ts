@@ -189,4 +189,17 @@ export class CondominiumsService {
     const count = await queryBuilder.getCount();
     return count > 0;
   }
+
+  /**
+   * Toggle condominium active status (SuperAdmin only)
+   */
+  async toggle(id: string): Promise<Condominium | null> {
+    const condominium = await this.findById(id);
+    if (!condominium) {
+      return null;
+    }
+
+    condominium.isActive = !condominium.isActive;
+    return this.condominiumRepository.save(condominium);
+  }
 }

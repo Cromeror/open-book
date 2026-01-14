@@ -8,6 +8,7 @@ export { AuthLog, AuthEvent } from './auth-log.entity';
 
 // Domain entities
 export { Condominium } from './condominium.entity';
+export { CondominiumManager } from './condominium-manager.entity';
 export { Group } from './group.entity';
 export { Property, PropertyType } from './property.entity';
 export {

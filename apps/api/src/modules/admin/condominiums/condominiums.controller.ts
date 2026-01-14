@@ -199,4 +199,21 @@ export class CondominiumsController {
       throw new NotFoundException(`Condominium with ID ${id} not found`);
     }
   }
+
+  /**
+   * Toggle condominium active status
+   *
+   * POST /api/admin/condominiums/:id/toggle
+   *
+   * @returns Updated condominium (200)
+   * @throws NotFoundException if condominium not found (404)
+   */
+  @Post(':id/toggle')
+  async toggle(@Param('id', ParseUUIDPipe) id: string) {
+    const condominium = await this.condominiumsService.toggle(id);
+    if (!condominium) {
+      throw new NotFoundException(`Condominium with ID ${id} not found`);
+    }
+    return condominium;
+  }
 }

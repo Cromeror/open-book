@@ -82,4 +82,10 @@ export class Condominium extends BaseEntity {
    */
   @OneToMany('Goal', 'condominium')
   goals!: import('./goal.entity').Goal[];
+
+  /**
+   * Managers assigned to this condominium
+   */
+  @OneToMany('CondominiumManager', 'condominium')
+  managers!: import('./condominium-manager.entity').CondominiumManager[];
 }

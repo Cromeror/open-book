@@ -18,3 +18,14 @@ export type {
   ActionSettings,
   ModuleType,
 } from './module-form';
+
+// Condominium components
+export { CondominiumList } from './CondominiumList';
+export type {
+  Condominium,
+  PaginationInfo,
+  CondominiumListProps,
+} from './CondominiumList';
+
+export { CondominiumForm } from './condominium-form';
+export type { CondominiumFormData } from './condominium-form';

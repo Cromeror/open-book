@@ -5,6 +5,7 @@ import { UserResponse } from '../../types/user';
 import { comparePassword } from '../../utils/password';
 import { UsersService } from '../users/users.service';
 import { PermissionsService } from '../permissions/permissions.service';
+import { CondominiumManagersService } from '../admin/condominiums/condominium-managers.service';
 import type { ModuleWithActions } from '../../types/module-actions.types';
 
 import { AuthLogService } from './auth-log.service';
@@ -29,7 +30,16 @@ export interface RefreshResponse {
 }
 
 /**
- * Auth me response with user info and modules with segregated actions
+ * Condominium info for auth response
+ */
+export interface AuthCondominiumInfo {
+  id: string;
+  name: string;
+  isPrimary: boolean;
+}
+
+/**
+ * Auth me response with user info, modules, and condominiums
  * Used by frontend to verify authentication and load permissions
  */
 export interface AuthMeResponse {
@@ -41,6 +51,7 @@ export interface AuthMeResponse {
     isSuperAdmin: boolean;
   };
   modules: ModuleWithActions[];
+  condominiums: AuthCondominiumInfo[];
 }
 
 /**
@@ -52,18 +63,20 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly tokenService: TokenService,
     private readonly authLogService: AuthLogService,
-    private readonly permissionsService: PermissionsService
+    private readonly permissionsService: PermissionsService,
+    private readonly condominiumManagersService: CondominiumManagersService,
   ) {}
 
   /**
-   * Get current authenticated user info with modules and segregated actions
+   * Get current authenticated user info with modules, condominiums, and segregated actions
    *
    * Returns user data along with modules the user has access to.
    * Each module includes only the actions the user has permission for.
    * Action code = Permission code (e.g., 'read', 'create', 'update', 'delete')
+   * Also includes condominiums where the user is assigned as manager.
    *
    * @param user - Authenticated user from JWT validation
-   * @returns User data with modules and their allowed actions
+   * @returns User data with modules, condominiums, and their allowed actions
    */
   async getMe(user: User): Promise<AuthMeResponse> {
     // Map user to response format
@@ -80,9 +93,21 @@ export class AuthService {
     // Regular users receive only modules they have access to with only allowed actions
     const modules = await this.permissionsService.getModulesWithActionsForUser(user.id);
 
+    // Get condominiums where user is an active manager
+    const managerAssignments = await this.condominiumManagersService.findByUser(user.id, {
+      isActive: true,
+    });
+
+    const condominiums: AuthCondominiumInfo[] = managerAssignments.map((m) => ({
+      id: m.condominium.id,
+      name: m.condominium.name,
+      isPrimary: m.isPrimary,
+    }));
+
     return {
       user: userResponse,
       modules,
+      condominiums,
     };
   }
 
