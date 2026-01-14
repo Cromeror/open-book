@@ -4,9 +4,12 @@ import { useState, useCallback, useEffect } from 'react';
 import {
   CondominiumList,
   CondominiumForm,
+  CondominiumDetail,
+  ManagerAssignment,
   type Condominium,
   type PaginationInfo,
   type CondominiumFormData,
+  type CondominiumManagerInfo,
 } from '@/components/organisms';
 import { ConfirmDialog } from '@/components/molecules';
 
@@ -36,6 +39,13 @@ export function CondominiumsManager({
   // Delete dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [condominiumToDelete, setCondominiumToDelete] = useState<Condominium | null>(null);
+
+  // Manager assignment modal state
+  const [managerModalOpen, setManagerModalOpen] = useState(false);
+
+  // Managers state
+  const [managers, setManagers] = useState<CondominiumManagerInfo[]>([]);
+  const [loadingManagers, setLoadingManagers] = useState(false);
 
   // Fetch condominiums
   const fetchCondominiums = useCallback(
@@ -146,6 +156,24 @@ export function CondominiumsManager({
     }
   }, []);
 
+  // Fetch managers for a condominium
+  const fetchManagers = useCallback(async (condominiumId: string) => {
+    setLoadingManagers(true);
+    try {
+      const response = await fetch(`/api/admin/condominiums/${condominiumId}/managers`);
+      if (!response.ok) {
+        throw new Error('Error al cargar administradores');
+      }
+      const data = await response.json();
+      setManagers(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Error fetching managers:', err);
+      setManagers([]);
+    } finally {
+      setLoadingManagers(false);
+    }
+  }, []);
+
   const handleView = useCallback(
     async (condominium: Condominium) => {
       setLoading(true);
@@ -156,10 +184,12 @@ export function CondominiumsManager({
       if (freshData) {
         setSelectedCondominium(freshData);
         setViewMode('view');
+        // Fetch managers for this condominium
+        fetchManagers(freshData.id);
       }
       setLoading(false);
     },
-    [fetchCondominiumById]
+    [fetchCondominiumById, fetchManagers]
   );
 
   const handleEdit = useCallback(
@@ -186,8 +216,35 @@ export function CondominiumsManager({
   const handleBackToList = useCallback(() => {
     setViewMode('list');
     setSelectedCondominium(null);
+    setManagers([]);
     setError(null);
   }, []);
+
+  // Remove manager from condominium
+  const handleRemoveManager = useCallback(
+    async (managerId: string) => {
+      if (!selectedCondominium) return;
+
+      try {
+        const response = await fetch(
+          `/api/admin/condominiums/${selectedCondominium.id}/managers/${managerId}`,
+          { method: 'DELETE' }
+        );
+
+        if (!response.ok && response.status !== 204) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Error al eliminar administrador');
+        }
+
+        setSuccessMessage('Administrador eliminado correctamente');
+        // Refresh managers list
+        fetchManagers(selectedCondominium.id);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error desconocido');
+      }
+    },
+    [selectedCondominium, fetchManagers]
+  );
 
   // Create condominium
   const handleCreateSubmit = useCallback(
@@ -363,94 +420,17 @@ export function CondominiumsManager({
       )}
 
       {viewMode === 'view' && selectedCondominium && (
-        <div className="rounded-lg border border-gray-200 bg-white shadow">
-          <div className="border-b border-gray-200 p-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">
-                {selectedCondominium.name}
-              </h2>
-              <p className="text-sm text-gray-500">Detalles del condominio</p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => handleEdit(selectedCondominium)}
-                disabled={loading}
-                className="rounded px-3 py-1.5 text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50"
-              >
-                Editar
-              </button>
-              <button
-                type="button"
-                onClick={handleToggleStatus}
-                disabled={loading}
-                className={`rounded px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${
-                  selectedCondominium.isActive
-                    ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                    : 'bg-green-100 text-green-700 hover:bg-green-200'
-                }`}
-              >
-                {selectedCondominium.isActive ? 'Desactivar' : 'Activar'}
-              </button>
-              <button
-                type="button"
-                onClick={handleBackToList}
-                disabled={loading}
-                className="rounded px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50"
-              >
-                Volver
-              </button>
-            </div>
-          </div>
-          <div className="p-4 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs font-medium text-gray-500 uppercase">Nombre</p>
-                <p className="mt-1 text-sm text-gray-900">{selectedCondominium.name}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-gray-500 uppercase">NIT</p>
-                <p className="mt-1 text-sm text-gray-900">{selectedCondominium.nit || '-'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-gray-500 uppercase">Direccion</p>
-                <p className="mt-1 text-sm text-gray-900">{selectedCondominium.address || '-'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-gray-500 uppercase">Ciudad</p>
-                <p className="mt-1 text-sm text-gray-900">{selectedCondominium.city || '-'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-gray-500 uppercase">Telefono</p>
-                <p className="mt-1 text-sm text-gray-900">{selectedCondominium.phone || '-'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-gray-500 uppercase">Correo</p>
-                <p className="mt-1 text-sm text-gray-900">{selectedCondominium.email || '-'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-gray-500 uppercase">Estado</p>
-                <p className="mt-1">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                      selectedCondominium.isActive
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    {selectedCondominium.isActive ? 'Activo' : 'Inactivo'}
-                  </span>
-                </p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-gray-500 uppercase">Creado</p>
-                <p className="mt-1 text-sm text-gray-900">
-                  {new Date(selectedCondominium.createdAt).toLocaleDateString('es-CO')}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <CondominiumDetail
+          condominium={selectedCondominium}
+          managers={managers}
+          loadingManagers={loadingManagers}
+          loading={loading}
+          onEdit={handleEdit}
+          onToggleStatus={handleToggleStatus}
+          onBack={handleBackToList}
+          onManageManagers={() => setManagerModalOpen(true)}
+          onRemoveManager={handleRemoveManager}
+        />
       )}
 
       {viewMode === 'create' && (
@@ -483,6 +463,75 @@ export function CondominiumsManager({
               onCancel={handleBackToList}
               loading={loading}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Manager Assignment Modal */}
+      {managerModalOpen && selectedCondominium && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50 transition-opacity"
+            onClick={() => setManagerModalOpen(false)}
+          />
+
+          {/* Modal */}
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div className="relative w-full max-w-2xl rounded-lg bg-white shadow-xl">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-gray-200 p-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Administradores del Condominio
+                  </h3>
+                  <p className="text-sm text-gray-500">{selectedCondominium.name}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setManagerModalOpen(false)}
+                  className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="max-h-[70vh] overflow-y-auto p-4">
+                <ManagerAssignment
+                  condominium={{
+                    id: selectedCondominium.id,
+                    name: selectedCondominium.name,
+                    nit: selectedCondominium.nit,
+                    isActive: selectedCondominium.isActive,
+                  }}
+                />
+              </div>
+
+              {/* Footer */}
+              <div className="flex justify-end border-t border-gray-200 p-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setManagerModalOpen(false);
+                    // Refresh managers list after closing modal
+                    if (selectedCondominium) {
+                      fetchManagers(selectedCondominium.id);
+                    }
+                  }}
+                  className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -1,12 +1,12 @@
 import { ReactNode } from 'react';
 
-export interface FormSectionHeaderProps {
+export interface SectionHeaderProps {
   children?: ReactNode;
   prefix?: ReactNode;
   title?: ReactNode;
 }
 
-export const FormSectionHeader = ({ children, title, prefix }: FormSectionHeaderProps) => {
+export const SectionHeader = ({ children, title, prefix }: SectionHeaderProps) => {
   return (
     <div className="flex items-center gap-3 border-b border-gray-200 bg-gray-50 px-4 py-3">
       {prefix}
@@ -16,4 +16,4 @@ export const FormSectionHeader = ({ children, title, prefix }: FormSectionHeader
   );
 };
 
-export default FormSectionHeader;
+export default SectionHeader;

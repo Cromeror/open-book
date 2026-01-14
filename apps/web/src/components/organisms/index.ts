@@ -29,3 +29,19 @@ export type {
 
 export { CondominiumForm } from './condominium-form';
 export type { CondominiumFormData } from './condominium-form';
+
+export { CondominiumDetail } from './condominium-detail';
+export type {
+  CondominiumDetailProps,
+  CondominiumDetailData,
+  CondominiumManagerInfo,
+} from './condominium-detail';
+
+// Manager Assignment components
+export { ManagerAssignment } from './manager-assignment';
+export type {
+  ManagerAssignmentProps,
+  ManagerAssignmentRecord,
+  UserInfo as ManagerUserInfo,
+  CondominiumInfo as ManagerCondominiumInfo,
+} from './manager-assignment';

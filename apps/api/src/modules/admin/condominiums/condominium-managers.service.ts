@@ -53,6 +53,7 @@ export class CondominiumManagersService {
 
   /**
    * Find all managers for a condominium
+   * By default only returns active managers (isActive = true)
    */
   async findByCondominium(
     condominiumId: string,
@@ -64,11 +65,9 @@ export class CondominiumManagersService {
       .where('m.condominiumId = :condominiumId', { condominiumId })
       .andWhere('m.deletedAt IS NULL');
 
-    if (options.isActive !== undefined) {
-      queryBuilder.andWhere('m.isActive = :isActive', {
-        isActive: options.isActive,
-      });
-    }
+    // Default to active managers only if not explicitly specified
+    const isActive = options.isActive ?? true;
+    queryBuilder.andWhere('m.isActive = :isActive', { isActive });
 
     queryBuilder.orderBy('m.isPrimary', 'DESC').addOrderBy('m.assignedAt', 'ASC');
 
@@ -77,6 +76,7 @@ export class CondominiumManagersService {
 
   /**
    * Find all condominiums where a user is a manager
+   * By default only returns active assignments (isActive = true)
    */
   async findByUser(
     userId: string,
@@ -89,11 +89,9 @@ export class CondominiumManagersService {
       .andWhere('m.deletedAt IS NULL')
       .andWhere('condominium.deletedAt IS NULL');
 
-    if (options.isActive !== undefined) {
-      queryBuilder.andWhere('m.isActive = :isActive', {
-        isActive: options.isActive,
-      });
-    }
+    // Default to active assignments only if not explicitly specified
+    const isActive = options.isActive ?? true;
+    queryBuilder.andWhere('m.isActive = :isActive', { isActive });
 
     queryBuilder.orderBy('m.isPrimary', 'DESC').addOrderBy('condominium.name', 'ASC');
 
@@ -112,6 +110,7 @@ export class CondominiumManagersService {
 
   /**
    * Assign a manager to a condominium
+   * If user was previously removed (isActive = false), reactivates the assignment
    */
   async assign(
     condominiumId: string,
@@ -144,13 +143,29 @@ export class CondominiumManagersService {
         deletedAt: undefined,
       },
     });
+
     if (existing) {
+      // If assignment exists but is inactive, reactivate it
+      if (!existing.isActive) {
+        existing.isActive = true;
+        existing.isPrimary = dto.isPrimary ?? existing.isPrimary;
+        existing.assignedAt = new Date();
+        existing.assignedBy = assignedBy;
+        await this.managerRepository.save(existing);
+
+        return this.managerRepository.findOne({
+          where: { id: existing.id },
+          relations: ['user', 'condominium'],
+        }) as Promise<CondominiumManager>;
+      }
+
+      // Already active - conflict
       throw new ConflictException(
         `User is already assigned as manager for this condominium`,
       );
     }
 
-    // Create the assignment
+    // Create new assignment
     const manager = this.managerRepository.create({
       condominiumId,
       userId: dto.userId,

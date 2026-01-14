@@ -7,9 +7,9 @@ export type { SearchInputProps } from './SearchInput';
 export { ConfirmDialog } from './ConfirmDialog';
 export type { ConfirmDialogProps } from './ConfirmDialog';
 
- export { FormSection} from './FormSection'
- export type { FormSectionProps} from './FormSection'
+ export { Section} from './Section'
+ export type { SectionProps} from './Section'
 
- export {FormSectionHeader} from './FormSectionHeader'
- export type {FormSectionHeaderProps} from './FormSectionHeader'
+ export {SectionHeader} from './SectionHeader'
+ export type {SectionHeaderProps} from './SectionHeader'
  
