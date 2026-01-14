@@ -15,7 +15,7 @@ function getInitials(firstName: string, lastName: string): string {
  * Generate a consistent color based on name
  */
 function getAvatarColor(firstName: string, lastName: string): string {
-  const colors = [
+  const colors: readonly string[] = [
     'bg-blue-500',
     'bg-green-500',
     'bg-purple-500',
@@ -28,7 +28,7 @@ function getAvatarColor(firstName: string, lastName: string): string {
   const hash = (firstName + lastName).split('').reduce((acc, char) => {
     return char.charCodeAt(0) + acc;
   }, 0);
-  return colors[hash % colors.length];
+  return colors[hash % colors.length] ?? 'bg-blue-500';
 }
 
 /**

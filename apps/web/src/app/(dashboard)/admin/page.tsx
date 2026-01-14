@@ -58,6 +58,16 @@ export default async function AdminPage() {
             Administra los condominios registrados
           </p>
         </a>
+
+        <a
+          href="/admin/properties"
+          className="rounded-lg border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md"
+        >
+          <h3 className="font-semibold text-gray-900">Propiedades</h3>
+          <p className="mt-2 text-sm text-gray-600">
+            Gestiona las propiedades de los condominios
+          </p>
+        </a>
       </div>
     </div>
   );

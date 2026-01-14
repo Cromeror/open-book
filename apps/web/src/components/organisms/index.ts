@@ -45,3 +45,18 @@ export type {
   UserInfo as ManagerUserInfo,
   CondominiumInfo as ManagerCondominiumInfo,
 } from './manager-assignment';
+
+// Property components
+export { PropertyList } from './PropertyList';
+export type {
+  Property,
+  PropertyPaginationInfo,
+  PropertyListProps,
+} from './PropertyList';
+export { PropertyType, PropertyTypeLabels, PropertyTypeIcons } from './PropertyList';
+
+export { PropertyForm } from './property-form';
+export type { PropertyFormData } from './property-form';
+
+export { PropertyDetail } from './property-detail';
+export type { PropertyDetailProps } from './property-detail';
