@@ -39,7 +39,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 h-16 bg-white border-b border-gray-200">
+    <header className="shrink-0 z-30 h-16 bg-white border-b border-gray-200">
       <div className="flex items-center justify-between h-full px-4">
         {/* Left side - Menu button (mobile) */}
         <div className="flex items-center gap-4">

@@ -1,13 +1,18 @@
 import {
   Injectable,
   NotFoundException,
+  BadRequestException,
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Module } from '../../../entities';
-import { UpdateModuleDto } from '../../permissions/dto/update-module.dto';
+import {
+  UpdateModuleDto,
+  validateCrudActionsConfig,
+  validateSpecializedActionsConfig,
+} from '../../permissions/dto/update-module.dto';
 
 /**
  * Service for SuperAdmin to manage system modules
@@ -69,7 +74,30 @@ export class AdminModulesService {
   async updateModule(id: string, dto: UpdateModuleDto): Promise<Module> {
     const module = await this.getModuleById(id);
 
+    // Determine the effective module type (from dto or existing)
+    const effectiveType = dto.type ?? module.type;
+
+    // Validate actionsConfig if provided
+    if (dto.actionsConfig !== undefined && dto.actionsConfig !== null) {
+      const permissionCodes = module.permissions.map((p) => p.code);
+
+      try {
+        if (effectiveType === 'crud') {
+          validateCrudActionsConfig(dto.actionsConfig, permissionCodes);
+        } else {
+          validateSpecializedActionsConfig(dto.actionsConfig, permissionCodes);
+        }
+      } catch (error) {
+        throw new BadRequestException(
+          error instanceof Error ? error.message : 'Error de validacion',
+        );
+      }
+    }
+
     // Apply updates
+    if (dto.code !== undefined) {
+      module.code = dto.code;
+    }
     if (dto.name !== undefined) {
       module.name = dto.name;
     }
@@ -93,6 +121,9 @@ export class AdminModulesService {
     }
     if (dto.navConfig !== undefined) {
       module.navConfig = dto.navConfig ?? undefined;
+    }
+    if (dto.actionsConfig !== undefined) {
+      module.actionsConfig = dto.actionsConfig ?? undefined;
     }
     if (dto.order !== undefined) {
       module.order = dto.order;

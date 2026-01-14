@@ -56,15 +56,19 @@ export function DashboardShell({
         />
       )}
 
-      <div className="lg:pl-64">
+      <div className="lg:pl-64 h-screen flex flex-col">
         <Header
           user={user}
           onMenuClick={() => setIsSidebarOpen(true)}
         />
 
-        <main className="p-4 md:p-6">
-          <Breadcrumbs />
-          {children}
+        <main className="flex-1 flex flex-col overflow-hidden">
+          <div className="shrink-0 px-4 md:px-6 pt-4 md:pt-6 bg-gray-50">
+            <Breadcrumbs />
+          </div>
+          <div className="flex-1 overflow-auto px-4 md:px-6 pb-4 md:pb-6">
+            {children}
+          </div>
         </main>
       </div>
     </div>

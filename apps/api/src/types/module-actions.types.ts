@@ -33,6 +33,16 @@ export interface ReadActionSettings {
   filters?: FilterDefinition[];
   sortable?: string[];
   defaultSort?: { field: string; order: 'asc' | 'desc' };
+  search?: {
+    enabled: boolean;
+    placeholder?: string;
+    fields?: string[];
+  };
+  pagination?: {
+    enabled: boolean;
+    defaultPageSize?: number;
+    pageSizeOptions?: number[];
+  };
 }
 
 /**
@@ -41,6 +51,8 @@ export interface ReadActionSettings {
 export interface CreateActionSettings {
   type: 'create';
   fields: FieldDefinition[];
+  submitLabel?: string;
+  layout?: 'single-column' | 'two-columns';
   validation?: ValidationRules;
 }
 
@@ -50,7 +62,10 @@ export interface CreateActionSettings {
 export interface UpdateActionSettings {
   type: 'update';
   fields: FieldDefinition[];
+  submitLabel?: string;
+  layout?: 'single-column' | 'two-columns';
   validation?: ValidationRules;
+  readOnlyFields?: string[];
 }
 
 /**
@@ -122,16 +137,37 @@ export interface ModuleWithActions {
 
 /**
  * Field definition for forms
+ * Matches @openbook/business-core CreateActionSettings.fields
  */
 export interface FieldDefinition {
   name: string;
   label: string;
-  type: 'text' | 'number' | 'date' | 'select' | 'textarea' | 'boolean' | 'money';
+  type:
+    | 'text'
+    | 'number'
+    | 'date'
+    | 'select'
+    | 'textarea'
+    | 'boolean'
+    | 'money'
+    | 'email'
+    | 'password'
+    | 'checkbox'
+    | 'multiselect';
   required?: boolean;
+  placeholder?: string;
+  helpText?: string;
   options?: Array<{ value: string; label: string }>;
   min?: number;
   max?: number;
-  placeholder?: string;
+  validation?: {
+    min?: number;
+    max?: number;
+    minLength?: number;
+    maxLength?: number;
+    pattern?: string;
+    custom?: string;
+  };
 }
 
 /**

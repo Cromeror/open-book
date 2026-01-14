@@ -48,6 +48,16 @@ export default async function AdminPage() {
             Administra los modulos disponibles
           </p>
         </a>
+
+        <a
+          href="/admin/condominiums"
+          className="rounded-lg border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md"
+        >
+          <h3 className="font-semibold text-gray-900">Condominios</h3>
+          <p className="mt-2 text-sm text-gray-600">
+            Administra los condominios registrados
+          </p>
+        </a>
       </div>
     </div>
   );
