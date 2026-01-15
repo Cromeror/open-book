@@ -12,4 +12,9 @@ export type { ConfirmDialogProps } from './ConfirmDialog';
 
  export {SectionHeader} from './SectionHeader'
  export type {SectionHeaderProps} from './SectionHeader'
- 
+
+export { SelectModal } from './SelectModal';
+export type { SelectModalProps, SelectOption } from './SelectModal';
+
+export { ModulePermissionsModal } from './ModulePermissionsModal';
+export type { ModulePermissionsModalProps, ModuleOption, PermissionOption } from './ModulePermissionsModal';

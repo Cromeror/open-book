@@ -50,7 +50,7 @@ const navSections: NavSection[] = [
     title: 'Gestión de Usuarios',
     items: [
       { label: 'Usuarios', path: '/admin/users', icon: <Users className="h-4 w-4" /> },
-      { label: 'Roles', path: '/admin/roles', icon: <Shield className="h-4 w-4" /> },
+      { label: 'Roles', path: '/admin/pools', icon: <Shield className="h-4 w-4" /> },
       { label: 'Permisos', path: '/admin/permissions', icon: <KeyRound className="h-4 w-4" /> },
     ],
   },

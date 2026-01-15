@@ -60,3 +60,13 @@ export type { PropertyFormData } from './property-form';
 
 export { PropertyDetail } from './property-detail';
 export type { PropertyDetailProps } from './property-detail';
+
+// Pool components
+export { PoolList } from './pool-list';
+export type { UserPool, PoolListProps } from './pool-list';
+
+export { PoolForm } from './pool-form';
+export type { PoolFormData } from './pool-form';
+
+export { PoolDetail } from './pool-detail';
+export type { PoolDetailProps, PoolMemberInfo, PoolModuleInfo } from './pool-detail';
