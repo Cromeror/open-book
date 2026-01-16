@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { ModuleAction, ModulePermission, ModuleType, ActionSettings } from './types';
+import { ACTION_SETTINGS_TYPES } from './types';
 import {
   DEFAULT_CRUD_ACTIONS,
   SPECIALIZED_ACTION_TEMPLATES,
@@ -132,16 +133,19 @@ export function ActionsConfigEditor({
     const newActions = [...actions];
     const currentAction = newActions[index];
     if (!currentAction) return;
-    const currentSettings = currentAction.settings || { type: 'generic' };
+    const currentSettings = currentAction.settings || {
+      type: ACTION_SETTINGS_TYPES.GENERIC,
+    };
+    // Use type assertion since we're dynamically updating settings
+    const updatedSettings = {
+      ...currentSettings,
+      [settingsField]: value,
+    } as ActionSettings;
     newActions[index] = {
       code: currentAction.code,
       label: currentAction.label,
       description: currentAction.description,
-      settings: {
-        ...currentSettings,
-        type: currentSettings.type || 'generic',
-        [settingsField]: value,
-      },
+      settings: updatedSettings,
     };
     onChange(newActions);
   };

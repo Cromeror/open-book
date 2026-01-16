@@ -4,6 +4,7 @@
  */
 
 import type { ModuleAction, ActionSettings } from './types';
+import { ACTION_SETTINGS_TYPES, SORT_ORDERS } from './types';
 
 // CRUD action codes
 export const CRUD_ACTION_CODES = ['read', 'create', 'update', 'delete'] as const;
@@ -15,10 +16,10 @@ export const DEFAULT_CRUD_ACTIONS: ModuleAction[] = [
     label: 'Ver',
     description: 'Ver listado y detalle de registros',
     settings: {
-      type: 'read',
+      type: ACTION_SETTINGS_TYPES.READ,
       listColumns: [],
       filters: [],
-      defaultSort: { field: 'createdAt', order: 'desc' },
+      defaultSort: { field: 'createdAt', order: SORT_ORDERS.DESC },
     },
   },
   {
@@ -26,7 +27,7 @@ export const DEFAULT_CRUD_ACTIONS: ModuleAction[] = [
     label: 'Crear',
     description: 'Crear nuevos registros',
     settings: {
-      type: 'create',
+      type: ACTION_SETTINGS_TYPES.CREATE,
       fields: [],
     },
   },
@@ -35,7 +36,7 @@ export const DEFAULT_CRUD_ACTIONS: ModuleAction[] = [
     label: 'Editar',
     description: 'Modificar registros existentes',
     settings: {
-      type: 'update',
+      type: ACTION_SETTINGS_TYPES.UPDATE,
       fields: [],
     },
   },
@@ -44,7 +45,7 @@ export const DEFAULT_CRUD_ACTIONS: ModuleAction[] = [
     label: 'Eliminar',
     description: 'Eliminar registros',
     settings: {
-      type: 'delete',
+      type: ACTION_SETTINGS_TYPES.DELETE,
       confirmation: '¿Esta seguro de eliminar este registro?',
       soft: true,
     },
@@ -58,13 +59,13 @@ export const SPECIALIZED_ACTION_TEMPLATES: Record<string, ModuleAction[]> = {
       code: 'read',
       label: 'Ver reportes',
       description: 'Consultar reportes disponibles',
-      settings: { type: 'generic' },
+      settings: { type: ACTION_SETTINGS_TYPES.GENERIC },
     },
     {
       code: 'export',
       label: 'Exportar',
       description: 'Descargar en PDF/Excel',
-      settings: { type: 'generic' },
+      settings: { type: ACTION_SETTINGS_TYPES.GENERIC },
     },
   ],
   audit: [
@@ -72,7 +73,7 @@ export const SPECIALIZED_ACTION_TEMPLATES: Record<string, ModuleAction[]> = {
       code: 'read',
       label: 'Ver auditoria',
       description: 'Consultar historial de cambios',
-      settings: { type: 'generic' },
+      settings: { type: ACTION_SETTINGS_TYPES.GENERIC },
     },
   ],
   pqr: [
@@ -80,19 +81,19 @@ export const SPECIALIZED_ACTION_TEMPLATES: Record<string, ModuleAction[]> = {
       code: 'create',
       label: 'Crear PQR',
       description: 'Crear nueva peticion, queja o reclamo',
-      settings: { type: 'create', fields: [] },
+      settings: { type: ACTION_SETTINGS_TYPES.CREATE, fields: [] },
     },
     {
       code: 'read',
       label: 'Ver PQR',
       description: 'Consultar PQRs',
-      settings: { type: 'read', listColumns: [], filters: [] },
+      settings: { type: ACTION_SETTINGS_TYPES.READ, listColumns: [], filters: [] },
     },
     {
       code: 'manage',
       label: 'Gestionar PQR',
       description: 'Responder y cerrar PQR',
-      settings: { type: 'generic' },
+      settings: { type: ACTION_SETTINGS_TYPES.GENERIC },
     },
   ],
   notifications: [
@@ -100,13 +101,13 @@ export const SPECIALIZED_ACTION_TEMPLATES: Record<string, ModuleAction[]> = {
       code: 'read',
       label: 'Ver notificaciones',
       description: 'Consultar notificaciones',
-      settings: { type: 'generic' },
+      settings: { type: ACTION_SETTINGS_TYPES.GENERIC },
     },
     {
       code: 'create',
       label: 'Enviar notificaciones',
       description: 'Crear y enviar notificaciones',
-      settings: { type: 'generic' },
+      settings: { type: ACTION_SETTINGS_TYPES.GENERIC },
     },
   ],
 };
@@ -118,29 +119,29 @@ export function getDefaultSettingsForCode(code: string): ActionSettings {
   switch (code) {
     case 'read':
       return {
-        type: 'read',
+        type: ACTION_SETTINGS_TYPES.READ,
         listColumns: [],
         filters: [],
-        defaultSort: { field: 'createdAt', order: 'desc' },
+        defaultSort: { field: 'createdAt', order: SORT_ORDERS.DESC },
       };
     case 'create':
       return {
-        type: 'create',
+        type: ACTION_SETTINGS_TYPES.CREATE,
         fields: [],
       };
     case 'update':
       return {
-        type: 'update',
+        type: ACTION_SETTINGS_TYPES.UPDATE,
         fields: [],
       };
     case 'delete':
       return {
-        type: 'delete',
+        type: ACTION_SETTINGS_TYPES.DELETE,
         confirmation: '¿Esta seguro de eliminar este registro?',
         soft: true,
       };
     default:
-      return { type: 'generic' };
+      return { type: ACTION_SETTINGS_TYPES.GENERIC };
   }
 }
 

@@ -39,3 +39,8 @@ coverage
 
 # Misc
 *.tsbuildinfo
+
+# gRPC Certificates (development only)
+apps/api/certs/*.pem
+apps/api/certs/*.csr
+apps/api/certs/*.srl

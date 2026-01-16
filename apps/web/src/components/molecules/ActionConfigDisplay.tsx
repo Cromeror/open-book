@@ -1,7 +1,37 @@
-import type { ActionSettings } from '@/components/organisms';
+import type {
+  ActionSettings,
+  ActionSettingsRead,
+  ActionSettingsCreate,
+  ActionSettingsUpdate,
+  ActionSettingsDelete,
+} from '@/components/organisms';
+import { ACTION_SETTINGS_TYPES } from '@/components/organisms';
 
 export interface ActionConfigDisplayProps {
   settings: ActionSettings;
+}
+
+// Type guards
+function isReadSettings(settings: ActionSettings): settings is ActionSettingsRead {
+  return settings.type === ACTION_SETTINGS_TYPES.READ;
+}
+
+function isCreateSettings(settings: ActionSettings): settings is ActionSettingsCreate {
+  return settings.type === ACTION_SETTINGS_TYPES.CREATE;
+}
+
+function isUpdateSettings(settings: ActionSettings): settings is ActionSettingsUpdate {
+  return settings.type === ACTION_SETTINGS_TYPES.UPDATE;
+}
+
+function isDeleteSettings(settings: ActionSettings): settings is ActionSettingsDelete {
+  return settings.type === ACTION_SETTINGS_TYPES.DELETE;
+}
+
+function hasFormFields(
+  settings: ActionSettings
+): settings is ActionSettingsCreate | ActionSettingsUpdate {
+  return isCreateSettings(settings) || isUpdateSettings(settings);
 }
 
 /**
@@ -14,7 +44,7 @@ export function ActionConfigDisplay({ settings }: ActionConfigDisplayProps) {
   return (
     <div className="space-y-3 text-xs">
       {/* List Columns for read actions */}
-      {settings.listColumns && settings.listColumns.length > 0 && (
+      {isReadSettings(settings) && settings.listColumns.length > 0 && (
         <div>
           <p className="font-medium text-gray-700 mb-1">Columnas de Lista:</p>
           <div className="overflow-x-auto">
@@ -51,7 +81,7 @@ export function ActionConfigDisplay({ settings }: ActionConfigDisplayProps) {
       )}
 
       {/* Default Sort */}
-      {settings.defaultSort && (
+      {isReadSettings(settings) && settings.defaultSort && (
         <div>
           <p className="font-medium text-gray-700 mb-1">Orden por Defecto:</p>
           <code className="bg-gray-100 px-2 py-0.5 rounded">
@@ -61,7 +91,7 @@ export function ActionConfigDisplay({ settings }: ActionConfigDisplayProps) {
       )}
 
       {/* Filters */}
-      {settings.filters && settings.filters.length > 0 && (
+      {isReadSettings(settings) && settings.filters && settings.filters.length > 0 && (
         <div>
           <p className="font-medium text-gray-700 mb-1">Filtros:</p>
           <div className="flex flex-wrap gap-1">
@@ -78,8 +108,8 @@ export function ActionConfigDisplay({ settings }: ActionConfigDisplayProps) {
         </div>
       )}
 
-      {/* Form Fields */}
-      {settings.fields && settings.fields.length > 0 && (
+      {/* Form Fields for create/update actions */}
+      {hasFormFields(settings) && settings.fields.length > 0 && (
         <div>
           <p className="font-medium text-gray-700 mb-1">Campos del Formulario:</p>
           <div className="overflow-x-auto">
@@ -116,15 +146,13 @@ export function ActionConfigDisplay({ settings }: ActionConfigDisplayProps) {
       )}
 
       {/* Delete Confirmation */}
-      {settings.confirmation && (
+      {isDeleteSettings(settings) && (
         <div>
           <p className="font-medium text-gray-700 mb-1">Mensaje de Confirmacion:</p>
           <p className="text-gray-600 italic">&quot;{settings.confirmation}&quot;</p>
-          {settings.soft !== undefined && (
-            <p className="text-gray-500 mt-1">
-              Borrado: {settings.soft ? 'Logico (soft delete)' : 'Permanente'}
-            </p>
-          )}
+          <p className="text-gray-500 mt-1">
+            Borrado: {settings.soft ? 'Logico (soft delete)' : 'Permanente'}
+          </p>
         </div>
       )}
     </div>

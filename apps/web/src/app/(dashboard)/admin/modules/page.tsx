@@ -5,35 +5,12 @@ import { requireSuperAdmin } from '@/lib/permissions.server';
 import { publicEnv } from '@/config/env';
 import { ModulesManager } from './modules-manager';
 import { ContentLayout } from '@/components/layout';
-
-interface ModulePermission {
-  id: string;
-  code: string;
-  name: string;
-  description?: string;
-}
-
-interface NavConfig {
-  path: string;
-  order: number;
-}
-
-interface ActionSettings {
-  type: string;
-  listColumns?: Array<{ field: string; label: string; sortable?: boolean; format?: string }>;
-  filters?: Array<{ field: string; type: string; label: string }>;
-  defaultSort?: { field: string; order: string };
-  fields?: Array<{ name: string; label: string; type: string; required?: boolean }>;
-  confirmation?: string;
-  soft?: boolean;
-}
-
-interface ModuleAction {
-  code: string;
-  label: string;
-  description?: string;
-  settings?: ActionSettings;
-}
+import type {
+  ModulePermission,
+  NavConfig,
+  ModuleAction,
+  ModuleType,
+} from '@/components/organisms';
 
 interface Module {
   id: string;
@@ -41,7 +18,7 @@ interface Module {
   name: string;
   description?: string;
   icon?: string;
-  type: 'crud' | 'specialized';
+  type: ModuleType;
   entity?: string;
   endpoint?: string;
   component?: string;

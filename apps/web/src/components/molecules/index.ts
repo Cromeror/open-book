@@ -30,3 +30,9 @@ export { RelationTypeLabels } from './ResidentAssignmentModal';
 
 export { JsonEditor } from './JsonEditor';
 export type { JsonEditorProps } from './JsonEditor';
+
+export { CondominiumSelector } from './CondominiumSelector';
+export type {
+  CondominiumSelectorProps,
+  Condominium,
+} from './CondominiumSelector';

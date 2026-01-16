@@ -1,10 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Shield, X } from 'lucide-react';
 
 import type { NavItem } from '@/lib/types/modules';
+import { CondominiumSelector } from '@/components/molecules';
+import type { Condominium } from '@/components/molecules';
 
 import { Icon } from './Icon';
 import { LogoutButton } from './LogoutButton';
@@ -18,14 +21,26 @@ interface SidebarProps {
   isOpen: boolean;
   /** Callback to close sidebar (mobile) */
   onClose: () => void;
+  /** Condominiums the user has access to */
+  condominiums: Condominium[];
+  /** User's primary condominium */
+  primaryCondominium: Condominium | null;
 }
 
 /**
  * Sidebar navigation component
  * Receives navigation items derived from user's modules
  */
-export function Sidebar({ navItems, isSuperAdmin, isOpen, onClose }: SidebarProps) {
+export function Sidebar({
+  navItems,
+  isSuperAdmin,
+  isOpen,
+  onClose,
+  condominiums,
+  primaryCondominium,
+}: SidebarProps) {
   const pathname = usePathname();
+  const [selectedCondominium, setSelectedCondominium] = useState<Condominium | null>(primaryCondominium);
 
   const isActive = (path: string) => {
     if (path === '/dashboard') {
@@ -69,8 +84,17 @@ export function Sidebar({ navItems, isSuperAdmin, isOpen, onClose }: SidebarProp
           </button>
         </div>
 
+        {/* Condominium Selector */}
+        <div className="px-3 py-3 border-b border-gray-200">
+          <CondominiumSelector
+            condominiums={condominiums}
+            selectedCondominium={selectedCondominium}
+            onSelect={setSelectedCondominium}
+          />
+        </div>
+
         {/* Navigation */}
-        <nav className="flex flex-col p-4 overflow-y-auto h-[calc(100%-4rem)]">
+        <nav className="flex flex-col p-4 overflow-y-auto h-[calc(100%-4rem-5rem)]">
           {isSuperAdmin && (
             <div className="mb-4 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg">
               <span className="text-xs font-medium text-amber-800">SuperAdmin</span>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 
 import type { NavItem } from '@/lib/types/modules';
+import type { Condominium } from '@/components/molecules';
 
 import { Sidebar } from './Sidebar';
 import { SuperSidebar } from './SuperSidebar';
@@ -24,6 +25,10 @@ interface DashboardShellProps {
   navItems: NavItem[];
   /** Whether user is SuperAdmin */
   isSuperAdmin: boolean;
+  /** Condominiums the user has access to */
+  condominiums: Condominium[];
+  /** User's primary condominium */
+  primaryCondominium: Condominium | null;
 }
 
 /**
@@ -37,6 +42,8 @@ export function DashboardShell({
   user,
   navItems,
   isSuperAdmin,
+  condominiums,
+  primaryCondominium,
 }: DashboardShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -53,6 +60,8 @@ export function DashboardShell({
           isSuperAdmin={isSuperAdmin}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
+          condominiums={condominiums}
+          primaryCondominium={primaryCondominium}
         />
       )}
 
