@@ -10,10 +10,18 @@ async function getToken() {
 }
 
 /**
- * GET /api/admin/modules
- * Proxy to get all system modules
+ * GET /api/property-residents
+ * List property-resident associations with filters
+ *
+ * Query params:
+ * - propertyId: Filter by property
+ * - userId: Filter by user
+ * - condominiumId: Filter by condominium
+ * - status: PENDING, ACTIVE, INACTIVE, REJECTED
+ * - relationType: OWNER, TENANT, OTHER
+ * - page, limit: Pagination
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   const token = await getToken();
 
   if (!token) {
@@ -23,12 +31,18 @@ export async function GET() {
     );
   }
 
+  const { searchParams } = new URL(request.url);
+  const queryString = searchParams.toString();
+
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/modules`, {
+    const url = queryString
+      ? `${API_BASE_URL}/property-residents?${queryString}`
+      : `${API_BASE_URL}/property-residents`;
+
+    const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      cache: 'no-store',
     });
 
     const data = await response.json();
@@ -43,8 +57,8 @@ export async function GET() {
 }
 
 /**
- * POST /api/admin/modules
- * Proxy to create a new system module
+ * POST /api/property-residents
+ * Create a new property-resident association
  */
 export async function POST(request: NextRequest) {
   const token = await getToken();
@@ -58,7 +72,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const response = await fetch(`${API_BASE_URL}/admin/modules`, {
+    const response = await fetch(`${API_BASE_URL}/property-residents`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,

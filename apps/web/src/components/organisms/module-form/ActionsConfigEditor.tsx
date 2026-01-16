@@ -1,15 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import type { ModuleAction, ModulePermission, ModuleType } from './types';
+import type { ModuleAction, ModulePermission, ModuleType, ActionSettings } from './types';
 import {
-  CRUD_ACTION_CODES,
   DEFAULT_CRUD_ACTIONS,
   SPECIALIZED_ACTION_TEMPLATES,
   getDefaultSettingsForCode,
   getDefaultLabelForCode,
   isCrudActionCode,
 } from './constants';
+import { JsonEditor } from '@/components/molecules';
 
 interface ActionsConfigEditorProps {
   actions: ModuleAction[];
@@ -387,23 +387,13 @@ export function ActionsConfigEditor({
                       {/* JSON Editor for advanced settings */}
                       <div className="border-t border-gray-100 pt-3">
                         <label className={labelClasses}>Settings (JSON avanzado)</label>
-                        <textarea
-                          value={JSON.stringify(action.settings || {}, null, 2)}
-                          onChange={(e) => {
-                            try {
-                              const parsed = JSON.parse(e.target.value);
-                              handleUpdateAction(actionIndex, 'settings', parsed);
-                            } catch {
-                              // Invalid JSON, don't update
-                            }
-                          }}
-                          className={`${inputClasses} font-mono`}
-                          rows={4}
+                        <JsonEditor<ActionSettings>
+                          value={action.settings}
+                          onChange={(parsed) => handleUpdateAction(actionIndex, 'settings', parsed)}
                           disabled={disabled}
+                          rows={4}
+                          helpText="Edita el JSON directamente para configuraciones avanzadas"
                         />
-                        <p className="mt-1 text-xs text-gray-400">
-                          Edita el JSON directamente para configuraciones avanzadas
-                        </p>
                       </div>
                     </div>
                   )}
@@ -584,23 +574,13 @@ export function ActionsConfigEditor({
                           {/* JSON Editor for advanced settings */}
                           <div className="mt-3">
                             <label className={labelClasses}>Settings (JSON avanzado)</label>
-                            <textarea
-                              value={JSON.stringify(action.settings || {}, null, 2)}
-                              onChange={(e) => {
-                                try {
-                                  const parsed = JSON.parse(e.target.value);
-                                  handleUpdateAction(index, 'settings', parsed);
-                                } catch {
-                                  // Invalid JSON, don't update
-                                }
-                              }}
-                              className={`${inputClasses} font-mono`}
-                              rows={4}
+                            <JsonEditor<ActionSettings>
+                              value={action.settings}
+                              onChange={(parsed) => handleUpdateAction(index, 'settings', parsed)}
                               disabled={disabled}
+                              rows={4}
+                              helpText="Edita el JSON directamente para configuraciones avanzadas"
                             />
-                            <p className="mt-1 text-xs text-gray-400">
-                              Edita el JSON directamente para configuraciones avanzadas
-                            </p>
                           </div>
                         </div>
                       </div>

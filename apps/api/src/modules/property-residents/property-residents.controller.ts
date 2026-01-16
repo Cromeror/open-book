@@ -146,13 +146,22 @@ export class PropertyResidentsController {
    *
    * GET /api/property-residents/property/:propertyId
    *
+   * Access control:
+   * - Administrators (condominium managers) see all residents
+   * - Residents only see themselves
+   *
    * @returns List of active residents (200)
+   * @throws ForbiddenException if user has no access (403)
    */
   @Get('property/:propertyId')
   async getPropertyResidents(
     @Param('propertyId', ParseUUIDPipe) propertyId: string,
+    @Req() req: AuthenticatedRequest,
   ) {
-    return this.propertyResidentsService.findActiveByPropertyId(propertyId);
+    return this.propertyResidentsService.findActiveByPropertyId(
+      propertyId,
+      req.user.userId,
+    );
   }
 
   /**

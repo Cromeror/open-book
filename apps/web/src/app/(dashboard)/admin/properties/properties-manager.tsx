@@ -8,9 +8,15 @@ import {
   type Property,
   type PropertyPaginationInfo,
   type PropertyFormData,
+  type PropertyResident,
   PropertyType,
 } from '@/components/organisms';
-import { ConfirmDialog } from '@/components/molecules';
+import {
+  ConfirmDialog,
+  ResidentAssignmentModal,
+  type ResidentAssignmentData,
+  type UserOption,
+} from '@/components/molecules';
 
 type ViewMode = 'list' | 'view' | 'create' | 'edit';
 
@@ -42,9 +48,18 @@ export function PropertiesManager({
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
+  // Residents state
+  const [residents, setResidents] = useState<PropertyResident[]>([]);
+  const [availableUsers, setAvailableUsers] = useState<UserOption[]>([]);
+  const [addResidentModalOpen, setAddResidentModalOpen] = useState(false);
+
   // Delete dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
+
+  // Remove resident dialog state
+  const [removeResidentDialogOpen, setRemoveResidentDialogOpen] = useState(false);
+  const [residentToRemove, setResidentToRemove] = useState<string | null>(null);
 
   // Fetch properties
   const fetchProperties = useCallback(
@@ -111,6 +126,44 @@ export function PropertiesManager({
     return undefined;
   }, [successMessage]);
 
+  // Fetch residents for a property
+  const fetchResidents = useCallback(async (propertyId: string) => {
+    try {
+      const response = await fetch(`/api/property-residents/property/${propertyId}`);
+      if (!response.ok) {
+        throw new Error('Error al cargar residentes');
+      }
+      const data = await response.json();
+      setResidents(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Error fetching residents:', err);
+      setResidents([]);
+    }
+  }, []);
+
+  // Fetch available users for assignment
+  const fetchAvailableUsers = useCallback(async () => {
+    try {
+      const response = await fetch('/api/users?isActive=true&limit=100');
+      if (!response.ok) {
+        throw new Error('Error al cargar usuarios');
+      }
+      const data = await response.json();
+      const users = data.data || data || [];
+      setAvailableUsers(
+        users.map((user: { id: string; email: string; firstName: string; lastName: string }) => ({
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        }))
+      );
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      setAvailableUsers([]);
+    }
+  }, []);
+
   // Handlers
   const handleSearch = useCallback(
     (query: string) => {
@@ -164,10 +217,12 @@ export function PropertiesManager({
       if (freshData) {
         setSelectedProperty(freshData);
         setViewMode('view');
+        // Fetch residents when viewing property
+        await fetchResidents(property.id);
       }
       setLoading(false);
     },
-    [fetchPropertyById]
+    [fetchPropertyById, fetchResidents]
   );
 
   const handleEdit = useCallback(
@@ -193,6 +248,7 @@ export function PropertiesManager({
   const handleBackToList = useCallback(() => {
     setViewMode('list');
     setSelectedProperty(null);
+    setResidents([]);
     setError(null);
   }, []);
 
@@ -327,6 +383,118 @@ export function PropertiesManager({
     }
   }, [selectedProperty]);
 
+  // Resident handlers
+  const handleAddResident = useCallback(async () => {
+    await fetchAvailableUsers();
+    setAddResidentModalOpen(true);
+  }, [fetchAvailableUsers]);
+
+  const handleAddResidentConfirm = useCallback(
+    async (data: ResidentAssignmentData) => {
+      if (!selectedProperty) return;
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch('/api/property-residents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            propertyId: selectedProperty.id,
+            userId: data.userId,
+            relationType: data.relationType,
+            isPrimary: data.isPrimary,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Error al asignar residente');
+        }
+
+        setSuccessMessage('Residente asignado correctamente');
+        setAddResidentModalOpen(false);
+        await fetchResidents(selectedProperty.id);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error desconocido');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [selectedProperty, fetchResidents]
+  );
+
+  const handleRemoveResident = useCallback((residentId: string) => {
+    setResidentToRemove(residentId);
+    setRemoveResidentDialogOpen(true);
+  }, []);
+
+  const handleConfirmRemoveResident = useCallback(async () => {
+    if (!residentToRemove || !selectedProperty) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/property-residents/${residentToRemove}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok && response.status !== 204) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al eliminar residente');
+      }
+
+      setSuccessMessage('Residente eliminado correctamente');
+      setRemoveResidentDialogOpen(false);
+      setResidentToRemove(null);
+      await fetchResidents(selectedProperty.id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setLoading(false);
+    }
+  }, [residentToRemove, selectedProperty, fetchResidents]);
+
+  const handleCancelRemoveResident = useCallback(() => {
+    setRemoveResidentDialogOpen(false);
+    setResidentToRemove(null);
+  }, []);
+
+  const handleSetPrimaryResident = useCallback(
+    async (residentId: string) => {
+      if (!selectedProperty) return;
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch(
+          `/api/property-residents/property/${selectedProperty.id}/primary`,
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ residentId }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Error al establecer contacto principal');
+        }
+
+        setSuccessMessage('Contacto principal actualizado');
+        await fetchResidents(selectedProperty.id);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error desconocido');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [selectedProperty, fetchResidents]
+  );
+
   // Convert property to form data
   const getFormData = (property: Property): PropertyFormData => ({
     identifier: property.identifier,
@@ -383,10 +551,14 @@ export function PropertiesManager({
       {viewMode === 'view' && selectedProperty && (
         <PropertyDetail
           property={selectedProperty}
+          residents={residents}
           loading={loading}
           onEdit={handleEdit}
           onToggleStatus={handleToggleStatus}
           onBack={handleBackToList}
+          onAddResident={handleAddResident}
+          onRemoveResident={handleRemoveResident}
+          onSetPrimaryResident={handleSetPrimaryResident}
         />
       )}
 
@@ -426,7 +598,7 @@ export function PropertiesManager({
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Property Confirmation Dialog */}
       <ConfirmDialog
         isOpen={deleteDialogOpen}
         title="Eliminar Propiedad"
@@ -437,6 +609,30 @@ export function PropertiesManager({
         loading={loading}
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
+      />
+
+      {/* Remove Resident Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={removeResidentDialogOpen}
+        title="Eliminar Residente"
+        message="¿Esta seguro de eliminar este residente de la propiedad?"
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        variant="danger"
+        loading={loading}
+        onConfirm={handleConfirmRemoveResident}
+        onCancel={handleCancelRemoveResident}
+      />
+
+      {/* Add Resident Modal */}
+      <ResidentAssignmentModal
+        isOpen={addResidentModalOpen}
+        title="Asignar Residente"
+        subtitle={selectedProperty?.identifier}
+        users={availableUsers}
+        loading={loading}
+        onConfirm={handleAddResidentConfirm}
+        onCancel={() => setAddResidentModalOpen(false)}
       />
     </div>
   );

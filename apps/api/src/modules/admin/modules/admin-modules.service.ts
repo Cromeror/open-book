@@ -3,16 +3,19 @@ import {
   NotFoundException,
   BadRequestException,
   Logger,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Module } from '../../../entities';
+import { ModulePermission } from '../../../entities/module-permission.entity';
 import {
   UpdateModuleDto,
   validateCrudActionsConfig,
   validateSpecializedActionsConfig,
 } from '../../permissions/dto/update-module.dto';
+import { CreateModuleDto } from '../../permissions/dto/create-module.dto';
 
 /**
  * Service for SuperAdmin to manage system modules
@@ -24,7 +27,76 @@ export class AdminModulesService {
   constructor(
     @InjectRepository(Module)
     private moduleRepo: Repository<Module>,
+    @InjectRepository(ModulePermission)
+    private permissionRepo: Repository<ModulePermission>,
   ) {}
+
+  /**
+   * Create a new module
+   */
+  async createModule(dto: CreateModuleDto): Promise<Module> {
+    // Check if module code already exists
+    const existing = await this.moduleRepo.findOne({
+      where: { code: dto.code },
+    });
+
+    if (existing) {
+      throw new ConflictException(
+        `Ya existe un módulo con el código '${dto.code}'`,
+      );
+    }
+
+    // Validate actionsConfig if provided
+    if (dto.actionsConfig && dto.actionsConfig.length > 0) {
+      // For new modules, we need to create permissions first
+      // Extract permission codes from actionsConfig
+      const permissionCodes = dto.actionsConfig.map((action) => action.code);
+
+      // Validate based on module type
+      if (dto.type === 'crud') {
+        validateCrudActionsConfig(dto.actionsConfig, permissionCodes);
+      } else {
+        validateSpecializedActionsConfig(dto.actionsConfig, permissionCodes);
+      }
+    }
+
+    // Create the module
+    const module = this.moduleRepo.create({
+      code: dto.code,
+      name: dto.name,
+      description: dto.description ?? undefined,
+      icon: dto.icon ?? undefined,
+      type: dto.type,
+      entity: dto.entity ?? undefined,
+      endpoint: dto.endpoint ?? undefined,
+      component: dto.component ?? undefined,
+      navConfig: dto.navConfig ?? undefined,
+      actionsConfig: dto.actionsConfig ?? undefined,
+      order: dto.order,
+      tags: dto.tags,
+      isActive: true,
+    });
+
+    await this.moduleRepo.save(module);
+
+    // Create permissions from actionsConfig
+    if (dto.actionsConfig && dto.actionsConfig.length > 0) {
+      for (const action of dto.actionsConfig) {
+        const permission = this.permissionRepo.create({
+          moduleId: module.id,
+          code: action.code,
+          name: action.label,
+          description: action.description ?? undefined,
+        });
+        await this.permissionRepo.save(permission);
+      }
+    }
+
+    this.logger.log(`Module created: ${module.code} (${module.id})`);
+
+    // Return the module with its permissions
+    return this.getModuleById(module.id);
+  }
 
   /**
    * Get all modules (including inactive ones)

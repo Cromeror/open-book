@@ -59,7 +59,12 @@ export { PropertyForm } from './property-form';
 export type { PropertyFormData } from './property-form';
 
 export { PropertyDetail } from './property-detail';
-export type { PropertyDetailProps } from './property-detail';
+export type {
+  PropertyDetailProps,
+  PropertyResident,
+  ResidentRelationType,
+  ResidentStatus,
+} from './property-detail';
 
 // Pool components
 export { PoolList } from './pool-list';

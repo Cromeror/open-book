@@ -3,6 +3,7 @@ import { RouterModule } from '@nestjs/core';
 import { UsersModule } from './users';
 import { CondominiumsModule } from './condominiums';
 import { AdminModulesModule } from './modules';
+import { AdminPropertyResidentsModule } from './property-residents';
 
 /**
  * Admin Module
@@ -39,6 +40,7 @@ import { AdminModulesModule } from './modules';
     UsersModule,
     CondominiumsModule,
     AdminModulesModule,
+    AdminPropertyResidentsModule,
     // Router configuration for /admin prefix
     RouterModule.register([
       {
@@ -47,6 +49,7 @@ import { AdminModulesModule } from './modules';
           { path: 'users', module: UsersModule },
           { path: 'condominiums', module: CondominiumsModule },
           { path: 'modules', module: AdminModulesModule },
+          { path: 'property-residents', module: AdminPropertyResidentsModule },
         ],
       },
     ]),

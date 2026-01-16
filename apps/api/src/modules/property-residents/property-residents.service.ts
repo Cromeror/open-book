@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -13,6 +14,7 @@ import {
 } from '../../entities/property-resident.entity';
 import { Property } from '../../entities/property.entity';
 import { User } from '../../entities/user.entity';
+import { CondominiumManager } from '../../entities/condominium-manager.entity';
 
 /**
  * Query options for listing property residents
@@ -62,6 +64,10 @@ export interface ApproveRejectDto {
  *
  * PropertyResident represents the many-to-many relationship between
  * users and properties with additional metadata (relation type, status, etc.)
+ *
+ * Access control:
+ * - Administrators (condominium managers) can see all residents of properties in their condominium
+ * - Residents can only see themselves
  */
 @Injectable()
 export class PropertyResidentsService {
@@ -72,7 +78,56 @@ export class PropertyResidentsService {
     private readonly propertyRepository: Repository<Property>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(CondominiumManager)
+    private readonly condominiumManagerRepository: Repository<CondominiumManager>,
   ) {}
+
+  /**
+   * Check if user is a manager of the condominium that owns the property
+   */
+  private async isManagerOfPropertyCondominium(
+    userId: string,
+    propertyId: string,
+  ): Promise<boolean> {
+    const property = await this.propertyRepository.findOne({
+      where: { id: propertyId, deletedAt: undefined },
+      select: ['condominiumId'],
+    });
+
+    if (!property) {
+      return false;
+    }
+
+    const manager = await this.condominiumManagerRepository.findOne({
+      where: {
+        userId,
+        condominiumId: property.condominiumId,
+        isActive: true,
+        deletedAt: undefined,
+      },
+    });
+
+    return !!manager;
+  }
+
+  /**
+   * Check if user is a resident of the property
+   */
+  private async isResidentOfProperty(
+    userId: string,
+    propertyId: string,
+  ): Promise<boolean> {
+    const resident = await this.propertyResidentRepository.findOne({
+      where: {
+        userId,
+        propertyId,
+        status: AssociationStatus.ACTIVE,
+        deletedAt: undefined,
+      },
+    });
+
+    return !!resident;
+  }
 
   /**
    * Find all property resident associations with filters
@@ -169,18 +224,64 @@ export class PropertyResidentsService {
   }
 
   /**
-   * Find active residents for a property
+   * Find active residents for a property with access control
+   *
+   * Access rules:
+   * - Administrators (condominium managers) see all residents
+   * - Residents only see themselves
+   *
+   * @param propertyId - Property ID to query
+   * @param requestingUserId - ID of the user making the request
+   * @returns List of residents (filtered based on user's role)
+   * @throws ForbiddenException if user has no access to view residents
    */
-  async findActiveByPropertyId(propertyId: string): Promise<PropertyResident[]> {
-    return this.propertyResidentRepository.find({
-      where: {
-        propertyId,
-        status: AssociationStatus.ACTIVE,
-        deletedAt: undefined,
-      },
-      relations: ['user'],
-      order: { isPrimary: 'DESC', createdAt: 'ASC' },
-    });
+  async findActiveByPropertyId(
+    propertyId: string,
+    requestingUserId: string,
+  ): Promise<PropertyResident[]> {
+    // Check if user is a manager of the property's condominium
+    const isManager = await this.isManagerOfPropertyCondominium(
+      requestingUserId,
+      propertyId,
+    );
+
+    if (isManager) {
+      // Managers can see all residents
+      return this.propertyResidentRepository.find({
+        where: {
+          propertyId,
+          status: AssociationStatus.ACTIVE,
+          deletedAt: undefined,
+        },
+        relations: ['user'],
+        order: { isPrimary: 'DESC', createdAt: 'ASC' },
+      });
+    }
+
+    // Check if user is a resident of this property
+    const isResident = await this.isResidentOfProperty(
+      requestingUserId,
+      propertyId,
+    );
+
+    if (isResident) {
+      // Residents can only see themselves
+      const ownResident = await this.propertyResidentRepository.find({
+        where: {
+          propertyId,
+          userId: requestingUserId,
+          status: AssociationStatus.ACTIVE,
+          deletedAt: undefined,
+        },
+        relations: ['user'],
+      });
+      return ownResident;
+    }
+
+    // User has no access to view residents of this property
+    throw new ForbiddenException(
+      'No tiene permiso para ver los residentes de esta propiedad',
+    );
   }
 
   /**

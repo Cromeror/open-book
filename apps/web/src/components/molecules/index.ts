@@ -18,3 +18,15 @@ export type { SelectModalProps, SelectOption } from './SelectModal';
 
 export { ModulePermissionsModal } from './ModulePermissionsModal';
 export type { ModulePermissionsModalProps, ModuleOption, PermissionOption } from './ModulePermissionsModal';
+
+export { ResidentAssignmentModal } from './ResidentAssignmentModal';
+export type {
+  ResidentAssignmentModalProps,
+  ResidentAssignmentData,
+  UserOption,
+  RelationType,
+} from './ResidentAssignmentModal';
+export { RelationTypeLabels } from './ResidentAssignmentModal';
+
+export { JsonEditor } from './JsonEditor';
+export type { JsonEditorProps } from './JsonEditor';

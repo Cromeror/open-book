@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../../auth/guards';
 import { AdminModulesService } from './admin-modules.service';
 import { SuperAdminGuard } from '../../permissions/guards/superadmin.guard';
 import { UpdateModuleDto, validateUpdateModuleDto } from '../../permissions/dto/update-module.dto';
+import { CreateModuleDto, validateCreateModuleDto } from '../../permissions/dto/create-module.dto';
 
 /**
  * Controller for SuperAdmin to manage system modules
@@ -24,6 +25,7 @@ import { UpdateModuleDto, validateUpdateModuleDto } from '../../permissions/dto/
  * Routed via RouterModule to /api/admin/modules
  *
  * Endpoints:
+ * - POST /api/admin/modules - Create a new module
  * - GET /api/admin/modules - List all modules
  * - GET /api/admin/modules/:id - Get a single module
  * - PATCH /api/admin/modules/:id - Update a module
@@ -33,6 +35,31 @@ import { UpdateModuleDto, validateUpdateModuleDto } from '../../permissions/dto/
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
 export class AdminModulesController {
   constructor(private adminModulesService: AdminModulesService) {}
+
+  /**
+   * POST /api/admin/modules
+   * Create a new system module
+   */
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  async createModule(@Body() body: unknown) {
+    let dto: CreateModuleDto;
+    try {
+      dto = validateCreateModuleDto(body);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const messages = error.issues.map((issue) => issue.message);
+        throw new BadRequestException({
+          statusCode: 400,
+          message: 'Error de validación',
+          errors: messages,
+        });
+      }
+      throw error;
+    }
+
+    return this.adminModulesService.createModule(dto);
+  }
 
   /**
    * GET /api/admin/modules

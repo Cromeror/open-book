@@ -9,12 +9,17 @@ async function getToken() {
   return cookieStore.get('access_token')?.value;
 }
 
+interface RouteParams {
+  params: Promise<{ propertyId: string }>;
+}
+
 /**
- * GET /api/admin/modules
- * Proxy to get all system modules
+ * GET /api/property-residents/property/:propertyId/primary
+ * Get primary contact for a property
  */
-export async function GET() {
+export async function GET(request: NextRequest, { params }: RouteParams) {
   const token = await getToken();
+  const { propertyId } = await params;
 
   if (!token) {
     return NextResponse.json(
@@ -24,12 +29,14 @@ export async function GET() {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/modules`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      cache: 'no-store',
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/property-residents/property/${propertyId}/primary`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
@@ -43,11 +50,14 @@ export async function GET() {
 }
 
 /**
- * POST /api/admin/modules
- * Proxy to create a new system module
+ * PATCH /api/property-residents/property/:propertyId/primary
+ * Set primary contact for a property
+ *
+ * Body: { residentId: string }
  */
-export async function POST(request: NextRequest) {
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
   const token = await getToken();
+  const { propertyId } = await params;
 
   if (!token) {
     return NextResponse.json(
@@ -58,14 +68,17 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const response = await fetch(`${API_BASE_URL}/admin/modules`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/property-residents/property/${propertyId}/primary`,
+      {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      }
+    );
 
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
