@@ -14,8 +14,8 @@ interface RouteParams {
 }
 
 /**
- * GET /api/admin/properties/:id
- * Get a specific property by ID (SuperAdmin only - unrestricted access)
+ * GET /api/properties/:id
+ * Get a specific property by ID (with access control)
  */
 export async function GET(_request: NextRequest, { params }: RouteParams) {
   const token = await getToken();
@@ -29,7 +29,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/properties/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/properties/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -47,8 +47,8 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 }
 
 /**
- * PATCH /api/admin/properties/:id
- * Update a property
+ * PATCH /api/properties/:id
+ * Update a property (managers only)
  */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   const token = await getToken();
@@ -84,8 +84,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 }
 
 /**
- * DELETE /api/admin/properties/:id
- * Delete (soft) a property
+ * DELETE /api/properties/:id
+ * Delete (soft) a property (managers only)
  */
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
   const token = await getToken();

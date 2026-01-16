@@ -9,17 +9,13 @@ async function getToken() {
   return cookieStore.get('access_token')?.value;
 }
 
-interface RouteParams {
-  params: Promise<{ id: string }>;
-}
-
 /**
- * GET /api/admin/properties/:id
- * Get a specific property by ID (SuperAdmin only - unrestricted access)
+ * GET /api/properties
+ * List properties for a condominium (with access control)
+ * User can only see properties from condominiums they manage or reside in
  */
-export async function GET(_request: NextRequest, { params }: RouteParams) {
+export async function GET(request: NextRequest) {
   const token = await getToken();
-  const { id } = await params;
 
   if (!token) {
     return NextResponse.json(
@@ -29,7 +25,11 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/properties/${id}`, {
+    const url = new URL(request.url);
+    const queryString = url.searchParams.toString();
+    const apiUrl = `${API_BASE_URL}/properties${queryString ? `?${queryString}` : ''}`;
+
+    const response = await fetch(apiUrl, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -47,12 +47,11 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 }
 
 /**
- * PATCH /api/admin/properties/:id
- * Update a property
+ * POST /api/properties
+ * Create a new property (managers only)
  */
-export async function PATCH(request: NextRequest, { params }: RouteParams) {
+export async function POST(request: NextRequest) {
   const token = await getToken();
-  const { id } = await params;
 
   if (!token) {
     return NextResponse.json(
@@ -63,52 +62,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
   try {
     const body = await request.json();
-    const response = await fetch(`${API_BASE_URL}/properties/${id}`, {
-      method: 'PATCH',
+    const response = await fetch(`${API_BASE_URL}/properties`, {
+      method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
     });
-
-    const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
-  } catch (error) {
-    console.error('Proxy error:', error);
-    return NextResponse.json(
-      { error: 'Internal Server Error', message: 'Failed to proxy request' },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * DELETE /api/admin/properties/:id
- * Delete (soft) a property
- */
-export async function DELETE(_request: NextRequest, { params }: RouteParams) {
-  const token = await getToken();
-  const { id } = await params;
-
-  if (!token) {
-    return NextResponse.json(
-      { error: 'Unauthorized', message: 'No access token found' },
-      { status: 401 }
-    );
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/properties/${id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (response.status === 204) {
-      return new NextResponse(null, { status: 204 });
-    }
 
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });

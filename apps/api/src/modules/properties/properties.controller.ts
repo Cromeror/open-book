@@ -13,6 +13,7 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  Req,
 } from '@nestjs/common';
 import { z } from 'zod';
 
@@ -20,6 +21,16 @@ import { JwtAuthGuard } from '../auth/guards';
 import { PropertyType } from '../../entities/property.entity';
 
 import { PropertiesService } from './properties.service';
+
+/**
+ * Request interface with user info from JWT
+ */
+interface AuthenticatedRequest {
+  user: {
+    userId: string;
+    email: string;
+  };
+}
 
 // Zod schemas for validation
 const createPropertySchema = z.object({
@@ -105,6 +116,7 @@ export class PropertiesController {
    */
   @Get()
   async findAll(
+    @Req() req: AuthenticatedRequest,
     @Query('condominiumId', ParseUUIDPipe) condominiumId: string,
     @Query('groupId') groupId?: string,
     @Query('type') type?: string,
@@ -117,6 +129,7 @@ export class PropertiesController {
   ) {
     return this.propertiesService.findAll({
       condominiumId,
+      requestingUserId: req.user.userId,
       groupId: groupId === 'null' ? null : groupId ? groupId : undefined,
       type: type as PropertyType | undefined,
       isActive:
@@ -140,9 +153,19 @@ export class PropertiesController {
    * GET /api/properties/stats
    *
    * @returns Property counts by type and total (200)
+   * @throws ForbiddenException if user doesn't have access to the condominium (403)
    */
   @Get('stats')
-  async getStats(@Query('condominiumId', ParseUUIDPipe) condominiumId: string) {
+  async getStats(
+    @Req() req: AuthenticatedRequest,
+    @Query('condominiumId', ParseUUIDPipe) condominiumId: string,
+  ) {
+    // Validate user can access this condominium
+    await this.propertiesService.validateCondominiumAccess(
+      req.user.userId,
+      condominiumId,
+    );
+
     const [countByType, total] = await Promise.all([
       this.propertiesService.getCountByType(condominiumId),
       this.propertiesService.getTotalCount(condominiumId),
@@ -160,10 +183,17 @@ export class PropertiesController {
    * GET /api/properties/:id
    *
    * @returns Property details (200)
+   * @throws ForbiddenException if user doesn't have access to the property (403)
    * @throws NotFoundException if property not found (404)
    */
   @Get(':id')
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+  async findOne(
+    @Req() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    // Validate user can access this property
+    await this.propertiesService.validatePropertyAccess(req.user.userId, id);
+
     const property = await this.propertiesService.findByIdWithRelations(id);
     if (!property) {
       throw new NotFoundException(`Property with ID ${id} not found`);
@@ -176,13 +206,16 @@ export class PropertiesController {
    *
    * POST /api/properties
    *
+   * Only condominium managers can create properties.
+   *
    * @returns Created property (201)
    * @throws BadRequestException for validation errors, duplicate identifier, or limit exceeded (400)
+   * @throws ForbiddenException if user is not a manager of the condominium (403)
    * @throws NotFoundException if condominium or group not found (404)
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() body: unknown) {
+  async create(@Req() req: AuthenticatedRequest, @Body() body: unknown) {
     const result = createPropertySchema.safeParse(body);
     if (!result.success) {
       const messages = result.error.issues.map((issue) => issue.message);
@@ -193,6 +226,12 @@ export class PropertiesController {
       });
     }
 
+    // Only managers can create properties
+    await this.propertiesService.validateManagerAccessByCondominium(
+      req.user.userId,
+      result.data.condominiumId,
+    );
+
     return this.propertiesService.create(result.data);
   }
 
@@ -201,12 +240,16 @@ export class PropertiesController {
    *
    * PATCH /api/properties/:id
    *
+   * Only condominium managers can update properties.
+   *
    * @returns Updated property (200)
    * @throws BadRequestException for validation errors or duplicate identifier (400)
+   * @throws ForbiddenException if user is not a manager of the condominium (403)
    * @throws NotFoundException if property not found (404)
    */
   @Patch(':id')
   async update(
+    @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: unknown,
   ) {
@@ -220,6 +263,9 @@ export class PropertiesController {
       });
     }
 
+    // Only managers can update properties
+    await this.propertiesService.validateManagerAccess(req.user.userId, id);
+
     const property = await this.propertiesService.update(id, result.data);
     if (!property) {
       throw new NotFoundException(`Property with ID ${id} not found`);
@@ -232,12 +278,16 @@ export class PropertiesController {
    *
    * PATCH /api/properties/:id/move
    *
+   * Only condominium managers can move properties.
+   *
    * @returns Moved property (200)
    * @throws BadRequestException for invalid move (400)
+   * @throws ForbiddenException if user is not a manager of the condominium (403)
    * @throws NotFoundException if property or group not found (404)
    */
   @Patch(':id/move')
   async move(
+    @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: unknown,
   ) {
@@ -251,6 +301,9 @@ export class PropertiesController {
       });
     }
 
+    // Only managers can move properties
+    await this.propertiesService.validateManagerAccess(req.user.userId, id);
+
     const property = await this.propertiesService.move(id, result.data.groupId);
     if (!property) {
       throw new NotFoundException(`Property with ID ${id} not found`);
@@ -263,13 +316,22 @@ export class PropertiesController {
    *
    * DELETE /api/properties/:id
    *
+   * Only condominium managers can delete properties.
+   *
    * @returns 204 No Content
    * @throws BadRequestException if property has active residents (400)
+   * @throws ForbiddenException if user is not a manager of the condominium (403)
    * @throws NotFoundException if property not found (404)
    */
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id', ParseUUIDPipe) id: string) {
+  async remove(
+    @Req() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    // Only managers can delete properties
+    await this.propertiesService.validateManagerAccess(req.user.userId, id);
+
     const deleted = await this.propertiesService.delete(id);
     if (!deleted) {
       throw new NotFoundException(`Property with ID ${id} not found`);

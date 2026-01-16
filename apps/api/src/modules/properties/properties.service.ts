@@ -2,13 +2,16 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { Repository, IsNull, In } from 'typeorm';
 
 import { Property, PropertyType } from '../../entities/property.entity';
 import { Condominium } from '../../entities/condominium.entity';
 import { Group } from '../../entities/group.entity';
+import { CondominiumManager } from '../../entities/condominium-manager.entity';
+import { PropertyResident, AssociationStatus } from '../../entities/property-resident.entity';
 
 /**
  * Query options for listing properties
@@ -68,14 +71,139 @@ export class PropertiesService {
     private readonly condominiumRepository: Repository<Condominium>,
     @InjectRepository(Group)
     private readonly groupRepository: Repository<Group>,
+    @InjectRepository(CondominiumManager)
+    private readonly condominiumManagerRepository: Repository<CondominiumManager>,
+    @InjectRepository(PropertyResident)
+    private readonly propertyResidentRepository: Repository<PropertyResident>,
   ) {}
 
   /**
-   * Find all properties with filters and pagination
+   * Check if user is a manager of the given condominium
    */
-  async findAll(options: FindPropertiesOptions) {
+  async isManagerOfCondominium(
+    userId: string,
+    condominiumId: string,
+  ): Promise<boolean> {
+    const manager = await this.condominiumManagerRepository.findOne({
+      where: {
+        userId,
+        condominiumId,
+        deletedAt: undefined,
+      },
+    });
+    return !!manager;
+  }
+
+  /**
+   * Check if user is a manager of the property's condominium
+   */
+  async isManagerOfPropertyCondominium(
+    userId: string,
+    propertyId: string,
+  ): Promise<boolean> {
+    const property = await this.findById(propertyId);
+    if (!property) {
+      return false;
+    }
+    return this.isManagerOfCondominium(userId, property.condominiumId);
+  }
+
+  /**
+   * Validate user can access the property (is manager or resident of the condominium)
+   */
+  async validatePropertyAccess(userId: string, propertyId: string): Promise<void> {
+    const property = await this.findById(propertyId);
+    if (!property) {
+      throw new NotFoundException(`Property with ID ${propertyId} not found`);
+    }
+    const canAccess = await this.canAccessCondominium(userId, property.condominiumId);
+    if (!canAccess) {
+      throw new ForbiddenException('You do not have access to this property');
+    }
+  }
+
+  /**
+   * Validate user is a manager of the property's condominium (for write operations)
+   */
+  async validateManagerAccess(userId: string, propertyId: string): Promise<void> {
+    const property = await this.findById(propertyId);
+    if (!property) {
+      throw new NotFoundException(`Property with ID ${propertyId} not found`);
+    }
+    const isManager = await this.isManagerOfCondominium(userId, property.condominiumId);
+    if (!isManager) {
+      throw new ForbiddenException('Only condominium managers can perform this action');
+    }
+  }
+
+  /**
+   * Validate user is a manager of the condominium (for create operations)
+   */
+  async validateManagerAccessByCondominium(userId: string, condominiumId: string): Promise<void> {
+    const isManager = await this.isManagerOfCondominium(userId, condominiumId);
+    if (!isManager) {
+      throw new ForbiddenException('Only condominium managers can perform this action');
+    }
+  }
+
+  /**
+   * Validate user can access the condominium (for stats)
+   */
+  async validateCondominiumAccess(userId: string, condominiumId: string): Promise<void> {
+    const canAccess = await this.canAccessCondominium(userId, condominiumId);
+    if (!canAccess) {
+      throw new ForbiddenException('You do not have access to this condominium');
+    }
+  }
+
+  /**
+   * Get all condominium IDs that the user has access to
+   * (either as manager or as resident of a property)
+   */
+  private async getAccessibleCondominiumIds(userId: string): Promise<string[]> {
+    // Get condominiums where user is manager
+    const managedCondominiums = await this.condominiumManagerRepository.find({
+      where: { userId, deletedAt: undefined },
+      select: ['condominiumId'],
+    });
+    const managedIds = managedCondominiums.map((m) => m.condominiumId);
+
+    // Get condominiums where user is resident
+    const residentAssociations = await this.propertyResidentRepository.find({
+      where: {
+        userId,
+        status: AssociationStatus.ACTIVE,
+        deletedAt: undefined,
+      },
+      relations: ['property'],
+    });
+    const residentIds = residentAssociations
+      .filter((r) => r.property)
+      .map((r) => r.property.condominiumId);
+
+    // Combine and deduplicate
+    return [...new Set([...managedIds, ...residentIds])];
+  }
+
+  /**
+   * Check if user can access properties in a condominium
+   */
+  private async canAccessCondominium(
+    userId: string,
+    condominiumId: string,
+  ): Promise<boolean> {
+    const accessibleIds = await this.getAccessibleCondominiumIds(userId);
+    return accessibleIds.includes(condominiumId);
+  }
+
+  /**
+   * Find all properties with filters and pagination
+   * Validates that the requesting user has access to the condominium
+   */
+  async findAll(options: FindPropertiesOptions & { requestingUserId: string }) {
     const {
       condominiumId,
+      requestingUserId,
       groupId,
       type,
       isActive,
@@ -85,6 +213,17 @@ export class PropertiesService {
       orderBy = 'displayOrder',
       order = 'asc',
     } = options;
+
+    // Validate access to the condominium
+    const canAccess = await this.canAccessCondominium(
+      requestingUserId,
+      condominiumId,
+    );
+    if (!canAccess) {
+      throw new ForbiddenException(
+        'You do not have access to properties in this condominium',
+      );
+    }
 
     const queryBuilder = this.propertyRepository
       .createQueryBuilder('p')

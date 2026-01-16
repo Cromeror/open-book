@@ -4,6 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Property } from '../../entities/property.entity';
 import { Condominium } from '../../entities/condominium.entity';
 import { Group } from '../../entities/group.entity';
+import { CondominiumManager } from '../../entities/condominium-manager.entity';
+import { PropertyResident } from '../../entities/property-resident.entity';
 
 import { PropertiesController } from './properties.controller';
 import { PropertiesService } from './properties.service';
@@ -20,7 +22,15 @@ import { PropertiesService } from './properties.service';
  * Endpoints at /api/properties
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([Property, Condominium, Group])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Property,
+      Condominium,
+      Group,
+      CondominiumManager,
+      PropertyResident,
+    ]),
+  ],
   controllers: [PropertiesController],
   providers: [PropertiesService],
   exports: [PropertiesService],

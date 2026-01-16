@@ -10,8 +10,8 @@ async function getToken() {
 }
 
 /**
- * GET /api/admin/properties
- * List all properties (SuperAdmin only - unrestricted access)
+ * GET /api/properties/stats
+ * Get property statistics for a condominium (with access control)
  */
 export async function GET(request: NextRequest) {
   const token = await getToken();
@@ -24,10 +24,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Forward query params
     const url = new URL(request.url);
     const queryString = url.searchParams.toString();
-    const apiUrl = `${API_BASE_URL}/admin/properties${queryString ? `?${queryString}` : ''}`;
+    const apiUrl = `${API_BASE_URL}/properties/stats${queryString ? `?${queryString}` : ''}`;
 
     const response = await fetch(apiUrl, {
       headers: {
@@ -45,6 +44,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
-// Note: POST/PATCH/DELETE operations should use /api/properties endpoints
-// which have proper access control. The /admin/properties endpoint is read-only for SuperAdmins.
