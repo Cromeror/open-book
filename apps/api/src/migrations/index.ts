@@ -16,3 +16,4 @@ export { CreateGoalsTable1736267000000 } from './1736267000000-CreateGoalsTable'
 export { CreateGroupsAndPropertiesTables1736368000000 } from './1736368000000-CreateGroupsAndPropertiesTables';
 export { AddModuleTagsColumn1736369000000 } from './1736369000000-AddModuleTagsColumn';
 export { CreateCondominiumManagersTable1736370000000 } from './1736370000000-CreateCondominiumManagersTable';
+export { CreateUserStatesTable1737500000000 } from './1737500000000-CreateUserStatesTable';

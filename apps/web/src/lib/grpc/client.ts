@@ -11,7 +11,7 @@
 
 import * as grpc from '@grpc/grpc-js';
 
-import { CondominiumsService } from './services';
+import { CondominiumsService, UserStateService } from './services';
 import type { GrpcErrorResponse } from './types';
 
 /**
@@ -21,6 +21,7 @@ import type { GrpcErrorResponse } from './types';
  */
 class GrpcClient {
   private _condominiums?: CondominiumsService;
+  private _userState?: UserStateService;
   // Add more services here as you create them:
   // private _properties?: PropertiesService;
   // private _goals?: GoalsService;
@@ -33,6 +34,16 @@ class GrpcClient {
       this._condominiums = new CondominiumsService();
     }
     return this._condominiums;
+  }
+
+  /**
+   * UserState service - manages user preferences and state
+   */
+  get userState(): UserStateService {
+    if (!this._userState) {
+      this._userState = new UserStateService();
+    }
+    return this._userState;
   }
 
   // Add more service getters here:
@@ -48,6 +59,7 @@ class GrpcClient {
    */
   close() {
     this._condominiums?.close();
+    this._userState?.close();
     // this._properties?.close();
     // this._goals?.close();
   }

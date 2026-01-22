@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package openbook.userstate;
+
+import "common.proto";
+
+/**
+ * UserState Service
+ * Manages user state and preferences across sessions
+ */
+service UserStateService {
+  /**
+   * Get user state
+   * Creates default state if it doesn't exist
+   * Default selectedCondominiumId is the user's primary condominium
+   */
+  rpc GetUserState(openbook.common.Empty) returns (UserState);
+
+  /**
+   * Update user state
+   * Partial update - only provided fields are updated
+   */
+  rpc UpdateUserState(UpdateUserStateRequest) returns (UserState);
+
+  /**
+   * Set selected condominium
+   * Shortcut for the most common operation
+   * Validates user has access to the condominium
+   */
+  rpc SetSelectedCondominium(SetSelectedCondominiumRequest) returns (UserState);
+}
+
+// ========================================
+// Data Transfer Objects
+// ========================================
+
+/**
+ * User state containing preferences and current selections
+ */
+message UserState {
+  string id = 1;                          // State record ID (UUID)
+  string user_id = 2;                     // User ID (UUID)
+  optional string selected_condominium_id = 3; // Currently selected condominium (UUID)
+  string theme = 4;                       // 'light' | 'dark' | 'system'
+  bool sidebar_collapsed = 5;             // Whether sidebar is collapsed
+  string language = 6;                    // Language code (e.g., 'es', 'en')
+}
+
+// ========================================
+// Request Messages
+// ========================================
+
+/**
+ * Request to update user state
+ * All fields are optional - only provided fields are updated
+ */
+message UpdateUserStateRequest {
+  optional string selected_condominium_id = 1; // Set to empty string to clear
+  optional string theme = 2;                   // 'light' | 'dark' | 'system'
+  optional bool sidebar_collapsed = 3;
+  optional string language = 4;
+}
+
+/**
+ * Request to set selected condominium
+ */
+message SetSelectedCondominiumRequest {
+  string condominium_id = 1; // UUID of condominium to select (empty to clear)
+}

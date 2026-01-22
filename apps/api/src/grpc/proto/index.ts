@@ -8,6 +8,7 @@ import { resolve } from 'path';
 export const PROTO_FILES = {
   common: resolve(process.cwd(), 'apps/api/src/grpc/proto/common.proto'),
   condominiums: resolve(process.cwd(), 'apps/api/src/grpc/proto/condominiums.proto'),
+  userState: resolve(process.cwd(), 'apps/api/src/grpc/proto/user-state.proto'),
 };
 
 /**
@@ -16,4 +17,5 @@ export const PROTO_FILES = {
 export const PROTO_PACKAGES = {
   common: 'openbook.common',
   condominiums: 'openbook.condominiums',
+  userState: 'openbook.userstate',
 };

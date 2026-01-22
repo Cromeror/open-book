@@ -108,3 +108,23 @@ export interface UpdateManagerInput {
   isPrimary?: boolean;
   isActive?: boolean;
 }
+
+// ============================================
+// UserState Types
+// ============================================
+
+export interface UserState {
+  id: string;
+  userId: string;
+  selectedCondominiumId: string | null;
+  theme: 'light' | 'dark' | 'system';
+  sidebarCollapsed: boolean;
+  language: string;
+}
+
+export interface UpdateUserStateInput {
+  selectedCondominiumId?: string | null;
+  theme?: 'light' | 'dark' | 'system';
+  sidebarCollapsed?: boolean;
+  language?: string;
+}

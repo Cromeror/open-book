@@ -30,13 +30,15 @@ export type {
   ManagerListResponse,
   AssignManagerInput,
   UpdateManagerInput,
+  UserState,
+  UpdateUserStateInput,
   PaginationRequest,
   PaginationMeta,
   GrpcErrorResponse,
 } from './types';
 
 // Services (for advanced use cases)
-export { CondominiumsService } from './services';
+export { CondominiumsService, UserStateService } from './services';
 
 // Backwards compatibility - deprecated exports
 export {
