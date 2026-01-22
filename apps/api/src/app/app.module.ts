@@ -10,6 +10,7 @@ import { GroupsModule } from '../modules/groups';
 import { PropertiesModule } from '../modules/properties';
 import { PropertyResidentsModule } from '../modules/property-residents';
 import { CondominiumsModule } from '../modules/condominiums';
+import { GrpcModule } from '../grpc/grpc.module';
 import { AuditSubscriber, ImmutableSubscriber } from '../subscribers';
 
 import { AppController } from './app.controller';
@@ -28,6 +29,7 @@ import { AppService } from './app.service';
     PropertiesModule,
     PropertyResidentsModule,
     CondominiumsModule,
+    GrpcModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuditSubscriber, ImmutableSubscriber],

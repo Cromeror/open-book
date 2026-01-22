@@ -50,6 +50,6 @@ import { TokenService } from './token.service';
     JwtStrategy,
     JwtAuthGuard,
   ],
-  exports: [AuthService, TokenService, JwtAuthGuard],
+  exports: [AuthService, TokenService, JwtAuthGuard, JwtStrategy],
 })
 export class AuthModule {}

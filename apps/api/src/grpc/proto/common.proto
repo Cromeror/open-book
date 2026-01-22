@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package openbook.common;
+
+/**
+ * Pagination request parameters
+ * Used for list operations that support pagination
+ */
+message PaginationRequest {
+  int32 page = 1;  // Page number (1-indexed)
+  int32 limit = 2; // Items per page
+}
+
+/**
+ * Pagination metadata for responses
+ * Provides information about the current page and total results
+ */
+message PaginationMeta {
+  int32 total = 1;        // Total number of items
+  int32 page = 2;         // Current page number
+  int32 limit = 3;        // Items per page
+  int32 total_pages = 4;  // Total number of pages
+}
+
+/**
+ * Generic error response
+ * Used to return detailed error information to clients
+ */
+message ErrorResponse {
+  string code = 1;             // Error code (e.g., "NOT_FOUND", "UNAUTHORIZED")
+  string message = 2;          // Human-readable error message
+  repeated string details = 3; // Additional error details
+}
+
+/**
+ * Empty message for RPCs that don't need request parameters
+ * Useful when all required data comes from metadata (e.g., JWT)
+ */
+message Empty {}

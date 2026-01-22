@@ -1,0 +1,264 @@
+syntax = "proto3";
+
+package openbook.condominiums;
+
+import "google/protobuf/timestamp.proto";
+import "common.proto";
+
+/**
+ * Condominiums Service
+ * Manages condominium (copropiedad) operations for authenticated users and admins
+ */
+service CondominiumsService {
+  // ========================================
+  // User Endpoints (Regular users)
+  // ========================================
+
+  /**
+   * Get all condominiums assigned to the authenticated user
+   * The user is determined from the JWT token in metadata
+   * Returns condominiums where the user is either a manager or resident
+   */
+  rpc GetUserCondominiums(GetUserCondominiumsRequest) returns (GetUserCondominiumsResponse);
+
+  /**
+   * Get a specific condominium by ID
+   * Requires user to have access to the condominium
+   */
+  rpc GetCondominium(GetCondominiumRequest) returns (Condominium);
+
+  /**
+   * Get the user's primary condominium
+   * Returns the condominium marked as primary for the authenticated user
+   */
+  rpc GetPrimaryCondominium(openbook.common.Empty) returns (Condominium);
+
+  // ========================================
+  // Admin Endpoints (SuperAdmin only)
+  // ========================================
+
+  /**
+   * List all condominiums with pagination (SuperAdmin)
+   */
+  rpc ListAllCondominiums(ListAllCondominiumsRequest) returns (ListAllCondominiumsResponse);
+
+  /**
+   * Get condominium by ID (SuperAdmin - no access check)
+   */
+  rpc GetCondominiumById(GetCondominiumByIdRequest) returns (Condominium);
+
+  /**
+   * Create a new condominium (SuperAdmin)
+   */
+  rpc CreateCondominium(CreateCondominiumRequest) returns (Condominium);
+
+  /**
+   * Update a condominium (SuperAdmin)
+   */
+  rpc UpdateCondominium(UpdateCondominiumRequest) returns (Condominium);
+
+  /**
+   * Delete (soft) a condominium (SuperAdmin)
+   */
+  rpc DeleteCondominium(DeleteCondominiumRequest) returns (openbook.common.Empty);
+
+  /**
+   * Toggle condominium active status (SuperAdmin)
+   */
+  rpc ToggleCondominium(ToggleCondominiumRequest) returns (Condominium);
+
+  // ========================================
+  // Manager Endpoints (SuperAdmin only)
+  // ========================================
+
+  /**
+   * List managers for a condominium
+   */
+  rpc ListManagers(ListManagersRequest) returns (ListManagersResponse);
+
+  /**
+   * Assign a manager to a condominium
+   */
+  rpc AssignManager(AssignManagerRequest) returns (CondominiumManager);
+
+  /**
+   * Update a manager assignment
+   */
+  rpc UpdateManager(UpdateManagerRequest) returns (CondominiumManager);
+
+  /**
+   * Unassign a manager from a condominium
+   */
+  rpc UnassignManager(UnassignManagerRequest) returns (openbook.common.Empty);
+}
+
+// ========================================
+// Request Messages
+// ========================================
+
+/**
+ * Request for GetUserCondominiums
+ * User ID is extracted from JWT token in metadata, so request is empty
+ */
+message GetUserCondominiumsRequest {
+  // Empty - user context comes from JWT
+}
+
+/**
+ * Request for GetCondominium
+ */
+message GetCondominiumRequest {
+  string condominium_id = 1; // UUID of the condominium to retrieve
+}
+
+// ========================================
+// Response Messages
+// ========================================
+
+/**
+ * Response for GetUserCondominiums
+ * Contains a list of condominiums accessible to the user
+ */
+message GetUserCondominiumsResponse {
+  repeated CondominiumListItem condominiums = 1;
+}
+
+// ========================================
+// Data Transfer Objects
+// ========================================
+
+/**
+ * Simplified condominium information for list views
+ */
+message CondominiumListItem {
+  string id = 1;              // UUID
+  string name = 2;            // Condominium name
+  string address = 3;         // Physical address
+  string city = 4;            // City
+  string nit = 5;             // Colombian tax ID (optional)
+  int32 unit_count = 6;       // Number of properties/units
+  bool is_primary = 7;        // Whether this is the user's primary condominium
+  bool is_active = 8;         // Whether the condominium is active
+}
+
+/**
+ * Complete condominium information
+ */
+message Condominium {
+  string id = 1;                           // UUID
+  string name = 2;                         // Condominium name
+  string address = 3;                      // Physical address
+  string city = 4;                         // City
+  string nit = 5;                          // Colombian tax ID (optional)
+  int32 unit_count = 6;                    // Number of properties/units
+  bool is_active = 7;                      // Whether the condominium is active
+  google.protobuf.Timestamp created_at = 8; // Creation timestamp
+  google.protobuf.Timestamp updated_at = 9; // Last update timestamp
+}
+
+// ========================================
+// Admin Request/Response Messages
+// ========================================
+
+message ListAllCondominiumsRequest {
+  string search = 1;           // Optional search term
+  optional bool is_active = 2; // Filter by active status
+  int32 page = 3;              // Page number (default 1)
+  int32 limit = 4;             // Items per page (default 20, max 100)
+  string order_by = 5;         // Field to order by (name, city, createdAt)
+  string order = 6;            // Order direction (asc, desc)
+}
+
+message ListAllCondominiumsResponse {
+  repeated Condominium condominiums = 1;
+  openbook.common.PaginationMeta meta = 2;
+}
+
+message GetCondominiumByIdRequest {
+  string id = 1; // UUID
+}
+
+message CreateCondominiumRequest {
+  string name = 1;
+  string nit = 2;     // Optional
+  string address = 3;
+  string city = 4;
+}
+
+message UpdateCondominiumRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string nit = 3;
+  optional string address = 4;
+  optional string city = 5;
+  optional bool is_active = 6;
+}
+
+message DeleteCondominiumRequest {
+  string id = 1; // UUID
+}
+
+message ToggleCondominiumRequest {
+  string id = 1; // UUID
+}
+
+// ========================================
+// Manager Messages
+// ========================================
+
+message CondominiumManager {
+  string id = 1;                            // Assignment ID (UUID)
+  string condominium_id = 2;                // Condominium UUID
+  string user_id = 3;                       // User UUID
+  bool is_primary = 4;                      // Is this the user's primary condominium
+  bool is_active = 5;                       // Is this assignment active
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+
+  // Joined data
+  UserInfo user = 8;                        // User information
+  CondominiumInfo condominium = 9;          // Condominium information
+}
+
+message UserInfo {
+  string id = 1;
+  string email = 2;
+  string first_name = 3;
+  string last_name = 4;
+  bool is_super_admin = 5;
+  bool is_active = 6;
+}
+
+message CondominiumInfo {
+  string id = 1;
+  string name = 2;
+  string city = 3;
+  bool is_active = 4;
+}
+
+message ListManagersRequest {
+  string condominium_id = 1;
+  optional bool is_active = 2; // Filter by active status
+}
+
+message ListManagersResponse {
+  repeated CondominiumManager managers = 1;
+}
+
+message AssignManagerRequest {
+  string condominium_id = 1;
+  string user_id = 2;
+  bool is_primary = 3;
+}
+
+message UpdateManagerRequest {
+  string manager_id = 1;
+  string condominium_id = 2; // For validation
+  optional bool is_primary = 3;
+  optional bool is_active = 4;
+}
+
+message UnassignManagerRequest {
+  string manager_id = 1;
+  string condominium_id = 2; // For validation
+}
