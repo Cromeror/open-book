@@ -27,8 +27,8 @@ interface DashboardShellProps {
   isSuperAdmin: boolean;
   /** Condominiums the user has access to */
   condominiums: Condominium[];
-  /** User's primary condominium */
-  primaryCondominium: Condominium | null;
+  /** Currently selected condominium (from UserState or fallback to primary) */
+  selectedCondominium: Condominium | null;
 }
 
 /**
@@ -43,7 +43,7 @@ export function DashboardShell({
   navItems,
   isSuperAdmin,
   condominiums,
-  primaryCondominium,
+  selectedCondominium,
 }: DashboardShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -61,7 +61,7 @@ export function DashboardShell({
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           condominiums={condominiums}
-          primaryCondominium={primaryCondominium}
+          selectedCondominium={selectedCondominium}
         />
       )}
 

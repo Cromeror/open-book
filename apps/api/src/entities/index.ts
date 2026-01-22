@@ -26,3 +26,4 @@ export { UserPool } from './user-pool.entity';
 export { UserPoolMember } from './user-pool-member.entity';
 export { PoolModule } from './pool-module.entity';
 export { PoolPermission } from './pool-permission.entity';
+export { UserState } from './user-state.entity';

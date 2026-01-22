@@ -23,8 +23,8 @@ interface SidebarProps {
   onClose: () => void;
   /** Condominiums the user has access to */
   condominiums: Condominium[];
-  /** User's primary condominium */
-  primaryCondominium: Condominium | null;
+  /** Currently selected condominium (from UserState or fallback to primary) */
+  selectedCondominium: Condominium | null;
 }
 
 /**
@@ -37,10 +37,10 @@ export function Sidebar({
   isOpen,
   onClose,
   condominiums,
-  primaryCondominium,
+  selectedCondominium: initialSelectedCondominium,
 }: SidebarProps) {
   const pathname = usePathname();
-  const [selectedCondominium, setSelectedCondominium] = useState<Condominium | null>(primaryCondominium);
+  const [selectedCondominium, setSelectedCondominium] = useState<Condominium | null>(initialSelectedCondominium);
 
   const isActive = (path: string) => {
     if (path === '/dashboard') {

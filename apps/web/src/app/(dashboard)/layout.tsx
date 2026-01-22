@@ -6,6 +6,7 @@ import { ModuleRegistryProvider } from '@/lib/module-registry.context';
 import { getNavFromModules, getModulesForContext, getUserForHeader } from '@/lib/nav-filter.server';
 import { getServerPermissions } from '@/lib/permissions.server';
 import { publicEnv } from '@/config/env';
+import { getGrpcClient } from '@/lib/grpc';
 import type { Condominium } from '@/components/molecules';
 
 interface CondominiumApiItem {
@@ -16,6 +17,25 @@ interface CondominiumApiItem {
   nit?: string;
   unitCount: number;
   isPrimary: boolean;
+}
+
+/**
+ * Fetch user state from gRPC service
+ * Contains user preferences like selected condominium
+ */
+async function getUserState() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('access_token')?.value;
+
+  if (!token) return null;
+
+  try {
+    const grpc = getGrpcClient();
+    return await grpc.userState.getUserState(token);
+  } catch (error) {
+    console.error('Error fetching user state:', error);
+    return null;
+  }
 }
 
 /**
@@ -87,6 +107,15 @@ export default async function DashboardLayout({
   // Get condominiums for the sidebar selector
   const { condominiums, primaryCondominium } = await getCondominiums();
 
+  // Get user state (selected condominium, preferences)
+  const userState = await getUserState();
+
+  // Resolve selected condominium from UserState or fall back to primary
+  const selectedCondominium = userState?.selectedCondominiumId
+    ? condominiums.find((c) => c.id === userState.selectedCondominiumId) ||
+      primaryCondominium
+    : primaryCondominium;
+
   return (
     <ModuleRegistryProvider
       initialModules={modules}
@@ -97,7 +126,7 @@ export default async function DashboardLayout({
         navItems={navItems}
         isSuperAdmin={permissions.isSuperAdmin}
         condominiums={condominiums}
-        primaryCondominium={primaryCondominium}
+        selectedCondominium={selectedCondominium}
       >
         {children}
       </DashboardShell>
