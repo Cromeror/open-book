@@ -5,6 +5,7 @@ import { CondominiumsModule } from './condominiums';
 import { AdminModulesModule } from './modules';
 import { AdminPropertyResidentsModule } from './property-residents';
 import { AdminPropertiesModule } from './properties';
+import { AdminResourcesModule } from './resources';
 
 /**
  * Admin Module
@@ -43,6 +44,7 @@ import { AdminPropertiesModule } from './properties';
     AdminModulesModule,
     AdminPropertyResidentsModule,
     AdminPropertiesModule,
+    AdminResourcesModule,
     // Router configuration for /admin prefix
     RouterModule.register([
       {
@@ -53,6 +55,7 @@ import { AdminPropertiesModule } from './properties';
           { path: 'modules', module: AdminModulesModule },
           { path: 'property-residents', module: AdminPropertyResidentsModule },
           { path: 'properties', module: AdminPropertiesModule },
+          { path: 'resources', module: AdminResourcesModule },
         ],
       },
     ]),

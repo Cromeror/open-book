@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package openbook.resources;
+
+import "common.proto";
+
+/**
+ * Resource Service
+ * Provides read-only access to HATEOAS resource configuration
+ * Used by the proxy to inject links into API responses
+ */
+service ResourceService {
+  /**
+   * Get all active resources
+   * Returns the full list of resources with their actions
+   */
+  rpc GetResources(openbook.common.Empty) returns (GetResourcesResponse);
+
+  /**
+   * Get a specific resource by code
+   * Returns null if not found or inactive
+   */
+  rpc GetResource(GetResourceRequest) returns (GetResourceResponse);
+}
+
+// ========================================
+// Data Transfer Objects
+// ========================================
+
+/**
+ * Resource capability configuration
+ * Unified model: All capabilities (CRUD + custom) follow the same structure
+ */
+message ResourceCapability {
+  string name = 1;           // Capability name: 'list', 'create', 'close', etc.
+  string method = 2;         // HTTP method: 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'
+  string url_pattern = 3;    // URL pattern: '', '/{id}', '/{id}/close'
+  optional string permission = 4;  // Permission code (defaults to '{code}:{name}')
+}
+
+/**
+ * Resource configuration
+ */
+message Resource {
+  string code = 1;           // Unique code: 'goals', 'users', etc.
+  string name = 2;           // Display name: 'Objetivos de Recaudo'
+  string scope = 3;          // 'global' or 'condominium'
+  string base_url = 4;       // Base URL template: '/api/condominiums/{condominiumId}/goals'
+  repeated ResourceCapability capabilities = 5;  // Available capabilities
+}
+
+// ========================================
+// Request Messages
+// ========================================
+
+/**
+ * Request to get a specific resource
+ */
+message GetResourceRequest {
+  string code = 1;  // Resource code to lookup
+}
+
+// ========================================
+// Response Messages
+// ========================================
+
+/**
+ * Response containing all active resources
+ */
+message GetResourcesResponse {
+  repeated Resource resources = 1;
+}
+
+/**
+ * Response containing a single resource
+ */
+message GetResourceResponse {
+  optional Resource resource = 1;  // Null if not found
+}
