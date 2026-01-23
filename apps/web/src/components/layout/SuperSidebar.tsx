@@ -17,6 +17,7 @@ import {
   BarChart3,
   Bell,
   X,
+  Link2,
 } from 'lucide-react';
 
 import { LogoutButton } from './LogoutButton';
@@ -65,6 +66,7 @@ const navSections: NavSection[] = [
     title: 'Configuración del Sistema',
     items: [
       { label: 'Módulos', path: '/admin/modules', icon: <Blocks className="h-4 w-4" /> },
+      { label: 'Recursos', path: '/admin/resources', icon: <Link2 className="h-4 w-4" /> },
       { label: 'Parámetros', path: '/admin/settings', icon: <SlidersHorizontal className="h-4 w-4" /> },
       { label: 'Integraciones', path: '/admin/integrations', icon: <Plug className="h-4 w-4" /> },
     ],

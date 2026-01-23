@@ -4,19 +4,8 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { login } from '@/lib/auth.actions';
-
-const loginSchema = z.object({
-  email: z
-    .email('El formato del correo no es válido'),
-  password: z
-    .string()
-    .min(1, 'La contraseña es requerida'),
-  remember: z.boolean().optional(),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
+import { loginSchema, type LoginFormData } from '@/lib/validations/auth.schema';
 
 export function LoginForm() {
   const router = useRouter();
