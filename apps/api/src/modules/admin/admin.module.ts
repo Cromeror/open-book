@@ -6,6 +6,7 @@ import { AdminModulesModule } from './modules';
 import { AdminPropertyResidentsModule } from './property-residents';
 import { AdminPropertiesModule } from './properties';
 import { AdminResourcesModule } from './resources';
+import { CapabilityPresetsModule } from './capability-presets/capability-presets.module';
 
 /**
  * Admin Module
@@ -45,6 +46,7 @@ import { AdminResourcesModule } from './resources';
     AdminPropertyResidentsModule,
     AdminPropertiesModule,
     AdminResourcesModule,
+    CapabilityPresetsModule,
     // Router configuration for /admin prefix
     RouterModule.register([
       {
@@ -56,6 +58,7 @@ import { AdminResourcesModule } from './resources';
           { path: 'property-residents', module: AdminPropertyResidentsModule },
           { path: 'properties', module: AdminPropertiesModule },
           { path: 'resources', module: AdminResourcesModule },
+          { path: 'capability-presets', module: CapabilityPresetsModule },
         ],
       },
     ]),

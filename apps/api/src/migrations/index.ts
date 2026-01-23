@@ -18,3 +18,4 @@ export { AddModuleTagsColumn1736369000000 } from './1736369000000-AddModuleTagsC
 export { CreateCondominiumManagersTable1736370000000 } from './1736370000000-CreateCondominiumManagersTable';
 export { CreateUserStatesTable1737500000000 } from './1737500000000-CreateUserStatesTable';
 export { CreateResourcesTable1737600000000 } from './1737600000000-CreateResourcesTable';
+export { CreateCapabilityPresetsTable1737650000000 } from './1737650000000-CreateCapabilityPresetsTable';
