@@ -12,9 +12,7 @@ import {
   Blocks,
   SlidersHorizontal,
   Plug,
-  Activity,
   FileBarChart,
-  BarChart3,
   Bell,
   X,
   Link2,
@@ -72,16 +70,9 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    title: 'Auditoría y Reportes',
+    title: 'Monitoreo',
     items: [
-      { label: 'Logs de Actividad', path: '/admin/audit', icon: <Activity className="h-4 w-4" /> },
-      { label: 'Reportes', path: '/admin/reports', icon: <FileBarChart className="h-4 w-4" /> },
-      { label: 'Métricas', path: '/admin/metrics', icon: <BarChart3 className="h-4 w-4" /> },
-    ],
-  },
-  {
-    title: 'Comunicaciones',
-    items: [
+      { label: 'Auditoría y Reportes', path: '/admin/audit-reports', icon: <FileBarChart className="h-4 w-4" /> },
       { label: 'Notificaciones', path: '/admin/notifications', icon: <Bell className="h-4 w-4" /> },
     ],
   },
