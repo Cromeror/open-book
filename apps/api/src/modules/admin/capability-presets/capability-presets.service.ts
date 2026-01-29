@@ -13,10 +13,14 @@ export class CapabilityPresetsService {
   ) {}
 
   /**
-   * Get all capability presets
+   * Get capability presets filtered by active status
+   * @param inactive - If true, returns only inactive presets. If false/undefined, returns only active presets
    */
-  async findAll(): Promise<CapabilityPreset[]> {
+  async findAll(inactive = false): Promise<CapabilityPreset[]> {
+    const where = { isActive: !inactive };
+
     return this.presetRepository.find({
+      where,
       order: { order: 'ASC', createdAt: 'ASC' },
     });
   }

@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -32,11 +33,13 @@ export class CapabilityPresetsController {
 
   /**
    * GET /admin/capability-presets
-   * List all capability presets
+   * List capability presets
+   * @query inactive - If 'true', returns only inactive presets. Default: returns only active presets
    */
   @Get()
-  async findAll(): Promise<CapabilityPreset[]> {
-    return this.presetsService.findAll();
+  async findAll(@Query('inactive') inactive?: string): Promise<CapabilityPreset[]> {
+    const isInactive = inactive === 'true';
+    return this.presetsService.findAll(isInactive);
   }
 
   /**

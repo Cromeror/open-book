@@ -65,7 +65,7 @@ const navSections: NavSection[] = [
     items: [
       { label: 'Módulos', path: '/admin/modules', icon: <Blocks className="h-4 w-4" /> },
       { label: 'Recursos', path: '/admin/resources', icon: <Link2 className="h-4 w-4" /> },
-      { label: 'Parámetros', path: '/admin/settings', icon: <SlidersHorizontal className="h-4 w-4" /> },
+      { label: 'Parámetros', path: '/admin/parameters', icon: <SlidersHorizontal className="h-4 w-4" /> },
       { label: 'Integraciones', path: '/admin/integrations', icon: <Plug className="h-4 w-4" /> },
     ],
   },

@@ -34,9 +34,7 @@ interface SettingsByCategory {
  */
 const CATEGORY_ICONS: Record<string, string> = {
   general: '⚙️',
-  financial: '💰',
-  notifications: '🔔',
-  pqr: '📋',
+  variables: '🔧',
   security: '🔒',
   audit: '📝',
   limits: '📊',
@@ -105,117 +103,60 @@ const MOCK_SETTINGS: SettingsByCategory[] = [
     ],
   },
   {
-    category: 'financial',
-    label: 'Financiero',
+    category: 'variables',
+    label: 'Configuración de variables',
     settings: [
       {
         id: '5',
-        key: 'late_fee_percentage',
-        value: '5',
-        valueType: 'number',
-        category: 'financial',
-        label: 'Porcentaje de mora',
-        description: 'Porcentaje aplicado por pagos tardios',
+        key: 'api_base_url',
+        value: 'https://api.openbook.com',
+        valueType: 'string',
+        category: 'variables',
+        label: 'URL base de la API',
+        description: 'URL base para las peticiones a la API',
         isSensitive: false,
         isActive: true,
         order: 1,
-        validation: { min: 0, max: 100 },
-        defaultValue: '5',
+        defaultValue: 'https://api.openbook.com',
       },
       {
         id: '6',
-        key: 'grace_period_days',
-        value: '5',
-        valueType: 'number',
-        category: 'financial',
-        label: 'Dias de gracia',
-        description: 'Dias de gracia antes de aplicar mora',
+        key: 'environment',
+        value: 'production',
+        valueType: 'string',
+        category: 'variables',
+        label: 'Entorno',
+        description: 'Entorno de ejecución del sistema',
         isSensitive: false,
         isActive: true,
         order: 2,
-        validation: { min: 0, max: 30 },
-        defaultValue: '5',
+        defaultValue: 'production',
       },
       {
         id: '7',
-        key: 'min_payment_amount',
-        value: '1000',
-        valueType: 'number',
-        category: 'financial',
-        label: 'Monto minimo de pago',
-        description: 'Monto minimo permitido para registrar un pago',
+        key: 'debug_mode',
+        value: 'false',
+        valueType: 'boolean',
+        category: 'variables',
+        label: 'Modo debug',
+        description: 'Habilitar logs detallados para desarrollo',
         isSensitive: false,
         isActive: true,
         order: 3,
-        validation: { min: 0 },
-        defaultValue: '1000',
+        defaultValue: 'false',
       },
-    ],
-  },
-  {
-    category: 'notifications',
-    label: 'Notificaciones',
-    settings: [
       {
         id: '8',
-        key: 'payment_reminder_days',
-        value: '5',
-        valueType: 'number',
-        category: 'notifications',
-        label: 'Dias para recordatorio de pago',
-        description: 'Dias antes del vencimiento para enviar recordatorio',
-        isSensitive: false,
-        isActive: true,
-        order: 1,
-        validation: { min: 1, max: 30 },
-        defaultValue: '5',
-      },
-      {
-        id: '9',
-        key: 'email_notifications_enabled',
-        value: 'true',
+        key: 'maintenance_mode',
+        value: 'false',
         valueType: 'boolean',
-        category: 'notifications',
-        label: 'Notificaciones por email',
-        description: 'Habilitar envio de notificaciones por email',
+        category: 'variables',
+        label: 'Modo mantenimiento',
+        description: 'Activar página de mantenimiento para usuarios',
         isSensitive: false,
         isActive: true,
-        order: 2,
-        defaultValue: 'true',
-      },
-    ],
-  },
-  {
-    category: 'pqr',
-    label: 'PQR',
-    settings: [
-      {
-        id: '10',
-        key: 'pqr_response_days',
-        value: '15',
-        valueType: 'number',
-        category: 'pqr',
-        label: 'Dias para respuesta PQR',
-        description: 'Dias maximos para responder una PQR',
-        isSensitive: false,
-        isActive: true,
-        order: 1,
-        validation: { min: 1, max: 30 },
-        defaultValue: '15',
-      },
-      {
-        id: '11',
-        key: 'pqr_resolution_days',
-        value: '30',
-        valueType: 'number',
-        category: 'pqr',
-        label: 'Dias para resolucion PQR',
-        description: 'Dias maximos para resolver una PQR',
-        isSensitive: false,
-        isActive: true,
-        order: 2,
-        validation: { min: 1, max: 90 },
-        defaultValue: '30',
+        order: 4,
+        defaultValue: 'false',
       },
     ],
   },
@@ -468,155 +409,144 @@ export function SettingsManager() {
   const selectedGroup = settingsByCategory.find((g) => g.category === selectedCategory);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-      {/* Categories List */}
-      <div className="lg:col-span-1">
-        <div className="rounded-lg border border-gray-200 bg-white shadow">
-          <div className="border-b border-gray-200 p-4">
-            <h2 className="text-lg font-semibold text-gray-900">Categorias</h2>
-          </div>
-          <div className="p-2">
-            <div className="space-y-1">
+    <div className="space-y-6">
+      {/* Tabs Navigation */}
+      <div className="rounded-lg border border-gray-200 bg-white shadow">
+        <div className="border-b border-gray-200 px-4 pt-4">
+          <div className="flex overflow-x-auto">
+            <div className="flex space-x-1" role="tablist">
               {settingsByCategory.map((group) => (
                 <button
                   key={group.category}
                   type="button"
+                  role="tab"
+                  aria-selected={selectedCategory === group.category}
                   onClick={() => setSelectedCategory(group.category)}
-                  className={`w-full rounded px-3 py-2 text-left text-sm transition-colors ${
+                  className={`flex items-center gap-2 whitespace-nowrap px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                     selectedCategory === group.category
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? 'border-blue-600 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  <span className="mr-2">{CATEGORY_ICONS[group.category] || '📁'}</span>
-                  {group.label}
-                  <span className="ml-2 text-xs text-gray-400">({group.settings.length})</span>
+                  <span>{CATEGORY_ICONS[group.category] || '📁'}</span>
+                  <span>{group.label}</span>
+                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                    {group.settings.length}
+                  </span>
                 </button>
               ))}
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Settings List */}
-      <div className="lg:col-span-3 rounded-lg border border-gray-200 bg-white shadow">
-        <div className="border-b border-gray-200 p-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {selectedGroup ? (
-              <>
-                <span className="mr-2">{CATEGORY_ICONS[selectedGroup.category] || '📁'}</span>
-                {selectedGroup.label}
-              </>
-            ) : (
-              'Selecciona una categoria'
-            )}
-          </h2>
-        </div>
+        {/* Tab Content */}
+        <div role="tabpanel">
 
-        {successMessage && (
-          <div className="m-4 rounded-lg bg-green-50 p-3 text-sm text-green-700">
-            {successMessage}
-          </div>
-        )}
+          {successMessage && (
+            <div className="m-4 rounded-lg bg-green-50 p-3 text-sm text-green-700">
+              {successMessage}
+            </div>
+          )}
 
-        {!selectedGroup ? (
-          <div className="p-8 text-center text-sm text-gray-500">
-            Selecciona una categoria para ver sus configuraciones
-          </div>
-        ) : (
-          <div className="p-4">
-            <div className="space-y-4">
-              {selectedGroup.settings.map((setting) => (
-                <div
-                  key={setting.id}
-                  className="rounded-lg border border-gray-200 p-4"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-sm font-medium text-gray-900">{setting.label}</h3>
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
-                          {getValueTypeLabel(setting.valueType)}
-                        </span>
-                        {setting.isSensitive && (
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">
-                            Sensible
+          {!selectedGroup ? (
+            <div className="p-8 text-center text-sm text-gray-500">
+              Selecciona una categoria para ver sus configuraciones
+            </div>
+          ) : (
+            <div className="p-4">
+              <div className="space-y-4">
+                {selectedGroup.settings.map((setting) => (
+                  <div
+                    key={setting.id}
+                    className="rounded-lg border border-gray-200 p-4"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-sm font-medium text-gray-900">{setting.label}</h3>
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
+                            {getValueTypeLabel(setting.valueType)}
                           </span>
+                          {setting.isSensitive && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">
+                              Sensible
+                            </span>
+                          )}
+                        </div>
+                        {setting.description && (
+                          <p className="text-xs text-gray-500 mb-2">{setting.description}</p>
                         )}
-                      </div>
-                      {setting.description && (
-                        <p className="text-xs text-gray-500 mb-2">{setting.description}</p>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <code className="text-xs text-gray-400 bg-gray-50 px-1 rounded">
-                          {setting.key}
-                        </code>
-                        {setting.validation && (
-                          <span className="text-xs text-gray-400">
-                            {(setting.validation as { min?: number; max?: number }).min !== undefined &&
-                              `min: ${(setting.validation as { min?: number }).min}`}
-                            {(setting.validation as { min?: number; max?: number }).min !== undefined &&
-                              (setting.validation as { min?: number; max?: number }).max !== undefined &&
-                              ', '}
-                            {(setting.validation as { min?: number; max?: number }).max !== undefined &&
-                              `max: ${(setting.validation as { max?: number }).max}`}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-2">
-                      <div className="flex items-center gap-2">
-                        {renderValueInput(setting)}
+                        <div className="flex items-center gap-2">
+                          <code className="text-xs text-gray-400 bg-gray-50 px-1 rounded">
+                            {setting.key}
+                          </code>
+                          {setting.validation && (
+                            <span className="text-xs text-gray-400">
+                              {(setting.validation as { min?: number; max?: number }).min !== undefined &&
+                                `min: ${(setting.validation as { min?: number }).min}`}
+                              {(setting.validation as { min?: number; max?: number }).min !== undefined &&
+                                (setting.validation as { min?: number; max?: number }).max !== undefined &&
+                                ', '}
+                              {(setting.validation as { min?: number; max?: number }).max !== undefined &&
+                                `max: ${(setting.validation as { max?: number }).max}`}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="flex gap-2">
-                        {editingSettingId === setting.id ? (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => handleSaveEdit(setting)}
-                              className="rounded px-3 py-1 text-xs font-medium bg-green-100 text-green-700 hover:bg-green-200"
-                            >
-                              Guardar
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleCancelEdit}
-                              className="rounded px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200"
-                            >
-                              Cancelar
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => handleStartEdit(setting)}
-                              className="rounded px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200"
-                            >
-                              Editar
-                            </button>
-                            {setting.defaultValue && setting.value !== setting.defaultValue && (
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="flex items-center gap-2">
+                          {renderValueInput(setting)}
+                        </div>
+
+                        <div className="flex gap-2">
+                          {editingSettingId === setting.id ? (
+                            <>
                               <button
                                 type="button"
-                                onClick={() => handleResetToDefault(setting)}
-                                className="rounded px-3 py-1 text-xs font-medium bg-amber-100 text-amber-700 hover:bg-amber-200"
-                                title={`Restaurar a: ${setting.defaultValue}`}
+                                onClick={() => handleSaveEdit(setting)}
+                                className="rounded px-3 py-1 text-xs font-medium bg-green-100 text-green-700 hover:bg-green-200"
                               >
-                                Restaurar
+                                Guardar
                               </button>
-                            )}
-                          </>
-                        )}
+                              <button
+                                type="button"
+                                onClick={handleCancelEdit}
+                                className="rounded px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200"
+                              >
+                                Cancelar
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleStartEdit(setting)}
+                                className="rounded px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200"
+                              >
+                                Editar
+                              </button>
+                              {setting.defaultValue && setting.value !== setting.defaultValue && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleResetToDefault(setting)}
+                                  className="rounded px-3 py-1 text-xs font-medium bg-amber-100 text-amber-700 hover:bg-amber-200"
+                                  title={`Restaurar a: ${setting.defaultValue}`}
+                                >
+                                  Restaurar
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

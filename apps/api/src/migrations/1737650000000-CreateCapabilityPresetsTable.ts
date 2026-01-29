@@ -4,7 +4,7 @@ import { MigrationInterface, QueryRunner, Table } from 'typeorm';
  * Migration: Create capability_presets table
  *
  * Creates the table for storing predefined capability templates used in
- * HATEOAS resource configuration. Includes default system presets.
+ * HATEOAS resource configuration. Admins can create custom presets via UI.
  */
 export class CreateCapabilityPresetsTable1737650000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -70,47 +70,8 @@ export class CreateCapabilityPresetsTable1737650000000 implements MigrationInter
       true,
     );
 
-    // Insert default system presets
-    await queryRunner.query(`
-      INSERT INTO capability_presets (id, label, description, capabilities, is_system, is_active, "order")
-      VALUES
-        (
-          'crud',
-          'CRUD Completo',
-          'Operaciones de Create, Read, Update, Delete',
-          '[
-            {"name": "list", "method": "GET", "urlPattern": ""},
-            {"name": "get", "method": "GET", "urlPattern": "/{id}"},
-            {"name": "create", "method": "POST", "urlPattern": ""},
-            {"name": "update", "method": "PATCH", "urlPattern": "/{id}"},
-            {"name": "delete", "method": "DELETE", "urlPattern": "/{id}"}
-          ]'::jsonb,
-          true,
-          true,
-          1
-        ),
-        (
-          'readOnly',
-          'Solo Lectura',
-          'Solo operaciones de consulta (sin modificaciones)',
-          '[
-            {"name": "list", "method": "GET", "urlPattern": ""},
-            {"name": "get", "method": "GET", "urlPattern": "/{id}"}
-          ]'::jsonb,
-          true,
-          true,
-          2
-        ),
-        (
-          'custom',
-          'Personalizado',
-          'Iniciar con una lista vacía de capacidades',
-          '[]'::jsonb,
-          true,
-          true,
-          3
-        )
-    `);
+    // No system presets seeded - admins can create their own via UI
+    // Existing presets in database are preserved
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
