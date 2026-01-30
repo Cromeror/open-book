@@ -19,9 +19,7 @@
     "plugins": [{ "name": "next" }],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@openbook/business-core": ["../../libs/business-core/src/index.ts"],
-      "@openbook/business-core/*": ["../../libs/business-core/src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": [

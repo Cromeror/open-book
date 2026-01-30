@@ -137,7 +137,6 @@ export interface ModuleWithActions {
 
 /**
  * Field definition for forms
- * Matches @openbook/business-core CreateActionSettings.fields
  */
 export interface FieldDefinition {
   name: string;

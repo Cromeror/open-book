@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package openbook.capabilitypresets;
+
+import "common.proto";
+
+/**
+ * Capability Presets Service
+ * Provides read-only access to active capability presets
+ * Used for quickstart templates in resource configuration
+ */
+service CapabilityPresetsService {
+  /**
+   * Get all active capability presets
+   * Returns presets ordered by order field, then by createdAt
+   */
+  rpc GetActivePresets(openbook.common.Empty) returns (GetActivePresetsResponse);
+}
+
+// ========================================
+// Data Transfer Objects
+// ========================================
+
+/**
+ * Preset capability configuration
+ */
+message PresetCapability {
+  string name = 1;           // Capability name: 'list', 'create', etc.
+  string method = 2;         // HTTP method: 'GET', 'POST', etc.
+  string url_pattern = 3;    // URL pattern: '', '/{id}', etc.
+}
+
+/**
+ * Capability preset configuration
+ */
+message CapabilityPreset {
+  string id = 1;                              // Unique identifier
+  string label = 2;                           // Display label
+  string description = 3;                     // Description (may be empty)
+  repeated PresetCapability capabilities = 4; // List of capabilities
+  bool is_system = 5;                         // Whether it's a system preset
+  int32 order = 6;                            // Display order
+}
+
+// ========================================
+// Response Messages
+// ========================================
+
+/**
+ * Response containing all active presets
+ */
+message GetActivePresetsResponse {
+  repeated CapabilityPreset presets = 1;
+}

@@ -22,9 +22,7 @@ export const PROTO_FILES = {
   common: resolve(PROTO_DIR, 'common.proto'),
   condominiums: resolve(PROTO_DIR, 'condominiums.proto'),
   userState: resolve(PROTO_DIR, 'user-state.proto'),
-  // Add new proto files here as you create them:
-  // properties: resolve(PROTO_DIR, 'properties.proto'),
-  // goals: resolve(PROTO_DIR, 'goals.proto'),
+  capabilityPresets: resolve(PROTO_DIR, 'capability-presets.proto'),
 } as const;
 
 // Certificate paths

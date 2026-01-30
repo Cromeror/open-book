@@ -11,7 +11,7 @@
 
 import * as grpc from '@grpc/grpc-js';
 
-import { CondominiumsService, UserStateService } from './services';
+import { CondominiumsService, UserStateService, CapabilityPresetsService } from './services';
 import type { GrpcErrorResponse } from './types';
 
 /**
@@ -22,9 +22,7 @@ import type { GrpcErrorResponse } from './types';
 class GrpcClient {
   private _condominiums?: CondominiumsService;
   private _userState?: UserStateService;
-  // Add more services here as you create them:
-  // private _properties?: PropertiesService;
-  // private _goals?: GoalsService;
+  private _capabilityPresets?: CapabilityPresetsService;
 
   /**
    * Condominiums service
@@ -46,13 +44,15 @@ class GrpcClient {
     return this._userState;
   }
 
-  // Add more service getters here:
-  // get properties(): PropertiesService {
-  //   if (!this._properties) {
-  //     this._properties = new PropertiesService();
-  //   }
-  //   return this._properties;
-  // }
+  /**
+   * CapabilityPresets service - provides active capability presets
+   */
+  get capabilityPresets(): CapabilityPresetsService {
+    if (!this._capabilityPresets) {
+      this._capabilityPresets = new CapabilityPresetsService();
+    }
+    return this._capabilityPresets;
+  }
 
   /**
    * Close all active connections
@@ -60,8 +60,7 @@ class GrpcClient {
   close() {
     this._condominiums?.close();
     this._userState?.close();
-    // this._properties?.close();
-    // this._goals?.close();
+    this._capabilityPresets?.close();
   }
 }
 

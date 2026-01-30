@@ -3,11 +3,15 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ResourceFormData } from '@/lib/validations/resource.schema';
-import { CreateResourceDto } from '@/types/resources';
-import { createResource } from '@/lib/http-api/resources-api';
+import type { CapabilityPreset } from '@/types/business';
+import { createResource, type CreateResourceDto } from '@/lib/http-api/resources-api';
 import { ResourceForm } from '@/components/organisms/resources/ResourceForm';
 
-export function ResourceNewForm() {
+interface ResourceNewFormProps {
+  presets?: CapabilityPreset[];
+}
+
+export function ResourceNewForm({ presets = [] }: ResourceNewFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +54,7 @@ export function ResourceNewForm() {
 
       <div className="rounded-lg border border-gray-200 bg-white shadow">
         <ResourceForm
+          presets={presets}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
           loading={loading}

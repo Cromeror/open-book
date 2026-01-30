@@ -1,6 +1,6 @@
 'use client';
 
-import { ResourceCapability } from '@/types/resources';
+import { ResourceCapability } from '@/types/business';
 import { InfoIcon } from 'lucide-react';
 
 export interface UrlPreviewProps {

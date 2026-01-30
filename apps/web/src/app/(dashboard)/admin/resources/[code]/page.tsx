@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { requireSuperAdmin } from '@/lib/permissions.server';
 import { publicEnv } from '@/config/env';
 import { ContentLayout } from '@/components/layout';
-import { Resource } from '@/types/resources';
+import type { Resource } from '@/types/business';
 import { ResourceDetailView } from './resource-detail-view';
 
 async function getResource(code: string): Promise<Resource | null> {

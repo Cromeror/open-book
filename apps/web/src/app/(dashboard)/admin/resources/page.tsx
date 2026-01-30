@@ -5,7 +5,8 @@ import { requireSuperAdmin } from '@/lib/permissions.server';
 import { publicEnv } from '@/config/env';
 import { ResourcesManager } from './resources-manager';
 import { ContentLayout } from '@/components/layout';
-import { PaginatedResponse, Resource } from '@/types/resources';
+import type { Resource } from '@/types/business';
+import type { PaginatedResponse } from '@/lib/http-api/resources-api';
 
 async function getResources(): Promise<PaginatedResponse<Resource>> {
   const cookieStore = await cookies();

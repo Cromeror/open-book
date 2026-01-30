@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Resource } from '@/types/resources';
+import type { Resource } from '@/types/business';
 import { deleteResource, toggleResourceStatus } from '@/lib/http-api/resources-api';
 import { ResourceDetail } from '@/components/organisms/resources/ResourceDetail';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { ResourceCapability, HttpMethod } from '@/types/resources';
+import { ResourceCapability, HttpMethod } from '@/types/business';
 import { Trash2Icon } from 'lucide-react';
 
 export interface CapabilityEditorProps {

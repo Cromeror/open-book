@@ -1,6 +1,20 @@
 /**
- * Common API response types
+ * API Transport Types
+ *
+ * Types for HTTP/gRPC communication with the API.
+ * These define the shape of data as it travels over the wire.
+ *
+ * IMPORTANT: These are NOT business entities. They represent:
+ * - Response wrappers (pagination, errors)
+ * - Query parameters
+ * - Transport-specific structures
+ *
+ * For business domain types, see @/types/business
  */
+
+// ============================================
+// Error Response Types
+// ============================================
 
 /**
  * Standard API error response
@@ -19,6 +33,10 @@ export interface ApiError {
   /** Request path that caused the error */
   path?: string;
 }
+
+// ============================================
+// Success Response Types
+// ============================================
 
 /**
  * Standard success response wrapper
@@ -51,6 +69,10 @@ export interface PaginatedResponse<T> {
   /** Whether there is a previous page */
   hasPrevious: boolean;
 }
+
+// ============================================
+// Query Parameter Types
+// ============================================
 
 /**
  * Query parameters for pagination

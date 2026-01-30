@@ -1,6 +1,6 @@
 'use client';
 
-import { Resource, ResourceScope } from '@/types/resources';
+import { Resource, ResourceScope } from '@/types/business';
 import { CheckCircleIcon, XCircleIcon, EditIcon, TrashIcon, PowerIcon } from 'lucide-react';
 import { UrlPreview } from './UrlPreview';
 

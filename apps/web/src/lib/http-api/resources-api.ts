@@ -1,15 +1,49 @@
-import {
-  Resource,
-  CreateResourceDto,
-  UpdateResourceDto,
-  FindResourcesOptions,
-  PaginatedResponse,
-} from '@/types/resources';
+import type { Resource, ResourceCapability, ResourceScope } from '@/types/business';
 
 /**
  * Client-side API wrapper for resource management
  * Calls Next.js API routes which proxy to the backend API
  */
+
+// ============================================
+// Transport Types (specific to this API client)
+// ============================================
+
+export interface CreateResourceDto {
+  code: string;
+  name: string;
+  scope: ResourceScope;
+  baseUrl: string;
+  capabilities: ResourceCapability[];
+}
+
+export interface UpdateResourceDto {
+  name?: string;
+  scope?: ResourceScope;
+  baseUrl?: string;
+  capabilities?: ResourceCapability[];
+  isActive?: boolean;
+}
+
+export interface FindResourcesOptions {
+  scope?: ResourceScope;
+  isActive?: boolean;
+  search?: string;
+  page?: number;
+  limit?: number;
+  orderBy?: 'code' | 'name' | 'createdAt';
+  order?: 'asc' | 'desc';
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
 
 /**
  * Get all resources

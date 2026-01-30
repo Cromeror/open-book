@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { requireSuperAdmin } from '@/lib/permissions.server';
 import { publicEnv } from '@/config/env';
 import { ContentLayout } from '@/components/layout';
-import { Resource } from '@/types/resources';
+import { getGrpcClient } from '@/lib/grpc';
+import type { Resource } from '@/types/business';
 import { ResourceEditForm } from './resource-edit-form';
 
 async function getResource(code: string): Promise<Resource | null> {
@@ -27,6 +28,24 @@ async function getResource(code: string): Promise<Resource | null> {
   }
 }
 
+/**
+ * Fetch active capability presets via gRPC
+ */
+async function getCapabilityPresets() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('access_token')?.value;
+
+  if (!token) return [];
+
+  try {
+    const grpc = getGrpcClient();
+    return await grpc.capabilityPresets.getActivePresets(token);
+  } catch (error) {
+    console.error('Error fetching capability presets:', error);
+    return [];
+  }
+}
+
 interface Props {
   params: Promise<{ code: string }>;
 }
@@ -39,7 +58,10 @@ export default async function EditResourcePage({ params }: Props) {
   }
 
   const { code } = await params;
-  const resource = await getResource(code);
+  const [resource, presets] = await Promise.all([
+    getResource(code),
+    getCapabilityPresets(),
+  ]);
 
   if (!resource) {
     notFound();
@@ -64,7 +86,7 @@ export default async function EditResourcePage({ params }: Props) {
           </p>
         </div>
 
-        <ResourceEditForm resource={resource} />
+        <ResourceEditForm resource={resource} presets={presets} />
       </div>
     </ContentLayout>
   );

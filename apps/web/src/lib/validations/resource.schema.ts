@@ -8,8 +8,8 @@ export const capabilitySchema = z.object({
     .string()
     .min(1, 'Name is required')
     .regex(/^[a-z][a-z0-9_]*$/, 'Name must be lowercase alphanumeric with underscores'),
-  method: z.enum(['GET', 'POST', 'PATCH', 'DELETE'], {
-    errorMap: () => ({ message: 'Method must be GET, POST, PATCH, or DELETE' }),
+  method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], {
+    errorMap: () => ({ message: 'Method must be GET, POST, PUT, PATCH, or DELETE' }),
   }),
   urlPattern: z.string(), // Can be empty
   permission: z.string().optional(),

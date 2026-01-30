@@ -1,16 +1,38 @@
 /**
  * Permission and module types for the frontend
  *
- * Re-exports types from @openbook/business-core and ./types/modules.ts
+ * Re-exports types from @/types/business and ./types/modules.ts
  * and provides utility functions for runtime permission checks.
  */
 
-// Re-export shared types from business-core
-export type { AuthMeResponse, AuthUser } from '@openbook/business-core/auth';
-export type { Scope, PermissionContext } from '@openbook/business-core/permissions';
+// Re-export shared types from business types
+export type { Scope, PermissionContext } from '@/types/business';
 
 // Type alias for compatibility
 export type PermissionScope = 'own' | 'copropiedad' | 'all';
+
+// Auth response types (transport types, re-exported for convenience)
+export type { AuthUser } from './permissions.server';
+
+/**
+ * Auth me response from API
+ * This is a transport type, not a business type
+ */
+export interface AuthMeResponse {
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    isSuperAdmin: boolean;
+  };
+  modules: ModuleWithActions[];
+  condominiums: Array<{
+    id: string;
+    name: string;
+    isPrimary: boolean;
+  }>;
+}
 
 // Re-export all module types
 export * from './types/modules';

@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { MODULE_TYPES } from '@openbook/business-core';
+
+import { MODULE_TYPES } from './create-module.dto';
 
 /**
  * Schema for module navigation configuration
@@ -39,7 +40,6 @@ const filterDefinitionSchema = z.object({
 
 /**
  * Schema for field definition (create/update actions)
- * Matches @openbook/business-core CreateActionSettings.fields
  */
 const fieldDefinitionSchema = z.object({
   name: z.string().min(1),

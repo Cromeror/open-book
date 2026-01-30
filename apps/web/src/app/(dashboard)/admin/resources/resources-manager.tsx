@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Resource, PaginatedResponse } from '@/types/resources';
+import type { Resource } from '@/types/business';
+import type { PaginatedResponse } from '@/lib/http-api/resources-api';
 import {
   deleteResource,
   toggleResourceStatus,

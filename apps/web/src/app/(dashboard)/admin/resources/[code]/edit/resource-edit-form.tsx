@@ -2,16 +2,18 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Resource } from '@/types/resources';
+import type { Resource } from '@/types/business';
 import { ResourceFormData } from '@/lib/validations/resource.schema';
 import { updateResource } from '@/lib/http-api/resources-api';
 import { ResourceForm } from '@/components/organisms/resources/ResourceForm';
+import type { GrpcCapabilityPreset } from '@/lib/grpc/types';
 
 interface Props {
   resource: Resource;
+  presets?: GrpcCapabilityPreset[];
 }
 
-export function ResourceEditForm({ resource }: Props) {
+export function ResourceEditForm({ resource, presets = [] }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,14 +51,13 @@ export function ResourceEditForm({ resource }: Props) {
         </div>
       )}
 
-      <div className="rounded-lg border border-gray-200 bg-white shadow">
-        <ResourceForm
-          resource={resource}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-          loading={loading}
-        />
-      </div>
+      <ResourceForm
+        resource={resource}
+        presets={presets}
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
+        loading={loading}
+      />
     </div>
   );
 }

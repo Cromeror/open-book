@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { MODULE_TYPES } from '@openbook/business-core';
+
+/**
+ * Module types constant
+ * Defines the available module type options
+ */
+export const MODULE_TYPES = ['crud', 'specialized'] as const;
 
 /**
  * Schema for module navigation configuration

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Resource, ResourceScope } from '@/types/resources';
+import { Resource, ResourceScope } from '@/types/business';
 import { Eye, Edit, Trash2, Power } from 'lucide-react';
 
 export interface ResourceListProps {

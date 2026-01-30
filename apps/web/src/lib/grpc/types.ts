@@ -128,3 +128,37 @@ export interface UpdateUserStateInput {
   sidebarCollapsed?: boolean;
   language?: string;
 }
+
+// ============================================
+// Capability Presets Transport Types (gRPC)
+// ============================================
+// NOTE: These are transport-layer types for gRPC communication.
+// For business logic and components, use types from '@/types/business'.
+
+/**
+ * @internal gRPC transport type - use PresetCapability from '@/types/business' in components
+ */
+export interface GrpcPresetCapability {
+  name: string;
+  method: string;
+  urlPattern: string;
+}
+
+/**
+ * @internal gRPC transport type - use CapabilityPreset from '@/types/business' in components
+ */
+export interface GrpcCapabilityPreset {
+  id: string;
+  label: string;
+  description: string;
+  capabilities: GrpcPresetCapability[];
+  isSystem: boolean;
+  order: number;
+}
+
+/**
+ * @internal gRPC response type
+ */
+export interface GetActivePresetsResponse {
+  presets: GrpcCapabilityPreset[];
+}

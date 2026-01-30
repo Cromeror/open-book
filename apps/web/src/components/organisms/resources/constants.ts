@@ -3,7 +3,7 @@
  * Preset capability templates for common resource patterns
  */
 
-import { ResourceCapability } from '@/types/resources';
+import { ResourceCapability } from '@/types/business';
 
 /**
  * Capability preset definition

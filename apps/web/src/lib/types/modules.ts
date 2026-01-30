@@ -1,10 +1,10 @@
 /**
  * Module types for the frontend
  *
- * Re-exports types from @openbook/business-core and adds frontend-specific types
+ * Re-exports types from @/types/business and adds frontend-specific types
  */
 
-// Re-export shared types from business-core
+// Re-export shared types from business types
 export type {
   ModuleWithActions,
   ModuleAction,
@@ -14,10 +14,10 @@ export type {
   DeleteActionSettings,
   ExportActionSettings,
   TypedModuleAction,
-} from '@openbook/business-core/modules';
+} from '@/types/business';
 
 // Import for local use
-import type { ModuleAction, ModuleWithActions } from '@openbook/business-core/modules';
+import type { ModuleAction, ModuleWithActions } from '@/types/business';
 
 // ============================================
 // Frontend-specific types
@@ -64,7 +64,7 @@ export type ModuleComponent = React.ComponentType<ModuleProps>;
 // ============================================
 
 /**
- * @deprecated Use types from @openbook/business-core/modules directly
+ * @deprecated Use types from @/types/business directly
  * Kept for backward compatibility during migration
  */
 export type ActionSettings = unknown;
