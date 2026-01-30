@@ -52,14 +52,12 @@ export function ResourceNewForm({ presets = [] }: ResourceNewFormProps) {
         </div>
       )}
 
-      <div className="rounded-lg border border-gray-200 bg-white shadow">
-        <ResourceForm
-          presets={presets}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-          loading={loading}
-        />
-      </div>
+      <ResourceForm
+        presets={presets}
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
+        loading={loading}
+      />
     </div>
   );
 }

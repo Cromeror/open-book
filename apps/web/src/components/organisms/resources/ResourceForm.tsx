@@ -7,9 +7,8 @@ import { resourceFormSchema, type ResourceFormData } from '@/lib/validations/res
 import type { Resource, ResourceCapability, CapabilityPreset } from '@/types/business';
 import { CapabilityEditor } from './CapabilityEditor';
 import { CapabilityPresetsQuickstart } from './CapabilityPresetsQuickstart';
-import { UrlPreview } from './UrlPreview';
 import { Section } from '@/components/molecules';
-import { Info, Puzzle } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 export interface ResourceFormProps {
   resource?: Resource | null;
@@ -57,7 +56,6 @@ export function ResourceForm({ resource, presets = [], onSubmit, onCancel, loadi
       },
   });
 
-  const code = watch('code');
   const baseUrl = watch('baseUrl');
   const capabilities = watch('capabilities');
 
@@ -75,10 +73,20 @@ export function ResourceForm({ resource, presets = [], onSubmit, onCancel, loadi
     [setValue],
   );
 
+  if (capabilities.length === 0 && presets.length > 0) {
+    return (
+      <CapabilityPresetsQuickstart
+        presets={presets}
+        onSelectPreset={handlePresetSelect}
+        disabled={loading}
+      />
+    )
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Basic Information */}
-      <Section title='Basic Information' titlePrefix={<Info className="h-4 w-4" />}>
+      <Section title='Basic Information' titlePrefix={<Info className="h-4 w-4 text-blue-500" />}>
         <div className="grid grid-cols-2 gap-4">
           {/* Code */}
           <div>
@@ -163,54 +171,17 @@ export function ResourceForm({ resource, presets = [], onSubmit, onCancel, loadi
         </div>
       </Section>
       {/* Capabilities */}
-      <Section title='Capabilities' titlePrefix={<Puzzle className="h-4 w-4" />}>
-        {/* Quickstart Presets - Only show when no capabilities */}
-        {capabilities.length === 0 && presets.length > 0 && (
-          <CapabilityPresetsQuickstart
-            presets={presets}
-            onSelectPreset={handlePresetSelect}
-            disabled={loading}
-          />
+      <div className="space-y-3">
+        <CapabilityEditor
+          capabilities={capabilities}
+          onChange={handleCapabilitiesChange}
+          baseUrl={baseUrl}
+          disabled={loading}
+        />
+        {errors.capabilities && (
+          <p className="text-xs text-red-500">{errors.capabilities.message}</p>
         )}
-
-        {/* Capability Editor */}
-        <div className="space-y-3">
-          <CapabilityEditor
-            capabilities={capabilities}
-            onChange={handleCapabilitiesChange}
-            resourceCode={code}
-            disabled={loading}
-          />
-          {errors.capabilities && (
-            <p className="text-xs text-red-500">{errors.capabilities.message}</p>
-          )}
-        </div>
-
-        {/* URL Preview */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">URL Preview</h3>
-          <UrlPreview baseUrl={baseUrl} capabilities={capabilities} />
-        </div>
-
-        {/* Actions */}
-        <div className="flex justify-end gap-2 border-t pt-4">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={loading}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-          >
-            {loading ? 'Saving...' : isEditMode ? 'Update Resource' : 'Create Resource'}
-          </button>
-        </div>
-      </Section>
+      </div>
     </form>
   );
 }

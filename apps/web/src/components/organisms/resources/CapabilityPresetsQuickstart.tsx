@@ -1,6 +1,7 @@
 'use client';
 
-import { Zap } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Zap, Search } from 'lucide-react';
 import type { CapabilityPreset, ResourceCapability } from '@/types/business';
 
 export interface CapabilityPresetsQuickstartProps {
@@ -9,18 +10,26 @@ export interface CapabilityPresetsQuickstartProps {
   disabled?: boolean;
 }
 
-/**
- * CapabilityPresetsQuickstart - Component for selecting capability presets
- *
- * Displays presets as quickstart options for resource configuration.
- * Presets should be fetched via gRPC from a Server Component and passed as props.
- * Only shown when a resource has no capabilities defined.
- */
 export function CapabilityPresetsQuickstart({
   presets,
   onSelectPreset,
   disabled = false,
 }: CapabilityPresetsQuickstartProps) {
+  const [search, setSearch] = useState('');
+
+  const filteredPresets = useMemo(() => {
+    if (!search.trim()) return presets;
+    const query = search.toLowerCase();
+    return presets.filter(
+      (preset) =>
+        preset.label.toLowerCase().includes(query) ||
+        preset.description?.toLowerCase().includes(query) ||
+        preset.capabilities.some(
+          (cap) => cap.name.toLowerCase().includes(query) || cap.method.toLowerCase().includes(query),
+        ),
+    );
+  }, [presets, search]);
+
   const handlePresetClick = (preset: CapabilityPreset) => {
     const capabilities: ResourceCapability[] = preset.capabilities.map((cap) => ({
       name: cap.name,
@@ -36,15 +45,36 @@ export function CapabilityPresetsQuickstart({
 
   return (
     <div className="rounded-lg border border-dashed border-blue-200 bg-blue-50 p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <Zap className="h-4 w-4 text-blue-600" />
-        <h4 className="text-sm font-medium text-blue-900">Quickstart</h4>
+      <div className="flex items-center justify-between gap-4 mb-1">
+        <div className="flex items-center gap-2 text-gray-950">
+          <Zap className="h-6 w-6 text-blue-500" />
+          <h4 className="text-xl font-medium">Quickstart</h4>
+        </div>
+        {presets.length > 3 && (
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search presets..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 pr-3 py-1.5 text-sm border border-blue-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-48"
+            />
+          </div>
+        )}
       </div>
-      <p className="text-xs text-blue-700 mb-3">
-        Select a preset to quickly configure capabilities for this resource.
+      <p className="text-base text-gray-600 mb-3">
+        Apply pre-configured capabilities templates to your resource instantly.
       </p>
-      <div className="flex flex-wrap gap-2">
-        {presets.map((preset) => (
+      {filteredPresets.length === 0 ? (
+        <p className="text-sm text-gray-500 italic">No presets match your search.</p>
+      ) : (
+        <div
+          className={`grid gap-3 grid-cols-1 sm:grid-cols-2 ${
+            filteredPresets.length <= 3 ? 'md:grid-cols-3' : 'md:grid-cols-3 xl:grid-cols-4'
+          }`}
+        >
+          {filteredPresets.map((preset) => (
           <button
             key={preset.id}
             type="button"
@@ -52,13 +82,19 @@ export function CapabilityPresetsQuickstart({
             disabled={disabled}
             className="rounded-md border border-blue-200 bg-white px-3 py-2 text-sm hover:bg-blue-50 disabled:opacity-50 transition-colors text-left"
           >
-            <div className="font-medium text-gray-900">{preset.label}</div>
+            <div className="text-base font-medium text-gray-950">{preset.label}</div>
             {preset.description && (
-              <div className="text-xs text-gray-500 mt-0.5">{preset.description}</div>
+              <div className="text-sm text-gray-600 mt-0.5">{preset.description}</div>
             )}
+            <div className="flex gap-2 font-medium text-gray-600 mt-6">
+              {[...new Set(preset.capabilities.map((c) => c.method))].map((method) => (
+                <div key={method}>{method}</div>
+              ))}
+            </div>
           </button>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

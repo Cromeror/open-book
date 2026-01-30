@@ -11,7 +11,7 @@ export interface SectionProps {
 export const Section = ({ children, customHeader, title, titlePrefix }: SectionProps) => {
     return (
         <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-            <SectionHeader title={customHeader ?? title} prefix={customHeader ?? titlePrefix}>{customHeader}</SectionHeader>
+            <SectionHeader title={title} prefix={titlePrefix}>{customHeader}</SectionHeader>
             <div className="p-4">{children}</div>
         </div>
     );

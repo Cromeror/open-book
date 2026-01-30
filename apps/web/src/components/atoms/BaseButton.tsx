@@ -19,7 +19,7 @@ export interface BaseButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEl
 }
 
 // Common base classes shared by all button types
-const baseClasses = 'inline-flex items-center justify-center rounded transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed';
+const baseClasses = 'inline-flex items-center justify-center rounded transition-colors duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed';
 
 export function BaseButton({
   loading = false,
