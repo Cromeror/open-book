@@ -10,6 +10,7 @@ export const PROTO_FILES = {
   condominiums: resolve(process.cwd(), 'apps/api/src/grpc/proto/condominiums.proto'),
   userState: resolve(process.cwd(), 'apps/api/src/grpc/proto/user-state.proto'),
   capabilityPresets: resolve(process.cwd(), 'apps/api/src/grpc/proto/capability-presets.proto'),
+  sessionContext: resolve(process.cwd(), 'apps/api/src/grpc/proto/session-context.proto'),
 };
 
 /**
@@ -20,4 +21,5 @@ export const PROTO_PACKAGES = {
   condominiums: 'openbook.condominiums',
   userState: 'openbook.userstate',
   capabilityPresets: 'openbook.capabilitypresets',
+  sessionContext: 'openbook.sessioncontext',
 };

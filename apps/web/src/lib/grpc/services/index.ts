@@ -8,3 +8,4 @@ export { BaseGrpcService, createAuthMetadata, getCredentials } from './base.serv
 export { CondominiumsService } from './condominiums.service';
 export { UserStateService } from './user-state.service';
 export { CapabilityPresetsService } from './capability-presets.service';
+export { SessionContextService } from './session-context.service';

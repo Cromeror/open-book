@@ -9,11 +9,13 @@ import { PermissionsModule } from '../modules/permissions/permissions.module';
 import { UserStateModule } from '../modules/user-state/user-state.module';
 import { ResourcesModule } from '../modules/resources/resources.module';
 import { CapabilityPresetsModule } from '../modules/admin/capability-presets/capability-presets.module';
+import { SessionContextModule } from '../modules/session-context/session-context.module';
 
 import { CondominiumsGrpcController } from './controllers/condominiums.grpc-controller';
 import { UserStateGrpcController } from './controllers/user-state.grpc-controller';
 import { ResourcesGrpcController } from './controllers/resources.grpc-controller';
 import { CapabilityPresetsGrpcController } from './controllers/capability-presets.grpc-controller';
+import { SessionContextGrpcController } from './controllers/session-context.grpc-controller';
 import { GrpcJwtAuthGuard } from './guards/grpc-jwt-auth.guard';
 import { GrpcPermissionsGuard } from './guards/grpc-permissions.guard';
 import { GrpcExceptionFilter } from './filters/grpc-exception.filter';
@@ -52,6 +54,7 @@ import { GrpcExceptionFilter } from './filters/grpc-exception.filter';
     UserStateModule, // For UserStateService
     ResourcesModule, // For ResourcesService
     CapabilityPresetsModule, // For CapabilityPresetsService
+    SessionContextModule, // For SessionContextService
     // JwtModule with same configuration as AuthModule (must have secret to verify tokens)
     JwtModule.register({
       secret: jwtConfig.secret,
@@ -67,6 +70,7 @@ import { GrpcExceptionFilter } from './filters/grpc-exception.filter';
     UserStateGrpcController,
     ResourcesGrpcController,
     CapabilityPresetsGrpcController,
+    SessionContextGrpcController,
   ],
 
   // gRPC-specific providers (guards, filters)

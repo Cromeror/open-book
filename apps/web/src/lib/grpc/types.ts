@@ -162,3 +162,23 @@ export interface GrpcCapabilityPreset {
 export interface GetActivePresetsResponse {
   presets: GrpcCapabilityPreset[];
 }
+
+// ============================================
+// Session Context Types
+// ============================================
+
+/**
+ * @internal gRPC transport type for session context
+ */
+export interface GrpcSessionContext {
+  userId: string;
+  userEmail: string;
+  userFirstName: string;
+  userLastName: string;
+  isSuperAdmin: boolean;
+  condominiumId: string;
+  condominiumName: string;
+  userStateTheme: string;
+  userStateLanguage: string;
+  userStateSidebarCollapsed: boolean;
+}

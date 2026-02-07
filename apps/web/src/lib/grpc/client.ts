@@ -11,7 +11,7 @@
 
 import * as grpc from '@grpc/grpc-js';
 
-import { CondominiumsService, UserStateService, CapabilityPresetsService } from './services';
+import { CondominiumsService, UserStateService, CapabilityPresetsService, SessionContextService } from './services';
 import type { GrpcErrorResponse } from './types';
 
 /**
@@ -23,6 +23,7 @@ class GrpcClient {
   private _condominiums?: CondominiumsService;
   private _userState?: UserStateService;
   private _capabilityPresets?: CapabilityPresetsService;
+  private _sessionContext?: SessionContextService;
 
   /**
    * Condominiums service
@@ -55,12 +56,23 @@ class GrpcClient {
   }
 
   /**
+   * SessionContext service - provides user session context data
+   */
+  get sessionContext(): SessionContextService {
+    if (!this._sessionContext) {
+      this._sessionContext = new SessionContextService();
+    }
+    return this._sessionContext;
+  }
+
+  /**
    * Close all active connections
    */
   close() {
     this._condominiums?.close();
     this._userState?.close();
     this._capabilityPresets?.close();
+    this._sessionContext?.close();
   }
 }
 

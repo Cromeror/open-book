@@ -32,6 +32,9 @@ export { presetToResourceCapabilities } from './capability-preset.types';
 export type { Permission, PermissionModule, PermissionContext } from './permission.types';
 export { Scope } from './permission.types';
 
+// Session Context
+export type { SessionContext } from './session-context.types';
+
 // Modules
 export type {
   ModuleType,

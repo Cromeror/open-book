@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package openbook.sessioncontext;
+
+import "common.proto";
+
+/**
+ * Session Context Service
+ * Returns a flat object with resolved user context data.
+ * Used by the frontend to cache session data and interpolate HATEOAS URLs.
+ */
+service SessionContextService {
+  /**
+   * Get session context for the authenticated user
+   * Assembles user data, selected condominium, and preferences
+   */
+  rpc GetSessionContext(openbook.common.Empty) returns (SessionContext);
+}
+
+// ========================================
+// Response Message
+// ========================================
+
+/**
+ * Resolved session context
+ * Flat object with all user-relevant data for the current session
+ */
+message SessionContext {
+  // User
+  string user_id = 1;
+  string user_email = 2;
+  string user_first_name = 3;
+  string user_last_name = 4;
+  bool is_super_admin = 5;
+
+  // Selected Condominium (empty if none selected)
+  string condominium_id = 6;
+  string condominium_name = 7;
+
+  // UserState preferences
+  string user_state_theme = 8;              // 'light' | 'dark' | 'system'
+  string user_state_language = 9;           // 'es', 'en', etc.
+  bool user_state_sidebar_collapsed = 10;
+}

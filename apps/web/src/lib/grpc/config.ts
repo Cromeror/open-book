@@ -23,6 +23,7 @@ export const PROTO_FILES = {
   condominiums: resolve(PROTO_DIR, 'condominiums.proto'),
   userState: resolve(PROTO_DIR, 'user-state.proto'),
   capabilityPresets: resolve(PROTO_DIR, 'capability-presets.proto'),
+  sessionContext: resolve(PROTO_DIR, 'session-context.proto'),
 } as const;
 
 // Certificate paths
