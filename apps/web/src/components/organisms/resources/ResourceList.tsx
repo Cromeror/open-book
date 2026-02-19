@@ -236,7 +236,7 @@ export function ResourceList({
                   scope="col"
                   className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
                 >
-                  Base URL
+                  Template URL
                 </th>
                 <th
                   scope="col"
@@ -275,11 +275,11 @@ export function ResourceList({
                   <td className="px-4 py-3 text-sm">{getScopeBadge(resource.scope)}</td>
                   <td className="px-4 py-3 text-sm">
                     <span className="truncate block max-w-xs font-mono text-xs text-gray-600">
-                      {resource.baseUrl}
+                      {resource.templateUrl}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-center">
-                    <span className="text-gray-900">{resource.capabilities.length}</span>
+                    <span className="text-gray-900">{resource.httpMethods.length}</span>
                   </td>
                   <td className="px-4 py-3 text-sm text-center">
                     {getStatusBadge(resource.isActive)}

@@ -328,18 +328,26 @@ export class PropertyResidentsService {
       throw new NotFoundException(`User with ID ${dto.userId} not found`);
     }
 
-    // Check if user already has an ACTIVE association with this property
+    // Check if user already has an ACTIVE or PENDING association with this property
     const existing = await this.propertyResidentRepository.findOne({
-      where: {
-        propertyId: dto.propertyId,
-        userId: dto.userId,
-        status: AssociationStatus.ACTIVE,
-        deletedAt: undefined,
-      },
+      where: [
+        {
+          propertyId: dto.propertyId,
+          userId: dto.userId,
+          status: AssociationStatus.ACTIVE,
+          deletedAt: undefined,
+        },
+        {
+          propertyId: dto.propertyId,
+          userId: dto.userId,
+          status: AssociationStatus.PENDING,
+          deletedAt: undefined,
+        },
+      ],
     });
     if (existing) {
       throw new BadRequestException(
-        'User already has an active association with this property',
+        'El usuario ya tiene una asociación activa o pendiente con esta propiedad',
       );
     }
 

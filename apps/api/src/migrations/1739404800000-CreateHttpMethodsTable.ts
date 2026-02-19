@@ -6,20 +6,24 @@ import {
 } from 'typeorm';
 
 /**
- * Migration to create the resources table
+ * Migration to create the http_methods table
  *
- * This table stores resource configuration for the API gateway.
- * Resources represent backend services or entities that can be accessed
- * through the gateway. Each resource has a base URL and can be associated
- * with multiple HTTP methods through the resource_http_methods junction table.
+ * This table stores the standard REST HTTP methods that can be used
+ * to interact with resources. Each method represents a standard HTTP verb
+ * (GET, POST, PUT, PATCH, DELETE, etc.).
+ *
+ * The http_methods table provides a catalog of available HTTP methods
+ * that can be associated with resources through the resource_http_methods
+ * junction table.
  */
-export class CreateResourcesTable1737600000000 implements MigrationInterface {
-  name = 'CreateResourcesTable1737600000000';
+export class CreateHttpMethodsTable1739404800000 implements MigrationInterface {
+  name = 'CreateHttpMethodsTable1739404800000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    // Create the http_methods table
     await queryRunner.createTable(
       new Table({
-        name: 'resources',
+        name: 'http_methods',
         columns: [
           {
             name: 'id',
@@ -29,36 +33,19 @@ export class CreateResourcesTable1737600000000 implements MigrationInterface {
             default: 'uuid_generate_v4()',
           },
           {
-            name: 'code',
+            name: 'method',
             type: 'varchar',
-            length: '50',
+            length: '10',
             isUnique: true,
             isNullable: false,
+            comment: 'HTTP method verb (GET, POST, PUT, PATCH, DELETE, etc.)',
           },
           {
-            name: 'name',
-            type: 'varchar',
-            length: '100',
-            isNullable: false,
-          },
-          {
-            name: 'scope',
-            type: 'varchar',
-            length: '20',
-            default: "'global'",
-            isNullable: false,
-          },
-          {
-            name: 'base_url',
+            name: 'description',
             type: 'varchar',
             length: '255',
-            isNullable: false,
-          },
-          {
-            name: 'is_active',
-            type: 'boolean',
-            default: true,
-            isNullable: false,
+            isNullable: true,
+            comment: 'Description of the HTTP method purpose',
           },
           // Audit fields from BaseEntity
           {
@@ -96,19 +83,32 @@ export class CreateResourcesTable1737600000000 implements MigrationInterface {
       true,
     );
 
-    // Create unique index on code
+    // Create unique index on method
     await queryRunner.createIndex(
-      'resources',
+      'http_methods',
       new TableIndex({
-        name: 'idx_resources_code',
-        columnNames: ['code'],
+        name: 'idx_http_methods_method',
+        columnNames: ['method'],
         isUnique: true,
       }),
     );
+
+    // Seed standard REST HTTP methods
+    await queryRunner.query(`
+      INSERT INTO http_methods (method, description)
+      VALUES
+        ('GET', 'Retrieve resource(s)'),
+        ('POST', 'Create a new resource'),
+        ('PUT', 'Update/replace a resource'),
+        ('PATCH', 'Partially update a resource'),
+        ('DELETE', 'Delete a resource'),
+        ('HEAD', 'Retrieve headers only'),
+        ('OPTIONS', 'Get available methods for resource')
+    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropIndex('resources', 'idx_resources_code');
-    await queryRunner.dropTable('resources');
+    await queryRunner.dropIndex('http_methods', 'idx_http_methods_method');
+    await queryRunner.dropTable('http_methods');
   }
 }

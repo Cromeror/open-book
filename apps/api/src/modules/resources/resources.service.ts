@@ -23,6 +23,7 @@ export class ResourcesService {
   async findAllActive(): Promise<Resource[]> {
     return this.resourceRepository.find({
       where: { isActive: true, deletedAt: undefined },
+      relations: { httpMethods: { httpMethod: true } },
       order: { code: 'ASC' },
     });
   }
@@ -33,6 +34,7 @@ export class ResourcesService {
   async findByCode(code: string): Promise<Resource | null> {
     return this.resourceRepository.findOne({
       where: { code, isActive: true, deletedAt: undefined },
+      relations: { httpMethods: { httpMethod: true } },
     });
   }
 }

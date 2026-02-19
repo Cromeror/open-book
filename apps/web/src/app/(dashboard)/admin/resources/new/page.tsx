@@ -1,28 +1,8 @@
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { requireSuperAdmin } from '@/lib/permissions.server';
 import { ContentLayout } from '@/components/layout';
-import { getGrpcClient } from '@/lib/grpc';
-import { ResourceNewForm } from './resource-new-form';
-
-/**
- * Fetch active capability presets via gRPC
- */
-async function getCapabilityPresets() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('access_token')?.value;
-
-  if (!token) return [];
-
-  try {
-    const grpc = getGrpcClient();
-    return await grpc.capabilityPresets.getActivePresets(token);
-  } catch (error) {
-    console.error('Error fetching capability presets:', error);
-    return [];
-  }
-}
+import { PageOnlyClient } from './pageOnlyClient';
 
 export default async function NewResourcePage() {
   try {
@@ -30,8 +10,6 @@ export default async function NewResourcePage() {
   } catch {
     redirect('/dashboard');
   }
-
-  const presets = await getCapabilityPresets();
 
   return (
     <ContentLayout
@@ -52,7 +30,7 @@ export default async function NewResourcePage() {
           </p>
         </div>
 
-        <ResourceNewForm presets={presets} />
+        <PageOnlyClient />
       </div>
     </ContentLayout>
   );

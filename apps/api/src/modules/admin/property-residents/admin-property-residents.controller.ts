@@ -1,17 +1,38 @@
 import {
   Controller,
   Get,
+  Post,
   Query,
+  Body,
   UseGuards,
   Param,
+  Req,
   ParseUUIDPipe,
+  HttpCode,
+  HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
+import { z } from 'zod';
 
 import { JwtAuthGuard } from '../../auth/guards';
 import { SuperAdminGuard } from '../../permissions';
 import { AssociationStatus, RelationType } from '../../../entities/property-resident.entity';
 
 import { AdminPropertyResidentsService } from './admin-property-residents.service';
+
+interface AuthenticatedRequest {
+  user: {
+    userId: string;
+    email: string;
+  };
+}
+
+const adminCreatePropertyResidentSchema = z.object({
+  propertyId: z.string().uuid('ID de propiedad inválido'),
+  userId: z.string().uuid('ID de usuario inválido'),
+  relationType: z.enum([RelationType.OWNER, RelationType.TENANT, RelationType.OTHER]),
+  isPrimary: z.boolean().optional(),
+});
 
 /**
  * Admin controller for property residents (SuperAdmin only)
@@ -21,6 +42,7 @@ import { AdminPropertyResidentsService } from './admin-property-residents.servic
  * Endpoints:
  * - GET /admin/property-residents - List all associations with filters
  * - GET /admin/property-residents/property/:propertyId - Get all residents for a property
+ * - POST /admin/property-residents - Create association with ACTIVE status
  */
 @Controller()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
@@ -82,5 +104,36 @@ export class AdminPropertyResidentsController {
       propertyId,
       status as AssociationStatus | undefined,
     );
+  }
+
+  /**
+   * Create a property-resident association with ACTIVE status
+   *
+   * POST /admin/property-residents
+   *
+   * @returns Created association (201)
+   * @throws BadRequestException for validation errors or duplicate (400)
+   * @throws NotFoundException if property or user not found (404)
+   */
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  async create(
+    @Body() body: unknown,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const result = adminCreatePropertyResidentSchema.safeParse(body);
+    if (!result.success) {
+      const messages = result.error.issues.map((issue) => issue.message);
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Error de validación',
+        errors: messages,
+      });
+    }
+
+    return this.adminPropertyResidentsService.create({
+      ...result.data,
+      assignedBy: req.user.userId,
+    });
   }
 }

@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -7,6 +11,8 @@ import {
   AssociationStatus,
   RelationType,
 } from '../../../entities/property-resident.entity';
+import { Property } from '../../../entities/property.entity';
+import { User } from '../../../entities/user.entity';
 
 /**
  * Query options for admin listing property residents
@@ -21,6 +27,14 @@ export interface AdminFindPropertyResidentsOptions {
   limit?: number;
 }
 
+export interface AdminCreatePropertyResidentDto {
+  propertyId: string;
+  userId: string;
+  relationType: RelationType;
+  isPrimary?: boolean;
+  assignedBy: string;
+}
+
 /**
  * Admin service for property residents (SuperAdmin only)
  *
@@ -32,6 +46,10 @@ export class AdminPropertyResidentsService {
   constructor(
     @InjectRepository(PropertyResident)
     private readonly propertyResidentRepository: Repository<PropertyResident>,
+    @InjectRepository(Property)
+    private readonly propertyRepository: Repository<Property>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   /**
@@ -139,11 +157,10 @@ export class AdminPropertyResidentsService {
   async findByPropertyId(
     propertyId: string,
     status?: AssociationStatus,
-  ): Promise<PropertyResident[]> {
+  ) {
     const queryBuilder = this.propertyResidentRepository
       .createQueryBuilder('pr')
       .leftJoinAndSelect('pr.user', 'user')
-      .leftJoinAndSelect('pr.property', 'property')
       .where('pr.propertyId = :propertyId', { propertyId })
       .andWhere('pr.deletedAt IS NULL');
 
@@ -155,6 +172,86 @@ export class AdminPropertyResidentsService {
       .orderBy('pr.isPrimary', 'DESC')
       .addOrderBy('pr.createdAt', 'ASC');
 
-    return queryBuilder.getMany();
+    const data = await queryBuilder.getMany();
+
+    return data.map((pr) => ({
+      id: pr.id,
+      user: pr.user
+        ? {
+            id: pr.user.id,
+            email: pr.user.email,
+            firstName: pr.user.firstName,
+            lastName: pr.user.lastName,
+          }
+        : undefined,
+      relationType: pr.relationType,
+      status: pr.status,
+      isPrimary: pr.isPrimary,
+    }));
+  }
+
+  /**
+   * Create a property-resident association with ACTIVE status (admin only)
+   */
+  async create(dto: AdminCreatePropertyResidentDto): Promise<PropertyResident> {
+    const property = await this.propertyRepository.findOne({
+      where: { id: dto.propertyId, deletedAt: undefined },
+    });
+    if (!property) {
+      throw new NotFoundException(
+        `La propiedad con ID ${dto.propertyId} no existe`,
+      );
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { id: dto.userId, deletedAt: undefined },
+    });
+    if (!user) {
+      throw new NotFoundException(
+        `El usuario con ID ${dto.userId} no existe`,
+      );
+    }
+
+    const existing = await this.propertyResidentRepository.findOne({
+      where: [
+        {
+          propertyId: dto.propertyId,
+          userId: dto.userId,
+          status: AssociationStatus.ACTIVE,
+          deletedAt: undefined,
+        },
+        {
+          propertyId: dto.propertyId,
+          userId: dto.userId,
+          status: AssociationStatus.PENDING,
+          deletedAt: undefined,
+        },
+      ],
+    });
+    if (existing) {
+      throw new BadRequestException(
+        'El usuario ya tiene una asociación activa o pendiente con esta propiedad',
+      );
+    }
+
+    if (dto.isPrimary) {
+      await this.propertyResidentRepository.update(
+        { propertyId: dto.propertyId, isPrimary: true },
+        { isPrimary: false },
+      );
+    }
+
+    const propertyResident = this.propertyResidentRepository.create({
+      propertyId: dto.propertyId,
+      userId: dto.userId,
+      relationType: dto.relationType,
+      status: AssociationStatus.ACTIVE,
+      isPrimary: dto.isPrimary ?? false,
+      approvedBy: dto.assignedBy,
+      approvedAt: new Date(),
+      startDate: new Date(),
+    });
+
+    return this.propertyResidentRepository.save(propertyResident);
   }
 }

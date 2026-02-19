@@ -3,11 +3,14 @@ import { redirect } from 'next/navigation';
 
 import { DashboardShell } from '@/components/layout';
 import { ModuleRegistryProvider } from '@/lib/module-registry.context';
+import { SessionContextProvider } from '@/lib/session-context.context';
 import { getNavFromModules, getModulesForContext, getUserForHeader } from '@/lib/nav-filter.server';
 import { getServerPermissions } from '@/lib/permissions.server';
 import { publicEnv } from '@/config/env';
 import { getGrpcClient } from '@/lib/grpc';
+import type { SessionContext } from '@/types/business';
 import type { Condominium } from '@/components/molecules';
+import { SessionContextLogger } from './session-context-logger';
 
 interface CondominiumApiItem {
   id: string;
@@ -34,6 +37,25 @@ async function getUserState() {
     return await grpc.userState.getUserState(token);
   } catch (error) {
     console.error('Error fetching user state:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetch session context via gRPC
+ * Contains resolved user data, condominium, and preferences
+ */
+async function getSessionContext(): Promise<SessionContext | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('access_token')?.value;
+
+  if (!token) return null;
+
+  try {
+    const grpc = getGrpcClient();
+    return await grpc.sessionContext.getSessionContext(token);
+  } catch (error) {
+    console.error('Error fetching session context:', error);
     return null;
   }
 }
@@ -104,11 +126,9 @@ export default async function DashboardLayout({
   // Get user data for header
   const user = getUserForHeader(permissions);
 
-  // Get condominiums for the sidebar selector
-  const { condominiums, primaryCondominium } = await getCondominiums();
-
-  // Get user state (selected condominium, preferences)
-  const userState = await getUserState();
+  // Fetch condominiums, user state, and session context in parallel
+  const [{ condominiums, primaryCondominium }, userState, sessionContext] =
+    await Promise.all([getCondominiums(), getUserState(), getSessionContext()]);
 
   // Resolve selected condominium from UserState or fall back to primary
   const selectedCondominium = userState?.selectedCondominiumId
@@ -121,15 +141,18 @@ export default async function DashboardLayout({
       initialModules={modules}
       initialIsSuperAdmin={permissions.isSuperAdmin}
     >
-      <DashboardShell
-        user={user}
-        navItems={navItems}
-        isSuperAdmin={permissions.isSuperAdmin}
-        condominiums={condominiums}
-        selectedCondominium={selectedCondominium}
-      >
-        {children}
-      </DashboardShell>
+      <SessionContextProvider initialContext={sessionContext}>
+        <SessionContextLogger context={sessionContext} />
+        <DashboardShell
+          user={user}
+          navItems={navItems}
+          isSuperAdmin={permissions.isSuperAdmin}
+          condominiums={condominiums}
+          selectedCondominium={selectedCondominium}
+        >
+          {children}
+        </DashboardShell>
+      </SessionContextProvider>
     </ModuleRegistryProvider>
   );
 }

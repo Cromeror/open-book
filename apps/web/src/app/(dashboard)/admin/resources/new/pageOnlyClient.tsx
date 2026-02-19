@@ -2,16 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ResourceFormData } from '@/lib/validations/resource.schema';
-import type { CapabilityPreset } from '@/types/business';
-import { createResource, type CreateResourceDto } from '@/lib/http-api/resources-api';
+import type { ResourceFormData } from '@/lib/validations/resource.schema';
+import { createResourceWithMethods } from '@/lib/resource.actions';
 import { ResourceForm } from '@/components/organisms/resources/ResourceForm';
 
-interface ResourceNewFormProps {
-  presets?: CapabilityPreset[];
-}
-
-export function ResourceNewForm({ presets = [] }: ResourceNewFormProps) {
+export function PageOnlyClient() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,24 +15,16 @@ export function ResourceNewForm({ presets = [] }: ResourceNewFormProps) {
     setLoading(true);
     setError(null);
 
-    try {
-      const dto: CreateResourceDto = {
-        code: formData.code,
-        name: formData.name,
-        scope: formData.scope,
-        baseUrl: formData.baseUrl,
-        capabilities: formData.capabilities,
-      };
+    const result = await createResourceWithMethods(formData);
 
-      await createResource(dto);
-
+    if (result.success) {
       router.push('/admin/resources');
       router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
+    } else {
+      setError(result.error);
     }
+
+    setLoading(false);
   };
 
   const handleCancel = () => {
@@ -53,7 +40,6 @@ export function ResourceNewForm({ presets = [] }: ResourceNewFormProps) {
       )}
 
       <ResourceForm
-        presets={presets}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         loading={loading}

@@ -12,7 +12,7 @@ import "common.proto";
 service ResourceService {
   /**
    * Get all active resources
-   * Returns the full list of resources with their actions
+   * Returns the full list of resources with their HTTP methods
    */
   rpc GetResources(openbook.common.Empty) returns (GetResourcesResponse);
 
@@ -28,11 +28,11 @@ service ResourceService {
 // ========================================
 
 /**
- * Resource capability configuration
- * Unified model: All capabilities (CRUD + custom) follow the same structure
+ * Resource HTTP method configuration
+ * Unified model: All methods (CRUD + custom) follow the same structure
  */
-message ResourceCapability {
-  string name = 1;           // Capability name: 'list', 'create', 'close', etc.
+message ResourceHttpMethodProto {
+  string name = 1;           // Method name: 'list', 'create', 'close', etc.
   string method = 2;         // HTTP method: 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'
   string url_pattern = 3;    // URL pattern: '', '/{id}', '/{id}/close'
   optional string permission = 4;  // Permission code (defaults to '{code}:{name}')
@@ -45,8 +45,8 @@ message Resource {
   string code = 1;           // Unique code: 'goals', 'users', etc.
   string name = 2;           // Display name: 'Objetivos de Recaudo'
   string scope = 3;          // 'global' or 'condominium'
-  string base_url = 4;       // Base URL template: '/api/condominiums/{condominiumId}/goals'
-  repeated ResourceCapability capabilities = 5;  // Available capabilities
+  string template_url = 4;   // URL template: '/api/condominiums/{condominiumId}/goals'
+  repeated ResourceHttpMethodProto http_methods = 5;  // Available HTTP methods
 }
 
 // ========================================

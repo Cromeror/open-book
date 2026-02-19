@@ -27,3 +27,6 @@ export { UserPoolMember } from './user-pool-member.entity';
 export { PoolModule } from './pool-module.entity';
 export { PoolPermission } from './pool-permission.entity';
 export { UserState } from './user-state.entity';
+export { Resource } from './resource.entity';
+export { HttpMethod } from './http-method.entity';
+export { ResourceHttpMethod } from './resource-http-method.entity';

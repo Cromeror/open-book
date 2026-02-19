@@ -17,7 +17,7 @@ OpenBook implements HATEOAS (Hypermedia as the Engine of Application State) usin
 │  ┌────────────────────────────────────────────┐    │
 │  │ Resource {                                  │    │
 │  │   code: 'goals',                           │    │
-│  │   baseUrl: '/api/condominiums/{id}/goals', │    │
+│  │   templateUrl: '/api/condominiums/{id}/goals', │    │
 │  │   capabilities: [                          │    │
 │  │     { name: 'list', method: 'GET', ...},   │    │
 │  │     { name: 'close', method: 'POST', ...}  │    │
@@ -130,7 +130,7 @@ ResourceCapability {
 
 // 2. CONTEXT (Runtime)
 {
-  baseUrl: '/api/condominiums/{condominiumId}/goals',
+  templateUrl: '/api/condominiums/{condominiumId}/goals',
   condominiumId: 'abc-123',
   entityId: 'xyz-456',
   userPermissions: ['goals:close', 'goals:read']
@@ -241,7 +241,7 @@ CREATE TABLE resources (
   code VARCHAR(50) UNIQUE NOT NULL,
   name VARCHAR(100) NOT NULL,
   scope VARCHAR(20) DEFAULT 'global',  -- 'global' | 'condominium'
-  base_url VARCHAR(255) NOT NULL,
+  template_url VARCHAR(255) NOT NULL,
   capabilities JSONB DEFAULT '[]',     -- Array of ResourceCapability
   is_active BOOLEAN DEFAULT true,
 
@@ -284,7 +284,7 @@ Resources not tied to a specific condominium:
 {
   code: 'users',
   scope: 'global',
-  baseUrl: '/api/users'
+  templateUrl: '/api/users'
 }
 ```
 
@@ -298,7 +298,7 @@ Resources scoped to a condominium:
 {
   code: 'goals',
   scope: 'condominium',
-  baseUrl: '/api/condominiums/{condominiumId}/goals'
+  templateUrl: '/api/condominiums/{condominiumId}/goals'
 }
 ```
 
@@ -341,7 +341,7 @@ Override the default by specifying `permission`:
   "code": "goals",
   "name": "Objetivos de Recaudo",
   "scope": "condominium",
-  "baseUrl": "/api/condominiums/{condominiumId}/goals",
+  "templateUrl": "/api/condominiums/{condominiumId}/goals",
   "capabilities": [
     { "name": "list", "method": "GET", "urlPattern": "" },
     { "name": "get", "method": "GET", "urlPattern": "/{id}" },

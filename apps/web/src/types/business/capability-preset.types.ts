@@ -5,11 +5,11 @@
  * Pure business type - no ORM decorators, no transport concerns.
  */
 
-import type { HttpMethod, ResourceCapability } from './resource.types';
+import type { HttpMethod, ResourceHttpMethod } from './resource.types';
 
 /**
  * A capability within a preset
- * Simplified version of ResourceCapability for preset definitions
+ * Simplified version of ResourceHttpMethod for preset definitions
  */
 export interface PresetCapability {
   /** Display name for the capability (e.g., "List", "Create", "Update") */
@@ -40,11 +40,11 @@ export interface CapabilityPreset {
 }
 
 /**
- * Convert preset capabilities to resource capabilities
+ * Convert preset capabilities to resource HTTP methods
  */
-export function presetToResourceCapabilities(
+export function presetToResourceHttpMethods(
   preset: CapabilityPreset,
-): ResourceCapability[] {
+): ResourceHttpMethod[] {
   return preset.capabilities.map((cap) => ({
     name: cap.name,
     method: cap.method,

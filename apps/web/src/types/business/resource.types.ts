@@ -18,24 +18,24 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 export type ResourceScope = 'global' | 'condominium';
 
 /**
- * Resource capability definition
+ * Resource-HTTP method association
  *
- * Represents an action available on the resource.
- * Can be CRUD operations (list, get, create, update, delete) or
- * custom operations (close, approve, export, etc.)
+ * Mirrors the backend `resource_http_methods` junction table.
+ * Each entry links a resource to an HTTP method with metadata
+ * about the expected request payload and response structure.
  */
-export interface ResourceCapability {
+export interface ResourceHttpMethod {
   /**
    * Capability name (e.g., 'list', 'create', 'close', 'export')
    * Used as the 'rel' in HATEOAS links
    */
   name: string;
 
-  /** HTTP method for this capability */
+  /** HTTP method for this association */
   method: HttpMethod;
 
   /**
-   * URL pattern appended to baseUrl
+   * URL pattern appended to templateUrl
    * - '' for collection operations (list, create)
    * - '/{id}' for item operations (get, update, delete)
    * - '/{id}/action' for item actions (close, approve)
@@ -43,10 +43,19 @@ export interface ResourceCapability {
   urlPattern: string;
 
   /**
-   * Optional permission required to execute this capability
-   * If not provided, defaults to '{resourceCode}:{capabilityName}'
+   * Optional permission required to execute this method
+   * If not provided, defaults to '{resourceCode}:{name}'
    */
   permission?: string;
+
+  /** Metadata describing the expected request payload (JSON) */
+  payloadMetadata?: string;
+
+  /** Metadata describing the successful response structure (JSON) */
+  responseMetadata?: string;
+
+  /** Whether this resource-method association is active */
+  isActive?: boolean;
 }
 
 /**
@@ -61,10 +70,10 @@ export interface Resource {
   name: string;
   /** Resource scope */
   scope: ResourceScope;
-  /** Base URL for this resource */
-  baseUrl: string;
-  /** Available capabilities */
-  capabilities: ResourceCapability[];
+  /** URL template for this resource */
+  templateUrl: string;
+  /** HTTP methods associated with this resource */
+  httpMethods: ResourceHttpMethod[];
   /** Whether resource is active */
   isActive: boolean;
   /** Creation timestamp */

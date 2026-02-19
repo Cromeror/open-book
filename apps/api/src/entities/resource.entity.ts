@@ -1,22 +1,16 @@
-import { Entity, Column, Index } from 'typeorm';
+import { Entity, Column, Index, OneToMany } from 'typeorm';
 
 import { BaseEntity } from './base.entity';
-import {
-  ResourceCapability,
-  ResourceScope,
-} from '../types/resource.types';
+import { ResourceScope } from '../types/resource.types';
+import { ResourceHttpMethod } from './resource-http-method.entity';
 
 /**
- * Resource entity for HATEOAS configuration
+ * Resource entity for API gateway configuration
  *
- * Represents a REST resource in the system with its available capabilities.
- * Resources are configured by superadmins and consumed by the proxy (via gRPC)
- * to inject HATEOAS links into API responses.
- *
- * Key design: Unified capability model
- * - All capabilities are treated equally (no custom vs standard distinction)
- * - Capabilities define name, method, urlPattern, and optional permission
- * - The proxy generates HATEOAS links from capabilities at runtime
+ * Represents a REST resource in the system. Resources are configured by
+ * superadmins and consumed by the proxy (via gRPC). Each resource can be
+ * associated with multiple HTTP methods through the resource_http_methods
+ * junction table.
  *
  * @example
  * ```typescript
@@ -24,13 +18,7 @@ import {
  * resource.code = 'goals';
  * resource.name = 'Objetivos de Recaudo';
  * resource.scope = 'condominium';
- * resource.baseUrl = '/api/condominiums/{condominiumId}/goals';
- * resource.capabilities = [
- *   { name: 'list', method: 'GET', urlPattern: '' },
- *   { name: 'get', method: 'GET', urlPattern: '/{id}' },
- *   { name: 'create', method: 'POST', urlPattern: '' },
- *   { name: 'close', method: 'POST', urlPattern: '/{id}/close' },
- * ];
+ * resource.templateUrl = '/api/condominiums/{condominiumId}/goals';
  * ```
  */
 @Entity('resources')
@@ -69,32 +57,15 @@ export class Resource extends BaseEntity {
   scope!: ResourceScope;
 
   /**
-   * Base URL template for the resource
+   * URL template for the resource
    * Can include placeholders like {condominiumId}
    */
   @Column({
-    name: 'base_url',
+    name: 'template_url',
     type: 'varchar',
     length: 255,
   })
-  baseUrl!: string;
-
-  /**
-   * Resource capabilities - actions available on this resource
-   *
-   * Each capability defines:
-   * - name: Capability identifier (e.g., 'list', 'create', 'close')
-   * - method: HTTP method (GET, POST, etc.)
-   * - urlPattern: Pattern appended to baseUrl (e.g., '', '/{id}', '/{id}/close')
-   * - permission: Optional permission code (defaults to '{code}:{name}')
-   *
-   * The proxy uses these capabilities to generate HATEOAS links at runtime.
-   */
-  @Column({
-    type: 'jsonb',
-    default: [],
-  })
-  capabilities!: ResourceCapability[];
+  templateUrl!: string;
 
   /**
    * Whether the resource is active
@@ -106,4 +77,11 @@ export class Resource extends BaseEntity {
     default: true,
   })
   isActive!: boolean;
+
+  /**
+   * HTTP methods associated with this resource
+   * Loaded via the resource_http_methods junction table
+   */
+  @OneToMany(() => ResourceHttpMethod, (rhm) => rhm.resource)
+  httpMethods!: ResourceHttpMethod[];
 }

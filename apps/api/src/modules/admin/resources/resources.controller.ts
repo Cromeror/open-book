@@ -22,13 +22,6 @@ import { JwtAuthGuard } from '../../auth/guards';
 import { AdminResourcesService } from './resources.service';
 
 // Zod schemas for validation
-const resourceCapabilitySchema = z.object({
-  name: z.string().min(1, 'name is required'),
-  method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
-  urlPattern: z.string(), // Can be empty string
-  permission: z.string().optional(),
-});
-
 const createResourceSchema = z.object({
   code: z
     .string()
@@ -37,16 +30,20 @@ const createResourceSchema = z.object({
     .regex(/^[a-z][a-z0-9_-]*$/, 'code must be lowercase alphanumeric with underscores or hyphens'),
   name: z.string().min(1, 'name is required').max(100),
   scope: z.enum(['global', 'condominium']),
-  baseUrl: z.string().min(1, 'baseUrl is required').max(255),
-  capabilities: z.array(resourceCapabilitySchema),
+  templateUrl: z.string().min(1, 'templateUrl is required').max(255),
 });
 
 const updateResourceSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   scope: z.enum(['global', 'condominium']).optional(),
-  baseUrl: z.string().min(1).max(255).optional(),
-  capabilities: z.array(resourceCapabilitySchema).optional(),
+  templateUrl: z.string().min(1).max(255).optional(),
   isActive: z.boolean().optional(),
+});
+
+const assignHttpMethodSchema = z.object({
+  method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
+  payloadMetadata: z.string().optional(),
+  responseMetadata: z.string().optional(),
 });
 
 /**
@@ -55,12 +52,14 @@ const updateResourceSchema = z.object({
  * All endpoints require SuperAdmin authentication.
  *
  * Endpoints:
- * - GET /api/admin/resources - List all resources with pagination
- * - GET /api/admin/resources/:code - Get a specific resource by code
- * - POST /api/admin/resources - Create a new resource
- * - PATCH /api/admin/resources/:code - Update a resource
- * - DELETE /api/admin/resources/:code - Delete (soft) a resource
- * - POST /api/admin/resources/:code/toggle - Toggle active status
+ * - GET    /admin/resources                        - List all resources
+ * - GET    /admin/resources/:code                  - Get a resource by code
+ * - POST   /admin/resources                        - Create a resource
+ * - PATCH  /admin/resources/:code                  - Update a resource
+ * - DELETE /admin/resources/:code                  - Soft delete a resource
+ * - POST   /admin/resources/:code/toggle           - Toggle active status
+ * - POST   /admin/resources/:code/http-methods     - Assign an HTTP method
+ * - DELETE /admin/resources/:code/http-methods/:method - Remove an HTTP method
  */
 @Controller()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
@@ -68,9 +67,7 @@ export class AdminResourcesController {
   constructor(private readonly resourcesService: AdminResourcesService) {}
 
   /**
-   * List all resources with pagination and optional search
-   *
-   * GET /api/admin/resources
+   * GET /admin/resources
    */
   @Get()
   async findAll(
@@ -95,9 +92,7 @@ export class AdminResourcesController {
   }
 
   /**
-   * Get a specific resource by code
-   *
-   * GET /api/admin/resources/:code
+   * GET /admin/resources/:code
    */
   @Get(':code')
   async findOne(@Param('code') code: string) {
@@ -109,9 +104,7 @@ export class AdminResourcesController {
   }
 
   /**
-   * Create a new resource
-   *
-   * POST /api/admin/resources
+   * POST /admin/resources
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -126,7 +119,6 @@ export class AdminResourcesController {
       });
     }
 
-    // Check for duplicate code
     const exists = await this.resourcesService.existsByCode(result.data.code);
     if (exists) {
       throw new ConflictException(
@@ -138,9 +130,7 @@ export class AdminResourcesController {
   }
 
   /**
-   * Update a resource
-   *
-   * PATCH /api/admin/resources/:code
+   * PATCH /admin/resources/:code
    */
   @Patch(':code')
   async update(@Param('code') code: string, @Body() body: unknown) {
@@ -162,9 +152,7 @@ export class AdminResourcesController {
   }
 
   /**
-   * Delete (soft) a resource
-   *
-   * DELETE /api/admin/resources/:code
+   * DELETE /admin/resources/:code
    */
   @Delete(':code')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -176,9 +164,7 @@ export class AdminResourcesController {
   }
 
   /**
-   * Toggle resource active status
-   *
-   * POST /api/admin/resources/:code/toggle
+   * POST /admin/resources/:code/toggle
    */
   @Post(':code/toggle')
   async toggle(@Param('code') code: string) {
@@ -187,5 +173,62 @@ export class AdminResourcesController {
       throw new NotFoundException(`Resource with code '${code}' not found`);
     }
     return resource;
+  }
+
+  /**
+   * POST /admin/resources/:code/http-methods
+   *
+   * Assigns an HTTP method to a resource. If the method is already assigned,
+   * updates its metadata.
+   */
+  @Post(':code/http-methods')
+  @HttpCode(HttpStatus.CREATED)
+  async assignHttpMethod(
+    @Param('code') code: string,
+    @Body() body: unknown,
+  ) {
+    const result = assignHttpMethodSchema.safeParse(body);
+    if (!result.success) {
+      const messages = result.error.issues.map((issue) => issue.message);
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Validation error',
+        errors: messages,
+      });
+    }
+
+    const resource = await this.resourcesService.findByCode(code);
+    if (!resource) {
+      throw new NotFoundException(`Resource with code '${code}' not found`);
+    }
+
+    return this.resourcesService.assignHttpMethod(resource.id, result.data);
+  }
+
+  /**
+   * DELETE /admin/resources/:code/http-methods/:method
+   *
+   * Removes an HTTP method from a resource.
+   */
+  @Delete(':code/http-methods/:method')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeHttpMethod(
+    @Param('code') code: string,
+    @Param('method') method: string,
+  ) {
+    const resource = await this.resourcesService.findByCode(code);
+    if (!resource) {
+      throw new NotFoundException(`Resource with code '${code}' not found`);
+    }
+
+    const deleted = await this.resourcesService.removeHttpMethod(
+      resource.id,
+      method.toUpperCase(),
+    );
+    if (!deleted) {
+      throw new NotFoundException(
+        `Method '${method.toUpperCase()}' not assigned to resource '${code}'`,
+      );
+    }
   }
 }

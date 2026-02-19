@@ -5,7 +5,7 @@ import {
   UpdateDateColumn,
   PrimaryColumn,
 } from 'typeorm';
-import { ResourceCapability } from '../types/resource.types';
+import { ResourceHttpMethod } from '../types/resource.types';
 
 /**
  * CapabilityPreset Entity
@@ -56,7 +56,7 @@ export class CapabilityPreset {
    * Stored as JSONB for flexibility
    */
   @Column({ type: 'jsonb' })
-  capabilities!: ResourceCapability[];
+  capabilities!: ResourceHttpMethod[];
 
   /**
    * Whether this is a system preset (cannot be deleted)

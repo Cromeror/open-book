@@ -2,11 +2,11 @@
 
 import { useState, useMemo } from 'react';
 import { Zap, Search } from 'lucide-react';
-import type { CapabilityPreset, ResourceCapability } from '@/types/business';
+import type { CapabilityPreset, ResourceHttpMethod } from '@/types/business';
 
 export interface CapabilityPresetsQuickstartProps {
   presets: CapabilityPreset[];
-  onSelectPreset: (capabilities: ResourceCapability[]) => void;
+  onSelectPreset: (httpMethods: ResourceHttpMethod[]) => void;
   disabled?: boolean;
 }
 
@@ -31,12 +31,12 @@ export function CapabilityPresetsQuickstart({
   }, [presets, search]);
 
   const handlePresetClick = (preset: CapabilityPreset) => {
-    const capabilities: ResourceCapability[] = preset.capabilities.map((cap) => ({
+    const methods: ResourceHttpMethod[] = preset.capabilities.map((cap) => ({
       name: cap.name,
       method: cap.method,
       urlPattern: cap.urlPattern,
     }));
-    onSelectPreset(capabilities);
+    onSelectPreset(methods);
   };
 
   if (presets.length === 0) {

@@ -1,34 +1,34 @@
 /**
  * Constants for HATEOAS resource configuration
- * Preset capability templates for common resource patterns
+ * Preset templates for common resource HTTP method patterns
  */
 
-import { ResourceCapability } from '@/types/business';
+import { ResourceHttpMethod } from '@/types/business';
 
 /**
- * Capability preset definition
+ * HTTP method preset definition
  * These are UI helpers only - not stored in the database
  */
-export interface CapabilityPreset {
+export interface HttpMethodPreset {
   id: string;
   label: string;
   description: string;
-  capabilities: ResourceCapability[];
+  httpMethods: ResourceHttpMethod[];
 }
 
 /**
- * Predefined capability presets for common resource patterns
+ * Predefined HTTP method presets for common resource patterns
  *
  * - crud: Full CRUD operations (list, get, create, update, delete)
  * - readOnly: Read-only operations (list, get)
- * - custom: Start with empty capabilities for custom configuration
+ * - custom: Start with empty methods for custom configuration
  */
-export const CAPABILITY_PRESETS: Record<string, CapabilityPreset> = {
+export const HTTP_METHOD_PRESETS: Record<string, HttpMethodPreset> = {
   crud: {
     id: 'crud',
     label: 'CRUD Completo',
     description: 'Operaciones de Create, Read, Update, Delete',
-    capabilities: [
+    httpMethods: [
       { name: 'list', method: 'GET', urlPattern: '' },
       { name: 'get', method: 'GET', urlPattern: '/{id}' },
       { name: 'create', method: 'POST', urlPattern: '' },
@@ -40,7 +40,7 @@ export const CAPABILITY_PRESETS: Record<string, CapabilityPreset> = {
     id: 'readOnly',
     label: 'Solo Lectura',
     description: 'Solo operaciones de consulta (sin modificaciones)',
-    capabilities: [
+    httpMethods: [
       { name: 'list', method: 'GET', urlPattern: '' },
       { name: 'get', method: 'GET', urlPattern: '/{id}' },
     ],
@@ -48,29 +48,29 @@ export const CAPABILITY_PRESETS: Record<string, CapabilityPreset> = {
   custom: {
     id: 'custom',
     label: 'Personalizado',
-    description: 'Iniciar con una lista vacía de capacidades',
-    capabilities: [],
+    description: 'Iniciar con una lista vacía',
+    httpMethods: [],
   },
 };
 
 /**
  * Get all preset options for UI display
  */
-export function getPresetOptions(): CapabilityPreset[] {
-  return Object.values(CAPABILITY_PRESETS);
+export function getPresetOptions(): HttpMethodPreset[] {
+  return Object.values(HTTP_METHOD_PRESETS);
 }
 
 /**
  * Get a specific preset by ID
  */
-export function getPresetById(id: string): CapabilityPreset | undefined {
-  return CAPABILITY_PRESETS[id];
+export function getPresetById(id: string): HttpMethodPreset | undefined {
+  return HTTP_METHOD_PRESETS[id];
 }
 
 /**
- * Default capability templates for common actions
+ * Default HTTP method templates for common actions
  */
-export const DEFAULT_CAPABILITY_TEMPLATES: Record<string, ResourceCapability> = {
+export const DEFAULT_HTTP_METHOD_TEMPLATES: Record<string, ResourceHttpMethod> = {
   list: { name: 'list', method: 'GET', urlPattern: '' },
   get: { name: 'get', method: 'GET', urlPattern: '/{id}' },
   create: { name: 'create', method: 'POST', urlPattern: '' },
@@ -79,8 +79,8 @@ export const DEFAULT_CAPABILITY_TEMPLATES: Record<string, ResourceCapability> = 
 };
 
 /**
- * Get default capability template by name
+ * Get default HTTP method template by name
  */
-export function getDefaultCapability(name: string): ResourceCapability | undefined {
-  return DEFAULT_CAPABILITY_TEMPLATES[name];
+export function getDefaultHttpMethod(name: string): ResourceHttpMethod | undefined {
+  return DEFAULT_HTTP_METHOD_TEMPLATES[name];
 }

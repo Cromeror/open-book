@@ -13,7 +13,9 @@ import {
 } from '@/components/organisms';
 import {
   ConfirmDialog,
+  Section,
   ResidentAssignmentModal,
+  RelationTypeLabels,
   type ResidentAssignmentData,
   type UserOption,
 } from '@/components/molecules';
@@ -129,7 +131,7 @@ export function PropertiesManager({
   // Fetch residents for a property
   const fetchResidents = useCallback(async (propertyId: string) => {
     try {
-      const response = await fetch(`/api/property-residents/property/${propertyId}`);
+      const response = await fetch(`/api/admin/property-residents/property/${propertyId}`);
       if (!response.ok) {
         throw new Error('Error al cargar residentes');
       }
@@ -234,10 +236,11 @@ export function PropertiesManager({
       if (freshData) {
         setSelectedProperty(freshData);
         setViewMode('edit');
+        await fetchResidents(freshData.id);
       }
       setLoading(false);
     },
-    [fetchPropertyById]
+    [fetchPropertyById, fetchResidents]
   );
 
   const handleDelete = useCallback((property: Property) => {
@@ -397,7 +400,7 @@ export function PropertiesManager({
       setError(null);
 
       try {
-        const response = await fetch('/api/property-residents', {
+        const response = await fetch('/api/admin/property-residents', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -580,21 +583,115 @@ export function PropertiesManager({
       )}
 
       {viewMode === 'edit' && selectedProperty && (
-        <div className="rounded-lg border border-gray-200 bg-white shadow">
-          <div className="border-b border-gray-200 p-4">
-            <h2 className="text-lg font-semibold text-gray-900">Editar Propiedad</h2>
-            <p className="text-sm text-gray-500">{selectedProperty.identifier}</p>
+        <div className="space-y-6">
+          <div className="rounded-lg border border-gray-200 bg-white shadow">
+            <div className="border-b border-gray-200 p-4">
+              <h2 className="text-lg font-semibold text-gray-900">Editar Propiedad</h2>
+              <p className="text-sm text-gray-500">{selectedProperty.identifier}</p>
+            </div>
+            <div className="p-4">
+              <PropertyForm
+                initialData={getFormData(selectedProperty)}
+                isEditMode
+                condominiumId={condominiumId}
+                onSubmit={handleEditSubmit}
+                onCancel={handleBackToList}
+                loading={loading}
+              />
+            </div>
           </div>
-          <div className="p-4">
-            <PropertyForm
-              initialData={getFormData(selectedProperty)}
-              isEditMode
-              condominiumId={condominiumId}
-              onSubmit={handleEditSubmit}
-              onCancel={handleBackToList}
-              loading={loading}
-            />
-          </div>
+
+          <Section
+            title="Propietarios y Residentes"
+            customHeader={
+              <button
+                type="button"
+                onClick={handleAddResident}
+                disabled={loading}
+                className="ml-auto rounded px-3 py-1.5 text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                + Agregar
+              </button>
+            }
+          >
+            {residents.length === 0 ? (
+              <div className="text-center py-6 text-gray-500">
+                <p className="text-sm">No hay propietarios o residentes asignados</p>
+                <button
+                  type="button"
+                  onClick={handleAddResident}
+                  className="mt-2 text-sm text-blue-600 hover:text-blue-700"
+                >
+                  Agregar el primer residente
+                </button>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-200">
+                {residents.map((resident) => (
+                  <div
+                    key={resident.id}
+                    className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                        <span className="text-sm font-medium text-gray-600">
+                          {resident.user.firstName[0]}
+                          {resident.user.lastName[0]}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-gray-900">
+                            {resident.user.firstName} {resident.user.lastName}
+                          </p>
+                          {resident.isPrimary && (
+                            <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                              Principal
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <span>{resident.user.email}</span>
+                          <span>-</span>
+                          <span
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 font-medium ${
+                              resident.relationType === 'OWNER'
+                                ? 'bg-purple-100 text-purple-700'
+                                : resident.relationType === 'TENANT'
+                                  ? 'bg-amber-100 text-amber-700'
+                                  : 'bg-gray-100 text-gray-700'
+                            }`}
+                          >
+                            {RelationTypeLabels[resident.relationType]}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {!resident.isPrimary && (
+                        <button
+                          type="button"
+                          onClick={() => handleSetPrimaryResident(resident.id)}
+                          disabled={loading}
+                          className="rounded px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50"
+                        >
+                          Hacer principal
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveResident(resident.id)}
+                        disabled={loading}
+                        className="rounded px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
         </div>
       )}
 

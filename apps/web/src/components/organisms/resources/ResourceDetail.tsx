@@ -127,9 +127,9 @@ export function ResourceDetail({
             <dd className="mt-1">{getStatusBadge(resource.isActive)}</dd>
           </div>
           <div className="col-span-2">
-            <dt className="font-medium text-gray-700">Base URL</dt>
+            <dt className="font-medium text-gray-700">Template URL</dt>
             <dd className="mt-1 text-gray-900">
-              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">{resource.baseUrl}</code>
+              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">{resource.templateUrl}</code>
             </dd>
           </div>
         </dl>
@@ -138,13 +138,13 @@ export function ResourceDetail({
       {/* Capabilities */}
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-gray-900">
-          Capabilities ({resource.capabilities.length})
+          Capabilities ({resource.httpMethods.length})
         </h3>
-        {resource.capabilities.length === 0 ? (
+        {resource.httpMethods.length === 0 ? (
           <p className="text-sm text-gray-500">No capabilities defined</p>
         ) : (
           <div className="space-y-2">
-            {resource.capabilities.map((capability, index) => (
+            {resource.httpMethods.map((capability, index) => (
               <div
                 key={index}
                 className="rounded-md border border-gray-200 bg-gray-50 p-3"
@@ -190,7 +190,7 @@ export function ResourceDetail({
       {/* URL Preview */}
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-gray-900">URL Preview</h3>
-        <UrlPreview baseUrl={resource.baseUrl} capabilities={resource.capabilities} />
+        <UrlPreview templateUrl={resource.templateUrl} httpMethods={resource.httpMethods} />
       </div>
 
       {/* Metadata */}

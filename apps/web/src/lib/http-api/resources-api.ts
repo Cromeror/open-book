@@ -1,4 +1,4 @@
-import type { Resource, ResourceCapability, ResourceScope } from '@/types/business';
+import type { Resource, HttpMethod, ResourceScope } from '@/types/business';
 
 /**
  * Client-side API wrapper for resource management
@@ -13,16 +13,20 @@ export interface CreateResourceDto {
   code: string;
   name: string;
   scope: ResourceScope;
-  baseUrl: string;
-  capabilities: ResourceCapability[];
+  templateUrl: string;
 }
 
 export interface UpdateResourceDto {
   name?: string;
   scope?: ResourceScope;
-  baseUrl?: string;
-  capabilities?: ResourceCapability[];
+  templateUrl?: string;
   isActive?: boolean;
+}
+
+export interface AssignHttpMethodDto {
+  method: HttpMethod;
+  payloadMetadata?: string;
+  responseMetadata?: string;
 }
 
 export interface FindResourcesOptions {
@@ -159,4 +163,40 @@ export async function toggleResourceStatus(code: string): Promise<Resource> {
   }
 
   return response.json();
+}
+
+/**
+ * Assign an HTTP method to a resource
+ */
+export async function assignHttpMethod(
+  code: string,
+  dto: AssignHttpMethodDto,
+): Promise<void> {
+  const response = await fetch(`/api/admin/resources/${code}/http-methods`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dto),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to assign HTTP method');
+  }
+}
+
+/**
+ * Remove an HTTP method from a resource
+ */
+export async function removeHttpMethod(
+  code: string,
+  method: HttpMethod,
+): Promise<void> {
+  const response = await fetch(`/api/admin/resources/${code}/http-methods/${method}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to remove HTTP method');
+  }
 }

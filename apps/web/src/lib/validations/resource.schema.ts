@@ -1,18 +1,18 @@
 import { z } from 'zod';
 
 /**
- * Zod schema for resource capability validation
+ * Zod schema for resource-HTTP method association validation
  */
-export const capabilitySchema = z.object({
-  name: z
-    .string()
-    .min(1, 'Name is required')
-    .regex(/^[a-z][a-z0-9_]*$/, 'Name must be lowercase alphanumeric with underscores'),
+export const resourceHttpMethodSchema = z.object({
+  name: z.string(),
   method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], {
-    errorMap: () => ({ message: 'Method must be GET, POST, PUT, PATCH, or DELETE' }),
+    error: 'Method must be GET, POST, PUT, PATCH, or DELETE',
   }),
-  urlPattern: z.string(), // Can be empty
+  urlPattern: z.string(),
   permission: z.string().optional(),
+  payloadMetadata: z.string().optional(),
+  responseMetadata: z.string().optional(),
+  isActive: z.boolean().optional(),
 });
 
 /**
@@ -29,15 +29,15 @@ export const resourceFormSchema = z.object({
     ),
   name: z.string().min(1, 'Name is required').max(100, 'Name must be at most 100 characters'),
   scope: z.enum(['global', 'condominium'], {
-    errorMap: () => ({ message: 'Scope must be global or condominium' }),
+    error: 'Scope must be global or condominium',
   }),
-  baseUrl: z
+  templateUrl: z
     .string()
-    .min(1, 'Base URL is required')
-    .max(255, 'Base URL must be at most 255 characters')
-    .regex(/^\/api\//, 'Base URL must start with /api/'),
-  capabilities: z.array(capabilitySchema).min(1, 'At least one capability is required'),
+    .min(1, 'Template URL is required')
+    .max(255, 'Template URL must be at most 255 characters')
+    .regex(/^\/api\//, 'Template URL must start with /api/'),
+  httpMethods: z.array(resourceHttpMethodSchema).min(1, 'At least one HTTP method is required'),
 });
 
 export type ResourceFormData = z.infer<typeof resourceFormSchema>;
-export type CapabilityFormData = z.infer<typeof capabilitySchema>;
+export type ResourceHttpMethodFormData = z.infer<typeof resourceHttpMethodSchema>;

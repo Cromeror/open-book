@@ -18,8 +18,8 @@ export {
 
 // Resource schemas (HATEOAS configuration)
 export {
-  capabilitySchema,
+  resourceHttpMethodSchema,
   resourceFormSchema,
   type ResourceFormData,
-  type CapabilityFormData,
+  type ResourceHttpMethodFormData,
 } from './resource.schema';

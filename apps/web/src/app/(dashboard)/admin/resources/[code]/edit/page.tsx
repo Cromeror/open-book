@@ -4,9 +4,26 @@ import Link from 'next/link';
 import { requireSuperAdmin } from '@/lib/permissions.server';
 import { publicEnv } from '@/config/env';
 import { ContentLayout } from '@/components/layout';
-import { getGrpcClient } from '@/lib/grpc';
-import type { Resource } from '@/types/business';
+import type { Resource, ResourceHttpMethod, HttpMethod } from '@/types/business';
 import { ResourceEditForm } from './resource-edit-form';
+
+/**
+ * Map junction table response to frontend ResourceHttpMethod type
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapApiResource(raw: any): Resource {
+  return {
+    ...raw,
+    httpMethods: (raw.httpMethods ?? []).map((rhm: any) => ({
+      name: rhm.httpMethod?.method?.toLowerCase() ?? '',
+      method: (rhm.httpMethod?.method ?? 'GET') as HttpMethod,
+      urlPattern: '',
+      payloadMetadata: rhm.payloadMetadata ? JSON.stringify(rhm.payloadMetadata) : undefined,
+      responseMetadata: rhm.responseMetadata ? JSON.stringify(rhm.responseMetadata) : undefined,
+      isActive: rhm.isActive,
+    } satisfies ResourceHttpMethod)),
+  };
+}
 
 async function getResource(code: string): Promise<Resource | null> {
   const cookieStore = await cookies();
@@ -21,28 +38,12 @@ async function getResource(code: string): Promise<Resource | null> {
     });
 
     if (!response.ok) return null;
-    return response.json();
+
+    const raw = await response.json();
+    return mapApiResource(raw);
   } catch (error) {
     console.error('Error fetching resource:', error);
     return null;
-  }
-}
-
-/**
- * Fetch active capability presets via gRPC
- */
-async function getCapabilityPresets() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('access_token')?.value;
-
-  if (!token) return [];
-
-  try {
-    const grpc = getGrpcClient();
-    return await grpc.capabilityPresets.getActivePresets(token);
-  } catch (error) {
-    console.error('Error fetching capability presets:', error);
-    return [];
   }
 }
 
@@ -58,10 +59,7 @@ export default async function EditResourcePage({ params }: Props) {
   }
 
   const { code } = await params;
-  const [resource, presets] = await Promise.all([
-    getResource(code),
-    getCapabilityPresets(),
-  ]);
+  const resource = await getResource(code);
 
   if (!resource) {
     notFound();
@@ -86,7 +84,7 @@ export default async function EditResourcePage({ params }: Props) {
           </p>
         </div>
 
-        <ResourceEditForm resource={resource} presets={presets} />
+        <ResourceEditForm resource={resource} />
       </div>
     </ContentLayout>
   );

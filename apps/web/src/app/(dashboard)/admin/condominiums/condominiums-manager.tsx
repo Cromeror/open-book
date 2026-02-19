@@ -11,7 +11,7 @@ import {
   type CondominiumFormData,
   type CondominiumManagerInfo,
 } from '@/components/organisms';
-import { ConfirmDialog } from '@/components/molecules';
+import { ConfirmDialog, Section } from '@/components/molecules';
 
 type ViewMode = 'list' | 'view' | 'create' | 'edit';
 
@@ -450,20 +450,33 @@ export function CondominiumsManager({
       )}
 
       {viewMode === 'edit' && selectedCondominium && (
-        <div className="rounded-lg border border-gray-200 bg-white shadow">
-          <div className="border-b border-gray-200 p-4">
-            <h2 className="text-lg font-semibold text-gray-900">Editar Condominio</h2>
-            <p className="text-sm text-gray-500">{selectedCondominium.name}</p>
+        <div className="space-y-6">
+          <div className="rounded-lg border border-gray-200 bg-white shadow">
+            <div className="border-b border-gray-200 p-4">
+              <h2 className="text-lg font-semibold text-gray-900">Editar Condominio</h2>
+              <p className="text-sm text-gray-500">{selectedCondominium.name}</p>
+            </div>
+            <div className="p-4">
+              <CondominiumForm
+                initialData={getFormData(selectedCondominium)}
+                isEditMode
+                onSubmit={handleEditSubmit}
+                onCancel={handleBackToList}
+                loading={loading}
+              />
+            </div>
           </div>
-          <div className="p-4">
-            <CondominiumForm
-              initialData={getFormData(selectedCondominium)}
-              isEditMode
-              onSubmit={handleEditSubmit}
-              onCancel={handleBackToList}
-              loading={loading}
+
+          <Section title="Administradores">
+            <ManagerAssignment
+              condominium={{
+                id: selectedCondominium.id,
+                name: selectedCondominium.name,
+                nit: selectedCondominium.nit,
+                isActive: selectedCondominium.isActive,
+              }}
             />
-          </div>
+          </Section>
         </div>
       )}
 

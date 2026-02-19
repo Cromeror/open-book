@@ -19,3 +19,6 @@ export { CreateCondominiumManagersTable1736370000000 } from './1736370000000-Cre
 export { CreateUserStatesTable1737500000000 } from './1737500000000-CreateUserStatesTable';
 export { CreateResourcesTable1737600000000 } from './1737600000000-CreateResourcesTable';
 export { CreateCapabilityPresetsTable1737650000000 } from './1737650000000-CreateCapabilityPresetsTable';
+export { CreateHttpMethodsTable1739404800000 } from './1739404800000-CreateHttpMethodsTable';
+export { CreateResourceHttpMethodsTable1739404900000 } from './1739404900000-CreateResourceHttpMethodsTable';
+export { RenameBaseUrlToTemplateUrl1739405000000 } from './1739405000000-RenameBaseUrlToTemplateUrl';

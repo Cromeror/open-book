@@ -18,7 +18,7 @@ export type { User, PublicUser } from './user.types';
 // Resources (HATEOAS)
 export type {
   Resource,
-  ResourceCapability,
+  ResourceHttpMethod,
   ResourceScope,
   HttpMethod,
   HateoasLink,
@@ -26,7 +26,7 @@ export type {
 
 // Capability Presets
 export type { CapabilityPreset, PresetCapability } from './capability-preset.types';
-export { presetToResourceCapabilities } from './capability-preset.types';
+export { presetToResourceHttpMethods } from './capability-preset.types';
 
 // Permissions
 export type { Permission, PermissionModule, PermissionContext } from './permission.types';

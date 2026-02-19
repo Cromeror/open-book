@@ -49,12 +49,12 @@ export class ResourcesGrpcController {
       code: resource.code,
       name: resource.name,
       scope: resource.scope,
-      base_url: resource.baseUrl,
-      capabilities: resource.capabilities.map((capability) => ({
-        name: capability.name,
-        method: capability.method,
-        url_pattern: capability.urlPattern,
-        permission: capability.permission || '',
+      template_url: resource.templateUrl,
+      http_methods: (resource.httpMethods ?? []).map((rhm) => ({
+        name: rhm.httpMethod.method.toLowerCase(),
+        method: rhm.httpMethod.method,
+        url_pattern: '',
+        permission: '',
       })),
     };
   }

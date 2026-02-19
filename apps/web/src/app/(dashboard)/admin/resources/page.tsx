@@ -5,8 +5,26 @@ import { requireSuperAdmin } from '@/lib/permissions.server';
 import { publicEnv } from '@/config/env';
 import { ResourcesManager } from './resources-manager';
 import { ContentLayout } from '@/components/layout';
-import type { Resource } from '@/types/business';
+import type { Resource, ResourceHttpMethod, HttpMethod } from '@/types/business';
 import type { PaginatedResponse } from '@/lib/http-api/resources-api';
+
+/**
+ * Map junction table response to frontend ResourceHttpMethod type
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapApiResource(raw: any): Resource {
+  return {
+    ...raw,
+    httpMethods: (raw.httpMethods ?? []).map((rhm: any) => ({
+      name: (rhm.method ?? 'GET').toLowerCase(),
+      method: (rhm.method ?? 'GET') as HttpMethod,
+      urlPattern: '',
+      payloadMetadata: rhm.payloadMetadata ? JSON.stringify(rhm.payloadMetadata) : undefined,
+      responseMetadata: rhm.responseMetadata ? JSON.stringify(rhm.responseMetadata) : undefined,
+      isActive: rhm.isActive,
+    } satisfies ResourceHttpMethod)),
+  };
+}
 
 async function getResources(): Promise<PaginatedResponse<Resource>> {
   const cookieStore = await cookies();
@@ -15,16 +33,27 @@ async function getResources(): Promise<PaginatedResponse<Resource>> {
   if (!token) return { data: [], pagination: { total: 0, page: 1, limit: 50, totalPages: 0 } };
 
   try {
-    const response = await fetch(`${publicEnv.NEXT_PUBLIC_API_URL}/admin/resources`, {
+    const url = `${publicEnv.NEXT_PUBLIC_API_URL}/admin/resources`;
+    console.log(`[resources-page] → GET ${url}`);
+
+    const response = await fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
       cache: 'no-store',
     });
 
+    console.log(`[resources-page] ← ${response.status}`);
+
     if (!response.ok)
       return { data: [], pagination: { total: 0, page: 1, limit: 50, totalPages: 0 } };
-    return response.json();
+
+    const data = await response.json();
+    console.log(`[resources-page]   total: ${data.pagination?.total ?? 0} recursos`);
+    return {
+      ...data,
+      data: (data.data ?? []).map(mapApiResource),
+    };
   } catch (error) {
-    console.error('Error fetching resources:', error);
+    console.error('[resources-page] Error fetching resources:', error);
     return { data: [], pagination: { total: 0, page: 1, limit: 50, totalPages: 0 } };
   }
 }

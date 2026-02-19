@@ -114,7 +114,7 @@ function mapToUser(response: GrpcUserResponse): User {
 
 ### Resources (HATEOAS)
 - `Resource` - HATEOAS resource configuration
-- `ResourceCapability` - Capability definition
+- `ResourceHttpMethod` - Resource-HTTP method association
 - `ResourceScope` - 'global' | 'condominium'
 - `HttpMethod` - 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 - `HateoasLink` - Generated link structure
@@ -122,7 +122,7 @@ function mapToUser(response: GrpcUserResponse): User {
 ### Capability Presets
 - `CapabilityPreset` - Preset configuration
 - `PresetCapability` - Capability within a preset
-- `presetToResourceCapabilities()` - Helper function
+- `presetToResourceHttpMethods()` - Helper function
 
 ### Permissions
 - `Scope` - Enum: OWN, COPROPIEDAD, ALL

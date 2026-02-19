@@ -3,40 +3,39 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Resource } from '@/types/business';
-import { ResourceFormData } from '@/lib/validations/resource.schema';
-import { updateResource } from '@/lib/http-api/resources-api';
+import type { ResourceFormData } from '@/lib/validations/resource.schema';
+import { updateResourceWithMethods } from '@/lib/resource.actions';
 import { ResourceForm } from '@/components/organisms/resources/ResourceForm';
-import type { GrpcCapabilityPreset } from '@/lib/grpc/types';
 
 interface Props {
   resource: Resource;
-  presets?: GrpcCapabilityPreset[];
 }
 
-export function ResourceEditForm({ resource, presets = [] }: Props) {
+export function ResourceEditForm({ resource }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const previousMethods = (resource.httpMethods ?? []).map((hm) => hm.method);
 
   const handleSubmit = async (formData: ResourceFormData) => {
     setLoading(true);
     setError(null);
 
-    try {
-      await updateResource(resource.code, {
-        name: formData.name,
-        scope: formData.scope,
-        baseUrl: formData.baseUrl,
-        capabilities: formData.capabilities,
-      });
+    const result = await updateResourceWithMethods(
+      resource.code,
+      formData,
+      previousMethods,
+    );
 
+    if (result.success) {
       router.push('/admin/resources');
       router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
+    } else {
+      setError(result.error);
     }
+
+    setLoading(false);
   };
 
   const handleCancel = () => {
@@ -53,7 +52,6 @@ export function ResourceEditForm({ resource, presets = [] }: Props) {
 
       <ResourceForm
         resource={resource}
-        presets={presets}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         loading={loading}
