@@ -96,3 +96,13 @@ export type { PoolFormData } from './pool-form';
 
 export { PoolDetail } from './pool-detail';
 export type { PoolDetailProps, PoolMemberInfo, PoolPermissionInfo } from './pool-detail';
+
+// User components
+export { UserList } from './UserList';
+export type { User, UserPaginationInfo, UserListProps } from './UserList';
+
+export { UserForm } from './user-form';
+export type { UserFormData } from './user-form';
+
+export { UserDetail } from './user-detail';
+export type { UserDetailProps } from './user-detail';
