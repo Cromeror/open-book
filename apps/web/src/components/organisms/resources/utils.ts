@@ -1,20 +1,30 @@
 import type { UrlSegment } from './url-segment.types';
 import { PARAMETER_KEYS } from './url-segment.types';
-import type { HttpMethod, ResourceHttpMethod, ResourceScope } from '@/types/business';
+import type { HttpMethod, ResourceHttpMethod } from '@/types/business';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const NUMERIC_REGEX = /^\d+$/;
 const MIXED_ID_REGEX = /^[a-z0-9]+-[a-z0-9-]+$/i;
+const PLACEHOLDER_REGEX = /^\{(.+)\}$/;
 
 /**
- * Detect if a segment looks like a dynamic value (UUID, numeric, or ID-like)
+ * Detect if a segment looks like a dynamic value (UUID, numeric, ID-like, or {placeholder})
  */
 export function isLikelyDynamicSegment(value: string): boolean {
+  if (PLACEHOLDER_REGEX.test(value)) return true;
   if (UUID_REGEX.test(value)) return true;
   if (NUMERIC_REGEX.test(value)) return true;
   // Mixed alphanumeric with hyphens that contain digits (e.g., 'abc-123')
   if (MIXED_ID_REGEX.test(value) && /\d/.test(value)) return true;
   return false;
+}
+
+/**
+ * Extract parameter key from a {placeholder} segment, or null if not a placeholder
+ */
+function extractPlaceholderKey(value: string): string | null {
+  const match = PLACEHOLDER_REGEX.exec(value);
+  return match ? match[1] : null;
 }
 
 /**
@@ -56,14 +66,15 @@ export function parseUrlIntoSegments(rawUrl: string): UrlSegment[] {
   const editableParts = parts.slice(startIndex);
 
   return editableParts.map((part, i) => {
-    const isDynamic = isLikelyDynamicSegment(part);
+    const placeholderKey = extractPlaceholderKey(part);
+    const isDynamic = placeholderKey !== null || isLikelyDynamicSegment(part);
     const precedingSegment: string | null = i > 0 ? editableParts[i - 1] ?? null : null;
 
     return {
       originalValue: part,
       index: i,
       isDynamic,
-      parameterKey: isDynamic ? guessParameterKey(precedingSegment) : null,
+      parameterKey: placeholderKey ?? (isDynamic ? guessParameterKey(precedingSegment) : null),
     };
   });
 }
@@ -92,15 +103,6 @@ export function deriveResourceCode(segments: UrlSegment[]): string {
   return lastStatic.originalValue.toLowerCase();
 }
 
-/**
- * Detect scope from segments (contains 'condominiums' → 'condominium', else 'global')
- */
-export function detectScope(segments: UrlSegment[]): ResourceScope {
-  const hasCondominium = segments.some(
-    (s) => !s.isDynamic && s.originalValue.toLowerCase() === 'condominiums',
-  );
-  return hasCondominium ? 'condominium' : 'global';
-}
 
 /**
  * Recursively collect property keys from a schema using dot notation.

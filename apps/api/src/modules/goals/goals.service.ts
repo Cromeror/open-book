@@ -21,15 +21,6 @@ import {
 import { canTransition } from './goal-state-machine';
 
 /**
- * Context for audit trail
- */
-export interface AuditContext {
-  userId: string;
-  ipAddress?: string;
-  userAgent?: string;
-}
-
-/**
  * Service for managing fundraising goals (Objetivos de Recaudo)
  *
  * Implements:
@@ -245,7 +236,7 @@ export class GoalsService {
     condominiumId: string,
     id: string,
     dto: ChangeStatusDto,
-    context: AuditContext,
+    userId: string,
   ): Promise<Goal> {
     const goal = await this.findOne(condominiumId, id);
 
@@ -276,9 +267,7 @@ export class GoalsService {
       previousStatus,
       newStatus: dto.newStatus,
       justification: dto.justification ?? undefined,
-      userId: context.userId,
-      ipAddress: context.ipAddress,
-      userAgent: context.userAgent,
+      userId,
     });
 
     return goal;
@@ -339,8 +328,6 @@ export class GoalsService {
     newStatus: GoalStatus;
     justification?: string;
     userId: string;
-    ipAddress?: string;
-    userAgent?: string;
   }): Promise<GoalHistory> {
     const history = this.historyRepository.create(data);
     return this.historyRepository.save(history);

@@ -22,3 +22,6 @@ export { CreateCapabilityPresetsTable1737650000000 } from './1737650000000-Creat
 export { CreateHttpMethodsTable1739404800000 } from './1739404800000-CreateHttpMethodsTable';
 export { CreateResourceHttpMethodsTable1739404900000 } from './1739404900000-CreateResourceHttpMethodsTable';
 export { RenameBaseUrlToTemplateUrl1739405000000 } from './1739405000000-RenameBaseUrlToTemplateUrl';
+export { SimplifyPermissions1740000000000 } from './1740000000000-SimplifyPermissions';
+export { AddResourceHttpMethodLinks1740100000000 } from './1740100000000-AddResourceHttpMethodLinks';
+export { UpdateResourcesRemoveScopeAddDescription1740200000000 } from './1740200000000-UpdateResourcesRemoveScopeAddDescription';

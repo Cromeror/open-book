@@ -72,7 +72,7 @@ export async function createResourceWithMethods(
       body: JSON.stringify({
         code: formData.code,
         name: formData.name,
-        scope: formData.scope,
+        description: formData.description || null,
         templateUrl: formData.templateUrl,
       }),
     });
@@ -158,7 +158,7 @@ export async function updateResourceWithMethods(
       method: 'PATCH',
       body: JSON.stringify({
         name: formData.name,
-        scope: formData.scope,
+        description: formData.description ?? null,
         templateUrl: formData.templateUrl,
       }),
     });
@@ -191,7 +191,7 @@ export async function updateResourceWithMethods(
       }
     }
 
-    // Assign/update current methods
+    // Assign/update current methods and persist their outbound links
     for (const hm of formData.httpMethods) {
       const assignResponse = await fetchApi(
         token,
@@ -208,6 +208,29 @@ export async function updateResourceWithMethods(
       if (!assignResponse.ok) {
         const error = await assignResponse.json().catch(() => ({}));
         errors.push(error.message || `Error al asignar método ${hm.method}`);
+        continue;
+      }
+
+      // Persist outbound links when we have the resource_http_methods UUID
+      if (hm.id && hm.outboundLinks !== undefined) {
+        const linksResponse = await fetchApi(
+          token,
+          `/admin/resources/${code}/http-methods/${hm.id}/links`,
+          {
+            method: 'PUT',
+            body: JSON.stringify(
+              hm.outboundLinks.map((l) => ({
+                rel: l.rel,
+                targetHttpMethodId: l.targetHttpMethodId,
+                paramMappings: l.paramMappings,
+              })),
+            ),
+          },
+        );
+        if (!linksResponse.ok) {
+          const error = await linksResponse.json().catch(() => ({}));
+          errors.push(error.message || `Error al guardar links del método ${hm.method}`);
+        }
       }
     }
 

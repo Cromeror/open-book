@@ -13,8 +13,7 @@ export interface UserPool {
   isActive: boolean;
   createdAt: string;
   members?: { id: string; userId: string; user?: { id: string; name: string; email: string } }[];
-  modules?: { id: string; moduleId: string; module?: { id: string; name: string; code: string } }[];
-  permissions?: { id: string }[];
+  permissions?: { id: string; modulePermission?: { id: string; code: string; name: string; module?: { id: string; name: string; code: string } } }[];
 }
 
 export interface PoolListProps {
@@ -128,7 +127,7 @@ export function PoolList({
                 Miembros
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Modulos
+                Permisos
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Estado
@@ -206,7 +205,7 @@ export function PoolList({
                     {pool.members?.length ?? 0}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600">
-                    {pool.modules?.length ?? 0}
+                    {pool.permissions?.length ?? 0}
                   </td>
                   <td className="px-4 py-3">
                     <span

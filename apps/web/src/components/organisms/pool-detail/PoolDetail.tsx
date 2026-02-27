@@ -13,49 +13,62 @@ export interface PoolMemberInfo {
   };
 }
 
-export interface PoolModuleInfo {
+export interface PoolPermissionInfo {
   id: string;
-  moduleId: string;
+  modulePermissionId: string;
   grantedAt: string;
-  module?: {
+  modulePermission?: {
     id: string;
-    name: string;
     code: string;
-    description?: string;
+    name: string;
+    module?: {
+      id: string;
+      name: string;
+      code: string;
+    };
   };
 }
 
 export interface PoolDetailProps {
   pool: UserPool;
   members: PoolMemberInfo[];
-  modules: PoolModuleInfo[];
+  permissions: PoolPermissionInfo[];
   loadingMembers?: boolean;
-  loadingModules?: boolean;
+  loadingPermissions?: boolean;
   loading?: boolean;
   onEdit: (pool: UserPool) => void;
   onToggleStatus: () => void;
   onBack: () => void;
   onManageMembers: () => void;
-  onManageModules: () => void;
+  onManagePermissions: () => void;
   onRemoveMember: (memberId: string) => void;
-  onRemoveModule: (moduleId: string) => void;
+  onRevokePermission: (permissionId: string) => void;
 }
 
 export function PoolDetail({
   pool,
   members,
-  modules,
+  permissions,
   loadingMembers = false,
-  loadingModules = false,
+  loadingPermissions = false,
   loading = false,
   onEdit,
   onToggleStatus,
   onBack,
   onManageMembers,
-  onManageModules,
+  onManagePermissions,
   onRemoveMember,
-  onRemoveModule,
+  onRevokePermission,
 }: PoolDetailProps) {
+  // Group permissions by module
+  const permissionsByModule = new Map<string, PoolPermissionInfo[]>();
+  for (const perm of permissions) {
+    const moduleCode = perm.modulePermission?.module?.code || 'unknown';
+    const existing = permissionsByModule.get(moduleCode) || [];
+    existing.push(perm);
+    permissionsByModule.set(moduleCode, existing);
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -107,14 +120,6 @@ export function PoolDetail({
             disabled={loading}
             className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-              />
-            </svg>
             Editar
           </button>
           <button
@@ -146,8 +151,8 @@ export function PoolDetail({
           <p className="text-2xl font-semibold text-gray-900">{members.length}</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow">
-          <p className="text-sm text-gray-500">Modulos</p>
-          <p className="text-2xl font-semibold text-gray-900">{modules.length}</p>
+          <p className="text-sm text-gray-500">Permisos</p>
+          <p className="text-2xl font-semibold text-gray-900">{permissions.length}</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow">
           <p className="text-sm text-gray-500">Creado</p>
@@ -169,15 +174,7 @@ export function PoolDetail({
             onClick={onManageMembers}
             className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Agregar Miembro
+            + Agregar Miembro
           </button>
         </div>
         <div className="p-4">
@@ -189,28 +186,12 @@ export function PoolDetail({
             </div>
           ) : members.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <svg
-                className="mx-auto h-12 w-12 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-              <p className="mt-2">No hay miembros en este pool</p>
+              <p>No hay miembros en este pool</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
               {members.map((member) => (
-                <div
-                  key={member.id}
-                  className="flex items-center justify-between py-3"
-                >
+                <div key={member.id} className="flex items-center justify-between py-3">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-600 font-medium">
                       {member.user?.name?.charAt(0).toUpperCase() || '?'}
@@ -228,18 +209,8 @@ export function PoolDetail({
                     className="rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
                     title="Remover miembro"
                   >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
@@ -249,108 +220,67 @@ export function PoolDetail({
         </div>
       </div>
 
-      {/* Modules Section */}
+      {/* Permissions Section (grouped by module) */}
       <div className="rounded-lg border border-gray-200 bg-white shadow">
         <div className="flex items-center justify-between border-b border-gray-200 p-4">
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Modulos Asignados</h3>
-            <p className="text-sm text-gray-500">Modulos a los que tienen acceso los miembros de este pool</p>
+            <h3 className="text-base font-semibold text-gray-900">Permisos Asignados</h3>
+            <p className="text-sm text-gray-500">Permisos que heredan los miembros de este pool</p>
           </div>
           <button
             type="button"
-            onClick={onManageModules}
+            onClick={onManagePermissions}
             className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Agregar Modulo
+            + Agregar Permiso
           </button>
         </div>
         <div className="p-4">
-          {loadingModules ? (
+          {loadingPermissions ? (
             <div className="animate-pulse space-y-2">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-12 bg-gray-200 rounded" />
               ))}
             </div>
-          ) : modules.length === 0 ? (
+          ) : permissions.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <svg
-                className="mx-auto h-12 w-12 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                />
-              </svg>
-              <p className="mt-2">No hay modulos asignados a este pool</p>
+              <p>No hay permisos asignados a este pool</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
-              {modules.map((poolModule) => (
-                <div
-                  key={poolModule.id}
-                  className="flex items-center justify-between py-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
-                      <svg
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6z"
-                        />
-                      </svg>
+            <div className="space-y-3">
+              {Array.from(permissionsByModule.entries()).map(([moduleCode, modulePerms]) => {
+                const moduleName = modulePerms[0]?.modulePermission?.module?.name || moduleCode;
+                return (
+                  <div key={moduleCode} className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm font-medium text-gray-900">{moduleName}</span>
+                      <code className="text-xs text-gray-400">{moduleCode}</code>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {poolModule.module?.name || 'Modulo desconocido'}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {poolModule.module?.code}
-                        {poolModule.module?.description && ` - ${poolModule.module.description}`}
-                      </p>
+                    <div className="flex flex-wrap gap-1">
+                      {modulePerms.map((perm) => (
+                        <div
+                          key={perm.id}
+                          className="flex items-center gap-1 rounded bg-white border border-gray-200 px-2 py-1"
+                        >
+                          <code className="text-xs text-gray-700">
+                            {perm.modulePermission?.code || 'unknown'}
+                          </code>
+                          <button
+                            type="button"
+                            onClick={() => onRevokePermission(perm.id)}
+                            className="ml-1 text-red-500 hover:text-red-700"
+                            title="Revocar permiso"
+                          >
+                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => onRemoveModule(poolModule.moduleId)}
-                    className="rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
-                    title="Remover modulo"
-                  >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

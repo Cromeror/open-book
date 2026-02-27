@@ -168,6 +168,21 @@ export interface GetActivePresetsResponse {
 // ============================================
 
 /**
+ * @internal gRPC transport type for session context metadata field
+ */
+export interface GrpcSessionContextFieldDescriptor {
+  name: string;
+  type: string;
+}
+
+/**
+ * @internal gRPC transport type for session context metadata
+ */
+export interface GrpcSessionContextMetadata {
+  fields: GrpcSessionContextFieldDescriptor[];
+}
+
+/**
  * @internal gRPC transport type for session context
  */
 export interface GrpcSessionContext {

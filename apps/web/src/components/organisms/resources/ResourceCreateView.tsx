@@ -12,7 +12,6 @@ import {
   parseUrlIntoSegments,
   buildTemplateUrl,
   deriveResourceCode,
-  detectScope,
   generateDefaultHttpMethods,
   extractResponsePropertyKeys,
 } from './utils';
@@ -53,7 +52,7 @@ export function ResourceCreateView({
       segments: [],
       code: '',
       name: '',
-      scope: 'global',
+      description: '',
     },
   });
 
@@ -62,7 +61,7 @@ export function ResourceCreateView({
   const segments = watch('segments');
   const code = watch('code');
   const name = watch('name');
-  const scope = watch('scope');
+  const description = watch('description');
 
   // Auto-parse URL into segments as user types
   useEffect(() => {
@@ -74,13 +73,11 @@ export function ResourceCreateView({
     setValue('segments', parsed, { shouldValidate: false });
   }, [rawUrl, setValue]);
 
-  // Auto-derive code and scope from segments
+  // Auto-derive code from segments
   useEffect(() => {
     if (segments.length === 0) return;
     const derivedCode = deriveResourceCode(segments);
-    const derivedScope = detectScope(segments);
     if (!code || code === derivedCode) setValue('code', derivedCode);
-    setValue('scope', derivedScope);
   }, [segments, setValue]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const templateUrl = useMemo(() => {
@@ -115,13 +112,13 @@ export function ResourceCreateView({
     const formData: ResourceFormData = {
       code,
       name,
-      scope,
+      description: description || null,
       templateUrl,
       httpMethods,
     };
 
     onSubmit(formData);
-  }, [trigger, methodConfigs, code, name, scope, templateUrl, onSubmit]);
+  }, [trigger, methodConfigs, code, name, description, templateUrl, onSubmit]);
 
   // Step 2 handlers
   const handleMethodToggle = useCallback(

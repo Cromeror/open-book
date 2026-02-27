@@ -6,8 +6,8 @@
  */
 
 import { PROTO_FILES } from '../config';
-import type { GrpcSessionContext } from '../types';
-import type { SessionContext } from '@/types/business';
+import type { GrpcSessionContext, GrpcSessionContextMetadata } from '../types';
+import type { SessionContext, SessionContextFieldDescriptor } from '@/types/business';
 import { BaseGrpcService } from './base.service';
 
 export class SessionContextService extends BaseGrpcService {
@@ -26,6 +26,22 @@ export class SessionContextService extends BaseGrpcService {
       token,
     );
     return this.fromProto(response);
+  }
+
+  /**
+   * Get session context metadata (schema)
+   * Returns field names and types of the SessionContext structure
+   */
+  async getSessionContextMetadata(token: string): Promise<SessionContextFieldDescriptor[]> {
+    const response = await this.call<Record<string, never>, GrpcSessionContextMetadata>(
+      'GetSessionContextMetadata',
+      {},
+      token,
+    );
+    return (response.fields ?? []).map((f) => ({
+      name: f.name || '',
+      type: f.type || '',
+    }));
   }
 
   private fromProto(proto: GrpcSessionContext): SessionContext {

@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Check, Settings, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
 import type { MethodConfig } from './resource-create.schema';
-import type { HttpMethod } from '@/types/business';
+import type { HttpMethod, Resource, ResourceHttpMethodLink } from '@/types/business';
 import { validatePayloadMetadata, validateResponseMetadata } from './metadata.schema';
 import { JsonField } from './JsonField';
+import { MethodLinksConfig } from './MethodLinksConfig';
 
 const METHOD_STYLES: Record<HttpMethod, { color: string }> = {
   GET: { color: 'bg-green-100 text-green-700 border-green-300' },
@@ -15,16 +16,27 @@ const METHOD_STYLES: Record<HttpMethod, { color: string }> = {
 
 export interface MethodConfigCardProps {
   config: MethodConfig;
+  /** UUID of the resource_http_methods row for this card. Undefined if not yet saved. */
+  sourceMethodId?: string;
+  /** Outbound HATEOAS links configured for this method. Omit in the create wizard. */
+  outboundLinks?: ResourceHttpMethodLink[];
+  /** All resources available for link target selection. Required when outboundLinks is provided. */
+  allResources?: Resource[];
   loading: boolean;
   onToggle: () => void;
   onConfigChange: (field: 'payloadMetadata' | 'responseMetadata', value: string) => void;
+  onLinksChange?: (links: ResourceHttpMethodLink[]) => void;
 }
 
 export function MethodConfigCard({
   config,
+  sourceMethodId,
+  outboundLinks,
+  allResources = [],
   loading,
   onToggle,
   onConfigChange,
+  onLinksChange,
 }: MethodConfigCardProps) {
   const [showConfig, setShowConfig] = useState(false);
   const style = METHOD_STYLES[config.method];
@@ -82,7 +94,7 @@ export function MethodConfigCard({
 
       {/* Config panel */}
       {config.enabled && showConfig && (
-        <div className="space-y-3 border-t bg-gray-50 p-4">
+        <div className="space-y-4 border-t bg-gray-50 p-4">
           <JsonField
             label="Payload Metadata (JSON)"
             value={config.payloadMetadata ?? ''}
@@ -99,6 +111,18 @@ export function MethodConfigCard({
             disabled={loading}
             placeholder='{ "method": "GET", "success": { "statusCode": 200, "contentType": "application/json", "schema": { ... } } }'
           />
+
+          {outboundLinks !== undefined && onLinksChange !== undefined && (
+            <div className="border-t border-gray-200 pt-3">
+              <MethodLinksConfig
+                sourceMethodId={sourceMethodId}
+                links={outboundLinks}
+                allResources={allResources}
+                disabled={loading}
+                onChange={onLinksChange}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>

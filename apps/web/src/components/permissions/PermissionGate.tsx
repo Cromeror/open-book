@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 
 import { getServerPermissions } from '@/lib/permissions.server';
-import type { PermissionContext } from '@/lib/types';
 
 import { AccessDenied } from './AccessDenied';
 
@@ -15,7 +14,7 @@ interface BaseProps {
 
 type PermissionGateProps = BaseProps &
   (
-    | { type: 'permission'; permission: string; context?: PermissionContext }
+    | { type: 'permission'; permission: string }
     | { type: 'module'; module: string }
     | { type: 'superAdmin' }
   );
@@ -69,7 +68,7 @@ export async function PermissionGate(props: PermissionGateProps) {
   } else {
     switch (props.type) {
       case 'permission':
-        hasAccess = permissions.can(props.permission, props.context);
+        hasAccess = permissions.can(props.permission);
         requiredPermission = props.permission;
         break;
       case 'module':

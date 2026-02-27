@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Resource } from '@/types/business';
+import type { Resource, SessionContextFieldDescriptor } from '@/types/business';
 import type { PaginatedResponse } from '@/lib/http-api/resources-api';
 import {
   deleteResource,
@@ -12,14 +12,18 @@ import { ResourceList } from '@/components/organisms/resources/ResourceList';
 
 interface Props {
   initialResources: PaginatedResponse<Resource>;
+  sessionContextMetadata?: SessionContextFieldDescriptor[];
 }
 
-export function ResourcesManager({ initialResources }: Props) {
+export function ResourcesManager({ initialResources, sessionContextMetadata = [] }: Props) {
   const router = useRouter();
   const [resources, setResources] = useState<Resource[]>(initialResources?.data || []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  console.log("sessionContextMetadata", sessionContextMetadata);
+  
 
   const handleSelectResource = (resource: Resource) => {
     router.push(`/admin/resources/${resource.code}`);

@@ -47,4 +47,16 @@ export class SessionContextGrpcController {
       userStateSidebarCollapsed: context.userStateSidebarCollapsed,
     };
   }
+
+  /**
+   * Get session context metadata (schema)
+   */
+  @GrpcMethod('SessionContextService', 'GetSessionContextMetadata')
+  async getSessionContextMetadata(
+    _request: Record<string, never>,
+    _metadata: Metadata,
+    @GrpcCurrentUser() _user: RequestUser,
+  ) {
+    return this.sessionContextService.getMetadata();
+  }
 }

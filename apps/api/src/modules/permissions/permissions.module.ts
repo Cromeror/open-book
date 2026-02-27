@@ -5,11 +5,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   Module,
   ModulePermission,
-  UserModule,
   UserPermission,
   UserPool,
   UserPoolMember,
-  PoolModule,
   PoolPermission,
 } from '../../entities';
 import { User } from '../../entities/user.entity';
@@ -25,29 +23,12 @@ import { PermissionsGuard } from './guards/permissions.guard';
 /**
  * Permissions Module
  *
- * Provides the module-based permission system with:
- * - Module access control
- * - Granular permissions with scopes (OWN, COPROPIEDAD, ALL)
+ * Provides the permission system with:
+ * - Module access inferred from permissions
+ * - Granular permissions per module action
  * - User pools for shared permissions
  * - Permission caching
  * - SuperAdmin bypass
- *
- * @example
- * ```typescript
- * // In a controller, use decorators to protect endpoints
- * @RequireModule('objetivos')
- * @RequirePermission('objetivos:create', { scope: Scope.COPROPIEDAD })
- * @Post()
- * async create(@Body() dto: CreateObjetivoDto) { ... }
- * ```
- *
- * @example
- * ```typescript
- * // In a service, check permissions programmatically
- * if (await this.permissionsService.hasPermission(userId, 'objetivos:read', context)) {
- *   // User has access
- * }
- * ```
  */
 @Global()
 @NestModule({
@@ -56,11 +37,9 @@ import { PermissionsGuard } from './guards/permissions.guard';
     TypeOrmModule.forFeature([
       Module,
       ModulePermission,
-      UserModule,
       UserPermission,
       UserPool,
       UserPoolMember,
-      PoolModule,
       PoolPermission,
       User,
     ]),

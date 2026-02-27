@@ -15,6 +15,12 @@ service SessionContextService {
    * Assembles user data, selected condominium, and preferences
    */
   rpc GetSessionContext(openbook.common.Empty) returns (SessionContext);
+
+  /**
+   * Get session context metadata (field names and types)
+   * Returns the static schema of the SessionContext structure
+   */
+  rpc GetSessionContextMetadata(openbook.common.Empty) returns (SessionContextMetadata);
 }
 
 // ========================================
@@ -41,4 +47,20 @@ message SessionContext {
   string user_state_theme = 8;              // 'light' | 'dark' | 'system'
   string user_state_language = 9;           // 'es', 'en', etc.
   bool user_state_sidebar_collapsed = 10;
+}
+
+/**
+ * Field descriptor for session context metadata
+ */
+message SessionContextFieldDescriptor {
+  string name = 1;
+  string type = 2;
+}
+
+/**
+ * Session context metadata (schema)
+ * Lists all fields and their types in the SessionContext structure
+ */
+message SessionContextMetadata {
+  repeated SessionContextFieldDescriptor fields = 1;
 }

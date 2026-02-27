@@ -8,11 +8,9 @@ import { PermissionsCacheService } from './permissions-cache.service';
 import {
   Module,
   ModulePermission,
-  UserModule,
   UserPermission,
-} from './entities';
+} from '../../entities';
 import { User } from '../../entities/user.entity';
-import { Scope } from './permissions.enum';
 import { GrantPermissionDto } from './dto/grant-permission.dto';
 
 // TODO: Fix integration tests - NestJS dependency injection is not working properly with mocks
@@ -22,7 +20,6 @@ describe.skip('AdminPermissionsService - Auto-grant Read Permission', () => {
   let service: AdminPermissionsService;
   let modulePermissionRepo: any;
   let userPermissionRepo: any;
-  let userModuleRepo: any;
   let userRepo: any;
 
   // Mock data
@@ -111,14 +108,6 @@ describe.skip('AdminPermissionsService - Auto-grant Read Permission', () => {
       save: vi.fn().mockResolvedValue({}),
     };
 
-    userModuleRepo = {
-      findOne: vi.fn().mockResolvedValue({
-        userId: 'user-1',
-        moduleId: 'module-1',
-        isActive: true,
-      } as UserModule),
-    };
-
     userRepo = {
       findOne: vi.fn().mockResolvedValue(mockUser),
     };
@@ -133,10 +122,6 @@ describe.skip('AdminPermissionsService - Auto-grant Read Permission', () => {
         {
           provide: getRepositoryToken(ModulePermission),
           useValue: modulePermissionRepo,
-        },
-        {
-          provide: getRepositoryToken(UserModule),
-          useValue: userModuleRepo,
         },
         {
           provide: getRepositoryToken(UserPermission),
@@ -163,8 +148,6 @@ describe.skip('AdminPermissionsService - Auto-grant Read Permission', () => {
   describe('grantPermission - Auto-grant read for CRUD modules', () => {
     const grantDto: GrantPermissionDto = {
       modulePermissionId: 'perm-create',
-      scope: Scope.ALL,
-      scopeId: undefined,
       expiresAt: undefined,
     };
 
@@ -187,7 +170,6 @@ describe.skip('AdminPermissionsService - Auto-grant Read Permission', () => {
         expect.objectContaining({
           userId: 'user-1',
           modulePermissionId: 'perm-read',
-          scope: Scope.ALL,
         }),
       );
     });
@@ -299,29 +281,6 @@ describe.skip('AdminPermissionsService - Auto-grant Read Permission', () => {
           id: 'existing-read',
           isActive: true,
           grantedBy: 'admin-1',
-        }),
-      );
-    });
-
-    it('should preserve scope and scopeId when auto-granting read', async () => {
-      const scopedDto: GrantPermissionDto = {
-        modulePermissionId: 'perm-create',
-        scope: Scope.COPROPIEDAD,
-        scopeId: 'property-123',
-        expiresAt: undefined,
-      };
-
-      modulePermissionRepo.findOne
-        .mockResolvedValueOnce(mockCreatePermission)
-        .mockResolvedValueOnce(mockReadPermission);
-
-      await service.grantPermission('admin-1', 'user-1', scopedDto);
-
-      expect(userPermissionRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({
-          modulePermissionId: 'perm-read',
-          scope: Scope.COPROPIEDAD,
-          scopeId: 'property-123',
         }),
       );
     });

@@ -1,7 +1,6 @@
 import { Entity, Column, Index, OneToMany } from 'typeorm';
 
 import { BaseEntity } from './base.entity';
-import { ResourceScope } from '../types/resource.types';
 import { ResourceHttpMethod } from './resource-http-method.entity';
 
 /**
@@ -17,7 +16,6 @@ import { ResourceHttpMethod } from './resource-http-method.entity';
  * const resource = new Resource();
  * resource.code = 'goals';
  * resource.name = 'Objetivos de Recaudo';
- * resource.scope = 'condominium';
  * resource.templateUrl = '/api/condominiums/{condominiumId}/goals';
  * ```
  */
@@ -25,7 +23,6 @@ import { ResourceHttpMethod } from './resource-http-method.entity';
 export class Resource extends BaseEntity {
   /**
    * Unique code identifier for the resource
-   * Used to reference the resource in the system
    */
   @Column({
     type: 'varchar',
@@ -45,16 +42,13 @@ export class Resource extends BaseEntity {
   name!: string;
 
   /**
-   * Resource scope: 'global' or 'condominium'
-   * - global: Resource is not scoped to a condominium (e.g., /api/users)
-   * - condominium: Resource is scoped to a condominium (e.g., /api/condominiums/{id}/goals)
+   * Optional description for documentation purposes
    */
   @Column({
-    type: 'varchar',
-    length: 20,
-    default: 'global',
+    type: 'text',
+    nullable: true,
   })
-  scope!: ResourceScope;
+  description?: string | null;
 
   /**
    * URL template for the resource
@@ -69,7 +63,6 @@ export class Resource extends BaseEntity {
 
   /**
    * Whether the resource is active
-   * Inactive resources are not included in HATEOAS responses
    */
   @Column({
     name: 'is_active',
@@ -80,7 +73,6 @@ export class Resource extends BaseEntity {
 
   /**
    * HTTP methods associated with this resource
-   * Loaded via the resource_http_methods junction table
    */
   @OneToMany(() => ResourceHttpMethod, (rhm) => rhm.resource)
   httpMethods!: ResourceHttpMethod[];

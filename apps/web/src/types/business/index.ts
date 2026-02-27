@@ -19,7 +19,8 @@ export type { User, PublicUser } from './user.types';
 export type {
   Resource,
   ResourceHttpMethod,
-  ResourceScope,
+  ResourceHttpMethodLink,
+  ResourceLinkParamMapping,
   HttpMethod,
   HateoasLink,
 } from './resource.types';
@@ -29,11 +30,10 @@ export type { CapabilityPreset, PresetCapability } from './capability-preset.typ
 export { presetToResourceHttpMethods } from './capability-preset.types';
 
 // Permissions
-export type { Permission, PermissionModule, PermissionContext } from './permission.types';
-export { Scope } from './permission.types';
+export type { Permission, PermissionModule } from './permission.types';
 
 // Session Context
-export type { SessionContext } from './session-context.types';
+export type { SessionContext, SessionContextFieldDescriptor } from './session-context.types';
 
 // Modules
 export type {

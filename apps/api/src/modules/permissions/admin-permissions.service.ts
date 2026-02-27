@@ -2,27 +2,25 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
-  BadRequestException,
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { User } from '../../entities/user.entity';
-import { Scope } from '../../types/permissions.enum';
 import {
   Module,
   ModulePermission,
-  UserModule,
   UserPermission,
 } from '../../entities';
 import { PoolsService } from './pools.service';
 import { PermissionsCacheService } from './permissions-cache.service';
-import { GrantModuleAccessDto } from './dto/grant-module-access.dto';
 import { GrantPermissionDto } from './dto/grant-permission.dto';
 
 /**
  * Service for SuperAdmin to manage user permissions
+ *
+ * Module access is inferred from having at least one permission for that module.
  */
 @Injectable()
 export class AdminPermissionsService {
@@ -33,8 +31,6 @@ export class AdminPermissionsService {
     private moduleRepo: Repository<Module>,
     @InjectRepository(ModulePermission)
     private modulePermissionRepo: Repository<ModulePermission>,
-    @InjectRepository(UserModule)
-    private userModuleRepo: Repository<UserModule>,
     @InjectRepository(UserPermission)
     private userPermissionRepo: Repository<UserPermission>,
     @InjectRepository(User)
@@ -83,30 +79,13 @@ export class AdminPermissionsService {
   }
 
   /**
-   * Get modules a user has direct access to
-   */
-  async getUserModules(userId: string): Promise<UserModule[]> {
-    return this.userModuleRepo.find({
-      where: { userId, isActive: true },
-      relations: ['module'],
-    });
-  }
-
-  /**
    * Get effective permissions for a user (direct + pools)
    */
   async getUserEffectivePermissions(userId: string): Promise<{
     user: { id: string; email: string; firstName: string; lastName: string };
-    modules: {
-      module: Module;
-      source: 'direct' | 'pool';
-      poolName?: string;
-    }[];
     permissions: {
       id?: string;
       permission: ModulePermission;
-      scope: Scope;
-      scopeId?: string | null;
       source: 'direct' | 'pool';
       poolName?: string;
     }[];
@@ -120,23 +99,6 @@ export class AdminPermissionsService {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    // Direct modules
-    const directModules = await this.userModuleRepo.find({
-      where: { userId, isActive: true },
-      relations: ['module'],
-    });
-
-    // Pools and their modules
-    const userPools = await this.poolsService.getUserPools(userId);
-    const poolModules: { module: Module; poolName: string }[] = [];
-
-    for (const pool of userPools) {
-      const modules = await this.poolsService.getPoolModules(pool.id);
-      for (const pm of modules) {
-        poolModules.push({ module: pm.module, poolName: pool.name });
-      }
-    }
-
     // Direct permissions
     const directPermissions = await this.userPermissionRepo.find({
       where: { userId, isActive: true },
@@ -144,10 +106,9 @@ export class AdminPermissionsService {
     });
 
     // Pool permissions
+    const userPools = await this.poolsService.getUserPools(userId);
     const poolPermissions: {
       permission: ModulePermission;
-      scope: Scope;
-      scopeId?: string | null;
       poolName: string;
     }[] = [];
 
@@ -156,8 +117,6 @@ export class AdminPermissionsService {
       for (const pp of permissions) {
         poolPermissions.push({
           permission: pp.modulePermission,
-          scope: pp.scope as Scope,
-          scopeId: pp.scopeId,
           poolName: pool.name,
         });
       }
@@ -170,29 +129,14 @@ export class AdminPermissionsService {
         firstName: user.firstName,
         lastName: user.lastName,
       },
-      modules: [
-        ...directModules.map((um) => ({
-          module: um.module,
-          source: 'direct' as const,
-        })),
-        ...poolModules.map((pm) => ({
-          module: pm.module,
-          source: 'pool' as const,
-          poolName: pm.poolName,
-        })),
-      ],
       permissions: [
         ...directPermissions.map((up) => ({
           id: up.id,
           permission: up.modulePermission,
-          scope: up.scope,
-          scopeId: up.scopeId,
           source: 'direct' as const,
         })),
         ...poolPermissions.map((pp) => ({
           permission: pp.permission,
-          scope: pp.scope,
-          scopeId: pp.scopeId,
           source: 'pool' as const,
           poolName: pp.poolName,
         })),
@@ -201,119 +145,7 @@ export class AdminPermissionsService {
   }
 
   /**
-   * Grant module access to a user
-   */
-  async grantModuleAccess(
-    superAdminId: string,
-    userId: string,
-    dto: GrantModuleAccessDto,
-  ): Promise<UserModule> {
-    // Verify user exists
-    const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException('Usuario no encontrado');
-    }
-
-    // Verify module exists
-    const module = await this.moduleRepo.findOne({
-      where: { id: dto.moduleId, isActive: true },
-    });
-    if (!module) {
-      throw new NotFoundException('Módulo no encontrado');
-    }
-
-    // Check if record exists (active or inactive)
-    const existing = await this.userModuleRepo.findOne({
-      where: { userId, moduleId: dto.moduleId },
-    });
-
-    if (existing) {
-      if (existing.isActive) {
-        throw new ConflictException('Usuario ya tiene acceso a este módulo');
-      }
-
-      // Reactivate existing record
-      existing.isActive = true;
-      existing.grantedBy = superAdminId;
-      existing.grantedAt = new Date();
-      existing.expiresAt = dto.expiresAt ? new Date(dto.expiresAt) : null;
-
-      await this.userModuleRepo.save(existing);
-
-      // Invalidate cache
-      this.cacheService.invalidate(userId);
-
-      this.logger.log(
-        `Module access reactivated: ${module.code} to user ${userId} by ${superAdminId}`,
-      );
-
-      return existing;
-    }
-
-    const userModule = this.userModuleRepo.create({
-      userId,
-      moduleId: dto.moduleId,
-      grantedBy: superAdminId,
-      grantedAt: new Date(),
-      expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
-      isActive: true,
-    });
-
-    await this.userModuleRepo.save(userModule);
-
-    // Invalidate cache
-    this.cacheService.invalidate(userId);
-
-    this.logger.log(
-      `Module access granted: ${module.code} to user ${userId} by ${superAdminId}`,
-    );
-
-    return userModule;
-  }
-
-  /**
-   * Revoke module access from a user
-   */
-  async revokeModuleAccess(
-    superAdminId: string,
-    userId: string,
-    moduleId: string,
-  ): Promise<void> {
-    const userModule = await this.userModuleRepo.findOne({
-      where: { userId, moduleId, isActive: true },
-      relations: ['module'],
-    });
-
-    if (!userModule) {
-      throw new NotFoundException('Usuario no tiene acceso a este módulo');
-    }
-
-    // Deactivate module access
-    userModule.isActive = false;
-    await this.userModuleRepo.save(userModule);
-
-    // Also deactivate all granular permissions for this module
-    await this.userPermissionRepo
-      .createQueryBuilder()
-      .update()
-      .set({ isActive: false })
-      .where('userId = :userId', { userId })
-      .andWhere(
-        'modulePermissionId IN (SELECT id FROM module_permissions WHERE module_id = :moduleId)',
-        { moduleId },
-      )
-      .execute();
-
-    // Invalidate cache
-    this.cacheService.invalidate(userId);
-
-    this.logger.log(
-      `Module access revoked: ${userModule.module.code} from user ${userId} by ${superAdminId}`,
-    );
-  }
-
-  /**
-   * Grant a granular permission to a user
+   * Grant a permission to a user
    */
   async grantPermission(
     superAdminId: string,
@@ -336,29 +168,11 @@ export class AdminPermissionsService {
       throw new NotFoundException('Permiso de módulo no encontrado');
     }
 
-    // Verify user has access to the module
-    const hasDirectAccess = await this.userModuleRepo.findOne({
-      where: { userId, moduleId: modulePermission.moduleId, isActive: true },
-    });
-
-    const hasPoolAccess = await this.poolsService.hasModuleAccessViaPool(
-      userId,
-      modulePermission.module.code,
-    );
-
-    if (!hasDirectAccess && !hasPoolAccess) {
-      throw new BadRequestException(
-        'Usuario debe tener acceso al módulo antes de asignar permisos granulares',
-      );
-    }
-
     // Check for existing record (active or inactive)
     const existing = await this.userPermissionRepo.findOne({
       where: {
         userId,
         modulePermissionId: dto.modulePermissionId,
-        scope: dto.scope,
-        scopeId: dto.scopeId || IsNull(),
       },
     });
 
@@ -383,8 +197,6 @@ export class AdminPermissionsService {
         await this.autoGrantReadPermission(
           userId,
           modulePermission.moduleId,
-          dto.scope,
-          dto.scopeId,
           superAdminId,
           dto.expiresAt,
         );
@@ -403,8 +215,6 @@ export class AdminPermissionsService {
     const userPermission = this.userPermissionRepo.create({
       userId,
       modulePermissionId: dto.modulePermissionId,
-      scope: dto.scope,
-      scopeId: dto.scopeId || null,
       grantedBy: superAdminId,
       grantedAt: new Date(),
       expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
@@ -421,8 +231,6 @@ export class AdminPermissionsService {
       await this.autoGrantReadPermission(
         userId,
         modulePermission.moduleId,
-        dto.scope,
-        dto.scopeId,
         superAdminId,
         dto.expiresAt,
       );
@@ -440,13 +248,10 @@ export class AdminPermissionsService {
 
   /**
    * Auto-grant read permission when granting create/update/delete in CRUD modules
-   * Private helper method
    */
   private async autoGrantReadPermission(
     userId: string,
     moduleId: string,
-    scope: Scope,
-    scopeId: string | null | undefined,
     superAdminId: string,
     expiresAt: string | null | undefined,
   ): Promise<void> {
@@ -456,20 +261,17 @@ export class AdminPermissionsService {
     });
 
     if (!readPermission) {
-      // If no read permission exists, skip (shouldn't happen for CRUD modules)
       this.logger.warn(
         `No 'read' permission found for module ${moduleId}, skipping auto-grant`,
       );
       return;
     }
 
-    // Check if user already has read permission with same scope
+    // Check if user already has read permission
     const existingReadPermission = await this.userPermissionRepo.findOne({
       where: {
         userId,
         modulePermissionId: readPermission.id,
-        scope,
-        scopeId: scopeId || IsNull(),
       },
     });
 
@@ -486,7 +288,6 @@ export class AdminPermissionsService {
           `Read permission auto-reactivated for user ${userId} in module ${moduleId}`,
         );
       }
-      // If already active, do nothing
       return;
     }
 
@@ -494,8 +295,6 @@ export class AdminPermissionsService {
     const readUserPermission = this.userPermissionRepo.create({
       userId,
       modulePermissionId: readPermission.id,
-      scope,
-      scopeId: scopeId || null,
       grantedBy: superAdminId,
       grantedAt: new Date(),
       expiresAt: expiresAt ? new Date(expiresAt) : null,
@@ -510,7 +309,7 @@ export class AdminPermissionsService {
   }
 
   /**
-   * Revoke a granular permission from a user
+   * Revoke a permission from a user
    */
   async revokePermission(
     superAdminId: string,
@@ -562,10 +361,13 @@ export class AdminPermissionsService {
     }
 
     if (query.moduleCode) {
-      qb.innerJoin(UserModule, 'um', 'um.userId = u.id')
-        .innerJoin(Module, 'm', 'm.id = um.moduleId')
+      // Filter by users who have at least one permission for this module
+      qb.innerJoin(UserPermission, 'up', 'up.userId = u.id')
+        .innerJoin(ModulePermission, 'mp', 'mp.id = up.modulePermissionId')
+        .innerJoin(Module, 'm', 'm.id = mp.moduleId')
         .andWhere('m.code = :moduleCode', { moduleCode: query.moduleCode })
-        .andWhere('um.isActive = true');
+        .andWhere('up.isActive = true')
+        .andWhere('m.isActive = true');
     }
 
     const [users, total] = await qb
@@ -580,24 +382,24 @@ export class AdminPermissionsService {
   }
 
   /**
-   * Get users who have access to a specific module
+   * Get users who have access to a specific module (via permissions)
    */
   async getUsersByModule(
     moduleCode: string,
   ): Promise<{ id: string; email: string; firstName: string; lastName: string }[]> {
     const module = await this.getModuleByCode(moduleCode);
 
-    // Direct access
+    // Users with direct permissions for this module
     const directUsers = await this.userRepo
       .createQueryBuilder('u')
-      .innerJoin(UserModule, 'um', 'um.userId = u.id')
-      .where('um.moduleId = :moduleId', { moduleId: module.id })
-      .andWhere('um.isActive = true')
+      .innerJoin(UserPermission, 'up', 'up.userId = u.id')
+      .innerJoin(ModulePermission, 'mp', 'mp.id = up.modulePermissionId')
+      .where('mp.moduleId = :moduleId', { moduleId: module.id })
+      .andWhere('up.isActive = true')
       .andWhere('u.isActive = true')
       .select(['u.id', 'u.email', 'u.firstName', 'u.lastName'])
+      .distinct(true)
       .getMany();
-
-    // TODO: Add pool access users
 
     return directUsers.map((u) => ({
       id: u.id,

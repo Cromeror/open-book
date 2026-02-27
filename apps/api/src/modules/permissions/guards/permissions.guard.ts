@@ -10,7 +10,6 @@ import { Reflector } from '@nestjs/core';
 import { PermissionsService } from '../permissions.service';
 import { PERMISSION_KEY, PERMISSIONS_OPTIONS_KEY, PermissionOptions } from '../decorators/require-permission.decorator';
 import { MODULE_KEY } from '../decorators/require-module.decorator';
-import { PermissionContext } from '../../../types/permissions.enum';
 
 /**
  * Guard that checks user permissions
@@ -22,24 +21,8 @@ import { PermissionContext } from '../../../types/permissions.enum';
  * 1. Extract required permissions from decorator metadata
  * 2. If no permissions required, allow access
  * 3. Check if user is SuperAdmin (bypass all checks)
- * 4. Check module access
+ * 4. Check module access (inferred from having any permission for the module)
  * 5. Check granular permission
- * 6. Verify scope against request context
- *
- * @example
- * ```typescript
- * @Controller('goals')
- * @UseGuards(JwtAuthGuard, PermissionsGuard)
- * export class GoalsController {
- *   @Post()
- *   @RequirePermission('goals:create')
- *   create() {}
- *
- *   @Get()
- *   @RequireModule('goals')
- *   findAll() {}
- * }
- * ```
  */
 @Injectable()
 export class PermissionsGuard implements CanActivate {
@@ -78,9 +61,6 @@ export class PermissionsGuard implements CanActivate {
       return true;
     }
 
-    // Extract context from request
-    const permissionContext = this.extractContext(request);
-
     // Check module access if required
     if (requiredModule) {
       const hasModule = await this.permissionsService.hasModuleAccess(
@@ -106,7 +86,6 @@ export class PermissionsGuard implements CanActivate {
       const hasPermission = await this.permissionsService.hasPermission(
         user.id,
         requiredPermission,
-        permissionContext,
       );
 
       if (!hasPermission) {
@@ -122,26 +101,5 @@ export class PermissionsGuard implements CanActivate {
     }
 
     return true;
-  }
-
-  /**
-   * Extract permission context from request
-   */
-  private extractContext(request: Request & {
-    params?: Record<string, string>;
-    body?: Record<string, unknown>;
-    query?: Record<string, string>;
-  }): PermissionContext {
-    const params = request.params || {};
-    const body = (request.body || {}) as Record<string, string>;
-    const query = request.query || {};
-
-    return {
-      copropiedadId:
-        params.copropiedadId || body.copropiedadId || query.copropiedadId,
-      apartamentoId:
-        params.apartamentoId || body.apartamentoId || query.apartamentoId,
-      resourceOwnerId: params.userId || body.userId,
-    };
   }
 }

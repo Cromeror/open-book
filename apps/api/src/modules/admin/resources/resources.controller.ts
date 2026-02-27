@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Patch,
   Delete,
   Query,
@@ -29,13 +30,13 @@ const createResourceSchema = z.object({
     .max(50)
     .regex(/^[a-z][a-z0-9_-]*$/, 'code must be lowercase alphanumeric with underscores or hyphens'),
   name: z.string().min(1, 'name is required').max(100),
-  scope: z.enum(['global', 'condominium']),
+  description: z.string().max(500).optional().nullable(),
   templateUrl: z.string().min(1, 'templateUrl is required').max(255),
 });
 
 const updateResourceSchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  scope: z.enum(['global', 'condominium']).optional(),
+  description: z.string().max(500).optional().nullable(),
   templateUrl: z.string().min(1).max(255).optional(),
   isActive: z.boolean().optional(),
 });
@@ -45,6 +46,19 @@ const assignHttpMethodSchema = z.object({
   payloadMetadata: z.string().optional(),
   responseMetadata: z.string().optional(),
 });
+
+const paramMappingSchema = z.object({
+  responseField: z.string().min(1),
+  urlParam: z.string().min(1),
+});
+
+const replaceLinksSchema = z.array(
+  z.object({
+    rel: z.string().min(1).max(64),
+    targetHttpMethodId: z.string().uuid('targetHttpMethodId must be a UUID'),
+    paramMappings: z.array(paramMappingSchema).default([]),
+  }),
+);
 
 /**
  * Controller for resource management (SuperAdmin only)
@@ -72,7 +86,6 @@ export class AdminResourcesController {
   @Get()
   async findAll(
     @Query('search') search?: string,
-    @Query('scope') scope?: string,
     @Query('isActive') isActive?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -81,7 +94,6 @@ export class AdminResourcesController {
   ) {
     return this.resourcesService.findAll({
       search,
-      scope: scope as 'global' | 'condominium' | undefined,
       isActive:
         isActive === 'true' ? true : isActive === 'false' ? false : undefined,
       page: page ? parseInt(page, 10) : 1,
@@ -230,5 +242,40 @@ export class AdminResourcesController {
         `Method '${method.toUpperCase()}' not assigned to resource '${code}'`,
       );
     }
+  }
+
+  /**
+   * PUT /admin/resources/:code/http-methods/:methodId/links
+   *
+   * Replaces all outbound HATEOAS links for a specific resource HTTP method.
+   * Accepts an array of link configs; deletes existing ones and inserts the new set.
+   *
+   * @param methodId - UUID of the resource_http_methods row
+   */
+  @Put(':code/http-methods/:methodId/links')
+  async replaceLinks(
+    @Param('code') code: string,
+    @Param('methodId') methodId: string,
+    @Body() body: unknown,
+  ) {
+    const resource = await this.resourcesService.findByCode(code);
+    if (!resource) {
+      throw new NotFoundException(`Resource with code '${code}' not found`);
+    }
+
+    const rhm = (resource.httpMethods ?? []).find((m) => m.id === methodId);
+    if (!rhm) {
+      throw new NotFoundException(
+        `HTTP method '${methodId}' not found in resource '${code}'`,
+      );
+    }
+
+    const result = replaceLinksSchema.safeParse(body);
+    if (!result.success) {
+      const messages = result.error.issues.map((i) => i.message);
+      throw new BadRequestException({ statusCode: 400, message: 'Validation error', errors: messages });
+    }
+
+    return this.resourcesService.replaceLinks(methodId, result.data);
   }
 }

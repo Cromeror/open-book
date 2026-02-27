@@ -1,7 +1,6 @@
 import { Entity, Column, Index, ManyToOne, JoinColumn } from 'typeorm';
 
 import { BaseEntity } from '../entities/base.entity';
-import { Scope } from '../types/permissions.enum';
 import { ModulePermission } from './module-permission.entity';
 import { UserPool } from './user-pool.entity';
 
@@ -10,15 +9,13 @@ import { UserPool } from './user-pool.entity';
  *
  * Represents a granular permission granted to a pool.
  * All members of the pool inherit this permission.
- * Requires that the pool has access to the parent module (via PoolModule).
+ * Module access is inferred from having at least one permission for that module.
  *
  * @example
  * ```typescript
  * const poolPermission = new PoolPermission();
  * poolPermission.poolId = pool.id;
  * poolPermission.modulePermissionId = permission.id;
- * poolPermission.scope = Scope.COPROPIEDAD;
- * poolPermission.scopeId = copropiedad.id;
  * poolPermission.grantedBy = superAdmin.id;
  * poolPermission.grantedAt = new Date();
  * ```
@@ -26,7 +23,7 @@ import { UserPool } from './user-pool.entity';
 @Entity('pool_permissions')
 @Index(
   'idx_pool_permissions_unique',
-  ['poolId', 'modulePermissionId', 'scope', 'scopeId'],
+  ['poolId', 'modulePermissionId'],
   { unique: true },
 )
 export class PoolPermission extends BaseEntity {
@@ -63,26 +60,6 @@ export class PoolPermission extends BaseEntity {
   @ManyToOne(() => ModulePermission, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'module_permission_id' })
   modulePermission!: ModulePermission;
-
-  /**
-   * Scope of the permission
-   */
-  @Column({
-    type: 'varchar',
-    length: 20,
-    default: Scope.OWN,
-  })
-  scope!: Scope;
-
-  /**
-   * ID of the scoped entity (e.g., copropiedad ID when scope is COPROPIEDAD)
-   */
-  @Column({
-    name: 'scope_id',
-    type: 'uuid',
-    nullable: true,
-  })
-  scopeId?: string | null;
 
   /**
    * ID of the SuperAdmin who granted this permission

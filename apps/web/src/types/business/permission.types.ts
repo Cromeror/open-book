@@ -6,29 +6,6 @@
  */
 
 /**
- * Scope of a permission
- * - own: Only user's own resources
- * - copropiedad: Resources within a specific copropiedad
- * - all: All resources (unrestricted)
- */
-export enum Scope {
-  OWN = 'own',
-  COPROPIEDAD = 'copropiedad',
-  ALL = 'all',
-}
-
-/**
- * Context for permission validation
- * Used to check scope-based access at runtime
- */
-export interface PermissionContext {
-  /** ID of the copropiedad for scope validation */
-  copropiedadId?: string;
-  /** ID of the resource owner for 'own' scope validation */
-  resourceOwnerId?: string;
-}
-
-/**
  * A permission granted to a user
  */
 export interface Permission {

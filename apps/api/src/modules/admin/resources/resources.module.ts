@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Resource } from '../../../entities/resource.entity';
 import { HttpMethod } from '../../../entities/http-method.entity';
 import { ResourceHttpMethod } from '../../../entities/resource-http-method.entity';
+import { ResourceHttpMethodLink } from '../../../entities/resource-http-method-link.entity';
 
 import { AdminResourcesController } from './resources.controller';
 import { AdminResourcesService } from './resources.service';
@@ -17,7 +18,7 @@ import { AdminResourcesService } from './resources.service';
  * - Admin endpoints (GET /api/admin/resources)
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([Resource, HttpMethod, ResourceHttpMethod])],
+  imports: [TypeOrmModule.forFeature([Resource, HttpMethod, ResourceHttpMethod, ResourceHttpMethodLink])],
   controllers: [AdminResourcesController],
   providers: [AdminResourcesService],
   exports: [AdminResourcesService],

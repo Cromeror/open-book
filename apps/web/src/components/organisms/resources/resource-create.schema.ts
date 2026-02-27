@@ -54,23 +54,63 @@ const methodConfigSchema = z.object({
 });
 
 /**
+ * Validates a URL path relative to a domain (no leading slash).
+ * Segments can be:
+ *   - Static: letters, digits, hyphens, underscores, dots  (e.g. api, v1, users)
+ *   - Dynamic: {variable} or :variable
+ * A single segment cannot mix static text with a variable placeholder.
+ */
+function validateRelativeUrl(val: string, ctx: z.RefinementCtx) {
+  if (val.startsWith('/')) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'La URL no debe comenzar con /. Solo ingresa el path relativo (ej: api/usuarios/{id})',
+    });
+    return;
+  }
+
+  if (val.trim() === '') return;
+
+  const segments = val.split('/');
+
+  for (const segment of segments) {
+    if (segment === '') {
+      ctx.addIssue({ code: 'custom', message: 'La URL no puede tener segmentos vacíos (doble /)' });
+      return;
+    }
+
+    // Pure curly-brace variable: {varName}
+    const isCurly = /^\{[a-zA-Z_][a-zA-Z0-9_]*\}$/.test(segment);
+    // Pure colon variable: :varName
+    const isColon = /^:[a-zA-Z_][a-zA-Z0-9_]*$/.test(segment);
+    // Pure static segment
+    const isStatic = /^[a-zA-Z0-9_\-\.]+$/.test(segment);
+
+    if (!isCurly && !isColon && !isStatic) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `Segmento inválido: "${segment}". Use texto estático (letras, números, guiones), {variable} o :variable. No mezcle texto con variables en un mismo segmento.`,
+      });
+      return;
+    }
+  }
+}
+
+/**
  * Step 1: URL Base + Resource Details
  */
 export const step1Schema = z.object({
   rawUrl: z
     .string()
     .min(1, 'La URL es requerida')
-    .regex(/^\/api\//, 'La URL debe comenzar con /api/')
-    .regex(/^\/api\/[a-zA-Z0-9\-_/.]+$/, 'La URL contiene caracteres inválidos'),
+    .superRefine(validateRelativeUrl),
   code: z
     .string()
     .min(1, 'El código es requerido')
     .max(50, 'El código debe tener máximo 50 caracteres')
     .regex(/^[a-z][a-z0-9_-]*$/, 'Alfanumérico en minúsculas con guiones o guiones bajos'),
   name: z.string().min(1, 'El nombre es requerido').max(100, 'El nombre debe tener máximo 100 caracteres'),
-  scope: z.enum(['global', 'condominium'], {
-    error: 'El alcance debe ser global o condominium',
-  }),
+  description: z.string().max(500, 'La descripción debe tener máximo 500 caracteres').optional().nullable(),
 });
 
 /**
@@ -114,7 +154,7 @@ export type MethodConfig = z.infer<typeof methodConfigSchema>;
  * Field names for each step (used with trigger() for per-step validation)
  */
 export const STEP_FIELDS: Record<number, (keyof WizardFormData)[]> = {
-  0: ['rawUrl', 'code', 'name', 'scope'],
+  0: ['rawUrl', 'code', 'name', 'description'],
   1: ['methodConfigs'],
   2: ['segments'],
 };

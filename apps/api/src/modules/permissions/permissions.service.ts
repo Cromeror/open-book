@@ -4,14 +4,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { User } from '../../entities/user.entity';
-import { PermissionContext, Scope } from '../../types/permissions.enum';
 import {
   Module,
   ModulePermission,
-  UserModule,
   UserPermission,
   UserPoolMember,
-  PoolModule,
   PoolPermission,
 } from '../../entities';
 import { PermissionsCacheService } from './permissions-cache.service';
@@ -22,9 +19,9 @@ import type { ModuleWithActions, ModuleAction } from '../../types/module-actions
  *
  * Implements the permission check flow:
  * 1. SuperAdmin check (bypass all)
- * 2. Module access check (direct or via pool)
- * 3. Granular permission check (direct or via pool)
- * 4. Scope verification
+ * 2. Permission check (direct or via pool)
+ *
+ * Module access is inferred from having at least one permission for that module.
  */
 @Injectable()
 export class PermissionsService {
@@ -39,26 +36,16 @@ export class PermissionsService {
     private moduleRepo: Repository<Module>,
     @InjectRepository(ModulePermission)
     private modulePermissionRepo: Repository<ModulePermission>,
-    @InjectRepository(UserModule)
-    private userModuleRepo: Repository<UserModule>,
     @InjectRepository(UserPermission)
     private userPermissionRepo: Repository<UserPermission>,
     @InjectRepository(UserPoolMember)
     private userPoolMemberRepo: Repository<UserPoolMember>,
-    @InjectRepository(PoolModule)
-    private poolModuleRepo: Repository<PoolModule>,
     @InjectRepository(PoolPermission)
     private poolPermissionRepo: Repository<PoolPermission>,
   ) {}
 
   /**
    * Check if user is the SuperAdmin
-   *
-   * SuperAdmin has full access to all system features.
-   * Determined by checking the isSuperAdmin flag on the user entity.
-   *
-   * @param userId - User ID to check
-   * @returns True if user is SuperAdmin
    */
   async isSuperAdmin(userId: string): Promise<boolean> {
     const user = await this.userRepo.findOne({
@@ -72,27 +59,24 @@ export class PermissionsService {
   /**
    * Check if user has access to a module
    *
-   * Checks both direct access (UserModule) and pool access (PoolModule).
-   *
-   * @param userId - User ID to check
-   * @param moduleCode - Module code (e.g., 'objetivos')
-   * @returns True if user has access to the module
+   * Module access is inferred from having at least one permission
+   * for that module (direct or via pool).
    */
   async hasModuleAccess(userId: string, moduleCode: string): Promise<boolean> {
-    // SuperAdmin has access to everything
     if (await this.isSuperAdmin(userId)) {
       return true;
     }
 
-    // Check direct access
-    const directAccess = await this.userModuleRepo
-      .createQueryBuilder('um')
-      .innerJoin('um.module', 'm')
-      .where('um.userId = :userId', { userId })
+    // Check direct: any user_permission for this module
+    const directAccess = await this.userPermissionRepo
+      .createQueryBuilder('up')
+      .innerJoin('up.modulePermission', 'mp')
+      .innerJoin('mp.module', 'm')
+      .where('up.userId = :userId', { userId })
       .andWhere('m.code = :moduleCode', { moduleCode })
-      .andWhere('um.isActive = true')
+      .andWhere('up.isActive = true')
       .andWhere('m.isActive = true')
-      .andWhere('(um.expiresAt IS NULL OR um.expiresAt > :now)', {
+      .andWhere('(up.expiresAt IS NULL OR up.expiresAt > :now)', {
         now: new Date(),
       })
       .getOne();
@@ -108,22 +92,12 @@ export class PermissionsService {
   /**
    * Check if user has a specific permission
    *
-   * Requires:
-   * 1. Access to the module
-   * 2. The specific granular permission
-   * 3. Appropriate scope for the context
-   *
-   * @param userId - User ID to check
-   * @param permission - Permission string (e.g., 'objetivos:create')
-   * @param context - Optional context for scope verification
-   * @returns True if user has the permission
+   * Checks both direct permissions and pool permissions.
    */
   async hasPermission(
     userId: string,
     permission: string,
-    context?: PermissionContext,
   ): Promise<boolean> {
-    // SuperAdmin has all permissions
     if (await this.isSuperAdmin(userId)) {
       return true;
     }
@@ -135,38 +109,25 @@ export class PermissionsService {
       return false;
     }
 
-    // 1. Check module access
-    const hasModule = await this.hasModuleAccess(userId, moduleCode);
-    if (!hasModule) {
-      return false;
+    // Check direct permission
+    const hasDirect = await this.hasDirectPermission(userId, moduleCode, action);
+    if (hasDirect) {
+      return true;
     }
 
-    // 2. Check direct permission
-    const directPermission = await this.getDirectPermission(
-      userId,
-      moduleCode,
-      action,
-    );
-
-    if (directPermission) {
-      if (this.scopeMatches(directPermission.scope, directPermission.scopeId, context)) {
-        return true;
-      }
-    }
-
-    // 3. Check pool permissions
-    return this.hasPermissionViaPool(userId, moduleCode, action, context);
+    // Check pool permissions
+    return this.hasPermissionViaPool(userId, moduleCode, action);
   }
 
   /**
-   * Get direct permission for a user
+   * Check if user has a direct permission
    */
-  private async getDirectPermission(
+  private async hasDirectPermission(
     userId: string,
     moduleCode: string,
     action: string,
-  ): Promise<{ scope: Scope; scopeId?: string | null } | null> {
-    const permission = await this.userPermissionRepo
+  ): Promise<boolean> {
+    const count = await this.userPermissionRepo
       .createQueryBuilder('up')
       .innerJoin('up.modulePermission', 'mp')
       .innerJoin('mp.module', 'm')
@@ -178,17 +139,9 @@ export class PermissionsService {
       .andWhere('(up.expiresAt IS NULL OR up.expiresAt > :now)', {
         now: new Date(),
       })
-      .select(['up.scope', 'up.scopeId'])
-      .getOne();
+      .getCount();
 
-    if (!permission) {
-      return null;
-    }
-
-    return {
-      scope: permission.scope as Scope,
-      scopeId: permission.scopeId,
-    };
+    return count > 0;
   }
 
   /**
@@ -198,11 +151,12 @@ export class PermissionsService {
     userId: string,
     moduleCode: string,
   ): Promise<boolean> {
-    const result = await this.poolModuleRepo
-      .createQueryBuilder('pm')
-      .innerJoin('pm.pool', 'p')
+    const result = await this.poolPermissionRepo
+      .createQueryBuilder('pp')
+      .innerJoin('pp.pool', 'p')
       .innerJoin(UserPoolMember, 'upm', 'upm.poolId = p.id')
-      .innerJoin('pm.module', 'm')
+      .innerJoin('pp.modulePermission', 'mp')
+      .innerJoin('mp.module', 'm')
       .where('upm.userId = :userId', { userId })
       .andWhere('m.code = :moduleCode', { moduleCode })
       .andWhere('p.isActive = true')
@@ -219,9 +173,8 @@ export class PermissionsService {
     userId: string,
     moduleCode: string,
     action: string,
-    context?: PermissionContext,
   ): Promise<boolean> {
-    const poolPermissions = await this.poolPermissionRepo
+    const count = await this.poolPermissionRepo
       .createQueryBuilder('pp')
       .innerJoin('pp.pool', 'p')
       .innerJoin(UserPoolMember, 'upm', 'upm.poolId = p.id')
@@ -232,57 +185,18 @@ export class PermissionsService {
       .andWhere('mp.code = :action', { action })
       .andWhere('p.isActive = true')
       .andWhere('m.isActive = true')
-      .select(['pp.scope', 'pp.scopeId'])
-      .getMany();
+      .getCount();
 
-    // Check if any pool permission matches the context
-    for (const pp of poolPermissions) {
-      if (this.scopeMatches(pp.scope as Scope, pp.scopeId, context)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * Check if granted scope matches the request context
-   */
-  private scopeMatches(
-    grantedScope: Scope,
-    grantedScopeId: string | null | undefined,
-    context?: PermissionContext,
-  ): boolean {
-    // ALL scope allows everything
-    if (grantedScope === Scope.ALL) {
-      return true;
-    }
-
-    // COPROPIEDAD scope: verify copropiedad ID matches
-    if (grantedScope === Scope.COPROPIEDAD && context?.copropiedadId) {
-      return grantedScopeId === context.copropiedadId;
-    }
-
-    // OWN scope: the calling service must verify ownership
-    // We return true here and let the service handle the actual ownership check
-    if (grantedScope === Scope.OWN) {
-      return true;
-    }
-
-    // Default: no context means allow (for listing operations)
-    if (!context) {
-      return true;
-    }
-
-    return false;
+    return count > 0;
   }
 
   /**
    * Get all module codes a user has access to
+   *
+   * Derived from user_permissions and pool_permissions.
    */
   async getUserModuleCodes(userId: string): Promise<string[]> {
     if (await this.isSuperAdmin(userId)) {
-      // SuperAdmin has access to all modules
       const allModules = await this.moduleRepo.find({
         where: { isActive: true },
         select: ['code'],
@@ -290,32 +204,33 @@ export class PermissionsService {
       return allModules.map((m) => m.code);
     }
 
-    // Direct modules
-    const directModules = await this.userModuleRepo
-      .createQueryBuilder('um')
-      .innerJoin('um.module', 'm')
-      .where('um.userId = :userId', { userId })
-      .andWhere('um.isActive = true')
+    // Direct: module codes from user_permissions
+    const directModules = await this.userPermissionRepo
+      .createQueryBuilder('up')
+      .innerJoin('up.modulePermission', 'mp')
+      .innerJoin('mp.module', 'm')
+      .where('up.userId = :userId', { userId })
+      .andWhere('up.isActive = true')
       .andWhere('m.isActive = true')
-      .andWhere('(um.expiresAt IS NULL OR um.expiresAt > :now)', {
+      .andWhere('(up.expiresAt IS NULL OR up.expiresAt > :now)', {
         now: new Date(),
       })
-      .select('m.code', 'code')
+      .select('DISTINCT m.code', 'code')
       .getRawMany<{ code: string }>();
 
-    // Pool modules
-    const poolModules = await this.poolModuleRepo
-      .createQueryBuilder('pm')
-      .innerJoin('pm.pool', 'p')
+    // Pool: module codes from pool_permissions
+    const poolModules = await this.poolPermissionRepo
+      .createQueryBuilder('pp')
+      .innerJoin('pp.pool', 'p')
       .innerJoin(UserPoolMember, 'upm', 'upm.poolId = p.id')
-      .innerJoin('pm.module', 'm')
+      .innerJoin('pp.modulePermission', 'mp')
+      .innerJoin('mp.module', 'm')
       .where('upm.userId = :userId', { userId })
       .andWhere('p.isActive = true')
       .andWhere('m.isActive = true')
-      .select('m.code', 'code')
+      .select('DISTINCT m.code', 'code')
       .getRawMany<{ code: string }>();
 
-    // Combine and deduplicate
     const allCodes = new Set([
       ...directModules.map((m) => m.code),
       ...poolModules.map((m) => m.code),
@@ -330,9 +245,8 @@ export class PermissionsService {
   async getUserModulePermissions(
     userId: string,
     moduleCode: string,
-  ): Promise<{ code: string; scope: Scope; scopeId?: string | null }[]> {
+  ): Promise<{ code: string }[]> {
     if (await this.isSuperAdmin(userId)) {
-      // SuperAdmin has all permissions with ALL scope
       const modulePermissions = await this.modulePermissionRepo
         .createQueryBuilder('mp')
         .innerJoin('mp.module', 'm')
@@ -341,14 +255,11 @@ export class PermissionsService {
         .select('mp.code', 'code')
         .getRawMany<{ code: string }>();
 
-      return modulePermissions.map((p) => ({
-        code: p.code,
-        scope: Scope.ALL,
-      }));
+      return modulePermissions;
     }
 
     // Direct permissions
-    const directPermissions = await this.userPermissionRepo
+    const directPerms = await this.userPermissionRepo
       .createQueryBuilder('up')
       .innerJoin('up.modulePermission', 'mp')
       .innerJoin('mp.module', 'm')
@@ -359,11 +270,11 @@ export class PermissionsService {
       .andWhere('(up.expiresAt IS NULL OR up.expiresAt > :now)', {
         now: new Date(),
       })
-      .select(['mp.code', 'up.scope', 'up.scopeId'])
-      .getRawMany<{ mp_code: string; up_scope: string; up_scope_id: string }>();
+      .select('DISTINCT mp.code', 'code')
+      .getRawMany<{ code: string }>();
 
     // Pool permissions
-    const poolPermissions = await this.poolPermissionRepo
+    const poolPerms = await this.poolPermissionRepo
       .createQueryBuilder('pp')
       .innerJoin('pp.pool', 'p')
       .innerJoin(UserPoolMember, 'upm', 'upm.poolId = p.id')
@@ -373,36 +284,15 @@ export class PermissionsService {
       .andWhere('m.code = :moduleCode', { moduleCode })
       .andWhere('p.isActive = true')
       .andWhere('m.isActive = true')
-      .select(['mp.code', 'pp.scope', 'pp.scopeId'])
-      .getRawMany<{ mp_code: string; pp_scope: string; pp_scope_id: string }>();
+      .select('DISTINCT mp.code', 'code')
+      .getRawMany<{ code: string }>();
 
-    // Combine permissions (use broadest scope if duplicates)
-    const permissionMap = new Map<
-      string,
-      { code: string; scope: Scope; scopeId?: string | null }
-    >();
+    const codes = new Set([
+      ...directPerms.map((p) => p.code),
+      ...poolPerms.map((p) => p.code),
+    ]);
 
-    for (const p of directPermissions) {
-      const key = `${p.mp_code}:${p.up_scope}:${p.up_scope_id || ''}`;
-      permissionMap.set(key, {
-        code: p.mp_code,
-        scope: p.up_scope as Scope,
-        scopeId: p.up_scope_id,
-      });
-    }
-
-    for (const p of poolPermissions) {
-      const key = `${p.mp_code}:${p.pp_scope}:${p.pp_scope_id || ''}`;
-      if (!permissionMap.has(key)) {
-        permissionMap.set(key, {
-          code: p.mp_code,
-          scope: p.pp_scope as Scope,
-          scopeId: p.pp_scope_id,
-        });
-      }
-    }
-
-    return Array.from(permissionMap.values());
+    return Array.from(codes).map((code) => ({ code }));
   }
 
   /**
@@ -410,15 +300,11 @@ export class PermissionsService {
    *
    * Returns modules the user has access to, with only the actions
    * they have permission for. Action code = Permission code.
-   *
-   * @param userId - User ID
-   * @returns Array of modules with their allowed actions
    */
   async getModulesWithActionsForUser(userId: string): Promise<ModuleWithActions[]> {
     const isSuperAdmin = await this.isSuperAdmin(userId);
 
     if (isSuperAdmin) {
-      // SuperAdmin gets all modules with all actions
       return this.getAllModulesWithAllActions();
     }
 
@@ -439,17 +325,14 @@ export class PermissionsService {
     const result: ModuleWithActions[] = [];
 
     for (const module of modules) {
-      // Get user's permissions for this module
       const userPermissions = await this.getUserModulePermissions(userId, module.code);
       const permissionCodes = new Set(userPermissions.map((p) => p.code));
 
-      // Filter actions based on permissions
       const allActions = (module.actionsConfig || []) as ModuleAction[];
       const allowedActions = allActions.filter((action) =>
         permissionCodes.has(action.code),
       );
 
-      // Skip module if user has no allowed actions
       if (allowedActions.length === 0) {
         continue;
       }
@@ -464,13 +347,11 @@ export class PermissionsService {
         actions: allowedActions,
       };
 
-      // Add CRUD-specific fields
       if (module.type === 'crud') {
         moduleWithActions.entity = module.entity;
         moduleWithActions.endpoint = module.endpoint;
       }
 
-      // Add specialized-specific fields
       if (module.type === 'specialized') {
         moduleWithActions.component = module.component;
       }
@@ -478,7 +359,6 @@ export class PermissionsService {
       result.push(moduleWithActions);
     }
 
-    // Sort by nav order
     result.sort((a, b) => a.nav.order - b.nav.order);
 
     return result;

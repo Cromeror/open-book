@@ -8,7 +8,6 @@ import { publicEnv } from '@/config/env';
 import type {
   AuthMeResponse,
   ModuleWithActions,
-  PermissionContext,
 } from './types';
 
 /**
@@ -44,9 +43,9 @@ export interface ServerPermissions {
   /**
    * Check if user has a specific action in a module
    * Action code = Permission code
-   * Format: "module:action" (e.g., "objetivos:create")
+   * Format: "module:action" (e.g., "goals:create")
    */
-  can: (permission: string, context?: PermissionContext) => boolean;
+  can: (permission: string) => boolean;
 
   /**
    * Check if user has a specific action in a module
@@ -115,7 +114,7 @@ function createUserPermissions(
       return modules.some((m) => m.code === moduleCode);
     },
 
-    can: (permission: string, context?: PermissionContext) => {
+    can: (permission: string) => {
       const [moduleCode, actionCode] = permission.split(':');
 
       if (!moduleCode || !actionCode) {
@@ -286,11 +285,10 @@ export async function requireModule(
  */
 export async function requirePermission(
   permission: string,
-  context?: PermissionContext
 ): Promise<ServerPermissions> {
   const permissions = await requireAuth();
 
-  if (!permissions.can(permission, context)) {
+  if (!permissions.can(permission)) {
     throw new Error(`No tienes permiso para: ${permission}`);
   }
 

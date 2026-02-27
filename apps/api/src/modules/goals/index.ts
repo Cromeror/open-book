@@ -2,7 +2,7 @@
 export { GoalsModule } from './goals.module';
 
 // Service
-export { GoalsService, AuditContext } from './goals.service';
+export { GoalsService } from './goals.service';
 
 // Controller
 export { GoalsController } from './goals.controller';

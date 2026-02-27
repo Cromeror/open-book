@@ -2,19 +2,16 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
-  BadRequestException,
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Scope } from '../../types/permissions.enum';
 import {
   Module,
   ModulePermission,
   UserPool,
   UserPoolMember,
-  PoolModule,
   PoolPermission,
 } from '../../entities';
 import { PermissionsCacheService } from './permissions-cache.service';
@@ -25,7 +22,8 @@ import { GrantPoolPermissionDto } from './dto/grant-pool-permission.dto';
  * Service for managing user pools
  *
  * Pools allow SuperAdmin to group users with shared permissions.
- * All pool members inherit the pool's module access and permissions.
+ * All pool members inherit the pool's permissions.
+ * Module access is inferred from having at least one permission for that module.
  */
 @Injectable()
 export class PoolsService {
@@ -36,8 +34,6 @@ export class PoolsService {
     private poolRepo: Repository<UserPool>,
     @InjectRepository(UserPoolMember)
     private memberRepo: Repository<UserPoolMember>,
-    @InjectRepository(PoolModule)
-    private poolModuleRepo: Repository<PoolModule>,
     @InjectRepository(PoolPermission)
     private poolPermissionRepo: Repository<PoolPermission>,
     @InjectRepository(Module)
@@ -81,7 +77,7 @@ export class PoolsService {
   async findOne(poolId: string): Promise<UserPool> {
     const pool = await this.poolRepo.findOne({
       where: { id: poolId },
-      relations: ['members', 'members.user', 'modules', 'modules.module', 'permissions', 'permissions.modulePermission'],
+      relations: ['members', 'members.user', 'permissions', 'permissions.modulePermission'],
     });
 
     if (!pool) {
@@ -187,88 +183,7 @@ export class PoolsService {
   }
 
   /**
-   * Grant module access to a pool
-   */
-  async grantModuleAccess(
-    superAdminId: string,
-    poolId: string,
-    moduleId: string,
-  ): Promise<PoolModule> {
-    // Verify pool exists
-    const pool = await this.findOne(poolId);
-
-    // Verify module exists and is active
-    const module = await this.moduleRepo.findOne({
-      where: { id: moduleId, isActive: true },
-    });
-
-    if (!module) {
-      throw new NotFoundException('Módulo no encontrado');
-    }
-
-    // Check if already has access
-    const existing = await this.poolModuleRepo.findOne({
-      where: { poolId, moduleId },
-    });
-
-    if (existing) {
-      throw new ConflictException('Pool ya tiene acceso a este módulo');
-    }
-
-    const poolModule = this.poolModuleRepo.create({
-      poolId,
-      moduleId,
-      grantedBy: superAdminId,
-      grantedAt: new Date(),
-    });
-
-    await this.poolModuleRepo.save(poolModule);
-
-    // Invalidate cache for all pool members
-    const memberIds = pool.members?.map((m) => m.userId) || [];
-    this.cacheService.invalidateMany(memberIds);
-
-    this.logger.log(`Module access granted to pool ${poolId}: ${module.code}`);
-
-    return poolModule;
-  }
-
-  /**
-   * Revoke module access from a pool
-   */
-  async revokeModuleAccess(poolId: string, moduleId: string): Promise<void> {
-    const pool = await this.findOne(poolId);
-
-    const poolModule = await this.poolModuleRepo.findOne({
-      where: { poolId, moduleId },
-    });
-
-    if (!poolModule) {
-      throw new NotFoundException('Pool no tiene acceso a este módulo');
-    }
-
-    // Also remove all permissions for this module
-    await this.poolPermissionRepo
-      .createQueryBuilder()
-      .delete()
-      .where('poolId = :poolId', { poolId })
-      .andWhere(
-        'modulePermissionId IN (SELECT id FROM module_permissions WHERE module_id = :moduleId)',
-        { moduleId },
-      )
-      .execute();
-
-    await this.poolModuleRepo.remove(poolModule);
-
-    // Invalidate cache for all pool members
-    const memberIds = pool.members?.map((m) => m.userId) || [];
-    this.cacheService.invalidateMany(memberIds);
-
-    this.logger.log(`Module access revoked from pool ${poolId}: ${moduleId}`);
-  }
-
-  /**
-   * Grant a granular permission to a pool
+   * Grant a permission to a pool
    */
   async grantPermission(
     superAdminId: string,
@@ -287,24 +202,11 @@ export class PoolsService {
       throw new NotFoundException('Permiso de módulo no encontrado');
     }
 
-    // Verify pool has access to the module
-    const hasModuleAccess = await this.poolModuleRepo.findOne({
-      where: { poolId, moduleId: modulePermission.moduleId },
-    });
-
-    if (!hasModuleAccess) {
-      throw new BadRequestException(
-        'Pool debe tener acceso al módulo antes de asignar permisos granulares',
-      );
-    }
-
     // Check for duplicate
     const existing = await this.poolPermissionRepo.findOne({
       where: {
         poolId,
         modulePermissionId: dto.modulePermissionId,
-        scope: dto.scope,
-        scopeId: dto.scopeId || undefined,
       },
     });
 
@@ -315,8 +217,6 @@ export class PoolsService {
     const poolPermission = this.poolPermissionRepo.create({
       poolId,
       modulePermissionId: dto.modulePermissionId,
-      scope: dto.scope,
-      scopeId: dto.scopeId || null,
       grantedBy: superAdminId,
       grantedAt: new Date(),
     });
@@ -335,7 +235,7 @@ export class PoolsService {
   }
 
   /**
-   * Revoke a granular permission from a pool
+   * Revoke a permission from a pool
    */
   async revokePermission(poolId: string, permissionId: string): Promise<void> {
     const pool = await this.findOne(poolId);
@@ -370,16 +270,6 @@ export class PoolsService {
   }
 
   /**
-   * Get modules a pool has access to
-   */
-  async getPoolModules(poolId: string): Promise<PoolModule[]> {
-    return this.poolModuleRepo.find({
-      where: { poolId },
-      relations: ['module'],
-    });
-  }
-
-  /**
    * Get permissions assigned to a pool
    */
   async getPoolPermissions(poolId: string): Promise<PoolPermission[]> {
@@ -387,76 +277,5 @@ export class PoolsService {
       where: { poolId },
       relations: ['modulePermission', 'modulePermission.module'],
     });
-  }
-
-  /**
-   * Check if user has module access via any pool
-   */
-  async hasModuleAccessViaPool(
-    userId: string,
-    moduleCode: string,
-  ): Promise<boolean> {
-    const result = await this.poolModuleRepo
-      .createQueryBuilder('pm')
-      .innerJoin('pm.pool', 'p')
-      .innerJoin(UserPoolMember, 'upm', 'upm.poolId = p.id')
-      .innerJoin('pm.module', 'm')
-      .where('upm.userId = :userId', { userId })
-      .andWhere('m.code = :moduleCode', { moduleCode })
-      .andWhere('p.isActive = true')
-      .andWhere('m.isActive = true')
-      .getOne();
-
-    return !!result;
-  }
-
-  /**
-   * Check if user has permission via any pool
-   */
-  async hasPermissionViaPool(
-    userId: string,
-    moduleCode: string,
-    action: string,
-    context?: { copropiedadId?: string },
-  ): Promise<boolean> {
-    const poolPermissions = await this.poolPermissionRepo
-      .createQueryBuilder('pp')
-      .innerJoin('pp.pool', 'p')
-      .innerJoin(UserPoolMember, 'upm', 'upm.poolId = p.id')
-      .innerJoin('pp.modulePermission', 'mp')
-      .innerJoin('mp.module', 'm')
-      .where('upm.userId = :userId', { userId })
-      .andWhere('m.code = :moduleCode', { moduleCode })
-      .andWhere('mp.code = :action', { action })
-      .andWhere('p.isActive = true')
-      .andWhere('m.isActive = true')
-      .select(['pp.scope', 'pp.scopeId'])
-      .getMany();
-
-    for (const pp of poolPermissions) {
-      if (this.scopeMatches(pp.scope as Scope, pp.scopeId, context)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  private scopeMatches(
-    grantedScope: Scope,
-    grantedScopeId: string | null | undefined,
-    context?: { copropiedadId?: string },
-  ): boolean {
-    if (grantedScope === Scope.ALL) return true;
-
-    if (grantedScope === Scope.COPROPIEDAD && context?.copropiedadId) {
-      return grantedScopeId === context.copropiedadId;
-    }
-
-    if (grantedScope === Scope.OWN) {
-      return true;
-    }
-
-    return !context;
   }
 }

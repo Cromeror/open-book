@@ -1,12 +1,10 @@
 import type { ReactNode } from 'react';
 
 import { getServerPermissions } from '@/lib/permissions.server';
-import type { PermissionContext } from '@/lib/types';
 
 interface ShowForPermissionProps {
-  /** Permission string in format "module:action" (e.g., "objetivos:create") */
+  /** Permission string in format "module:action" (e.g., "goals:create") */
   permission: string;
-  context?: PermissionContext;
   children: ReactNode;
   fallback?: ReactNode;
 }
@@ -16,21 +14,13 @@ interface ShowForPermissionProps {
  *
  * @example
  * ```tsx
- * <ShowForPermission permission="objetivos:create">
+ * <ShowForPermission permission="goals:create">
  *   <Button>Crear Objetivo</Button>
- * </ShowForPermission>
- *
- * <ShowForPermission
- *   permission="objetivos:update"
- *   context={{ copropiedadId: objetivo.copropiedadId }}
- * >
- *   <Button>Editar</Button>
  * </ShowForPermission>
  * ```
  */
 export async function ShowForPermission({
   permission,
-  context,
   children,
   fallback = null,
 }: ShowForPermissionProps) {
@@ -42,7 +32,7 @@ export async function ShowForPermission({
   }
 
   // Check permission
-  if (!permissions.can(permission, context)) {
+  if (!permissions.can(permission)) {
     return <>{fallback}</>;
   }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { Resource, ResourceScope } from '@/types/business';
+import { Resource } from '@/types/business';
 import { CheckCircleIcon, XCircleIcon, EditIcon, TrashIcon, PowerIcon } from 'lucide-react';
 import { UrlPreview } from './UrlPreview';
 
@@ -25,13 +25,6 @@ export function ResourceDetail({
   onToggleStatus,
   loading = false,
 }: ResourceDetailProps) {
-  const getScopeBadge = (scope: ResourceScope) => {
-    if (scope === 'global') {
-      return <span className="rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">Global</span>;
-    }
-    return <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">Condominium</span>;
-  };
-
   const getStatusBadge = (isActive: boolean) => {
     if (isActive) {
       return (
@@ -61,7 +54,6 @@ export function ResourceDetail({
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {getScopeBadge(resource.scope)}
             {getStatusBadge(resource.isActive)}
           </div>
         </div>
@@ -119,13 +111,15 @@ export function ResourceDetail({
             <dd className="mt-1 text-gray-900">{resource.name}</dd>
           </div>
           <div>
-            <dt className="font-medium text-gray-700">Scope</dt>
-            <dd className="mt-1">{getScopeBadge(resource.scope)}</dd>
-          </div>
-          <div>
             <dt className="font-medium text-gray-700">Status</dt>
             <dd className="mt-1">{getStatusBadge(resource.isActive)}</dd>
           </div>
+          {resource.description && (
+            <div className="col-span-2">
+              <dt className="font-medium text-gray-700">Description</dt>
+              <dd className="mt-1 text-gray-900 text-sm">{resource.description}</dd>
+            </div>
+          )}
           <div className="col-span-2">
             <dt className="font-medium text-gray-700">Template URL</dt>
             <dd className="mt-1 text-gray-900">

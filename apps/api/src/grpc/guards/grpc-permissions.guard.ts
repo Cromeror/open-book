@@ -14,40 +14,15 @@ import {
   PermissionOptions,
 } from '../../modules/permissions/decorators/require-permission.decorator';
 import { MODULE_KEY } from '../../modules/permissions/decorators/require-module.decorator';
-import { PermissionContext } from '../../types/permissions.enum';
 import { RequestUser } from '../../modules/auth/strategies/jwt.strategy';
 
 /**
  * gRPC Permissions Guard
  *
- * This guard is an adapter that extracts permission requirements from
- * decorator metadata and delegates validation to the existing PermissionsService.
+ * Extracts permission requirements from decorator metadata and delegates
+ * validation to the existing PermissionsService.
  *
- * Flow:
- * 1. Extract user from gRPC context (attached by GrpcJwtAuthGuard)
- * 2. Extract required module/permission from decorator metadata
- * 3. Call PermissionsService methods (same as HTTP)
- * 4. Verify scope against request context
- *
- * This ensures 100% code reuse with HTTP authorization:
- * - Same permission checking logic
- * - Same @RequireModule() and @RequirePermission() decorators
- * - Same RBAC rules (scope: OWN, COPROPIEDAD, ALL)
- *
- * @example
- * ```typescript
- * @Controller()
- * @UseGuards(GrpcJwtAuthGuard, GrpcPermissionsGuard)
- * export class CondominiumsGrpcController {
- *   @GrpcMethod('CondominiumsService', 'GetUserCondominiums')
- *   @RequireModule('properties')
- *   getUserCondominiums() {}
- *
- *   @GrpcMethod('CondominiumsService', 'CreateCondominium')
- *   @RequirePermission('properties:create')
- *   createCondominium() {}
- * }
- * ```
+ * Module access is inferred from having at least one permission for that module.
  */
 @Injectable()
 export class GrpcPermissionsGuard implements CanActivate {
@@ -87,9 +62,6 @@ export class GrpcPermissionsGuard implements CanActivate {
       return true;
     }
 
-    // Extract context from gRPC request
-    const permissionContext = this.extractContext(context);
-
     // Check module access if required
     if (requiredModule) {
       const hasModule = await this.permissionsService.hasModuleAccess(
@@ -114,8 +86,7 @@ export class GrpcPermissionsGuard implements CanActivate {
 
       const hasPermission = await this.permissionsService.hasPermission(
         user.id,
-        requiredPermission,
-        permissionContext
+        requiredPermission
       );
 
       if (!hasPermission) {
@@ -131,22 +102,5 @@ export class GrpcPermissionsGuard implements CanActivate {
     }
 
     return true;
-  }
-
-  /**
-   * Extract permission context from gRPC request
-   * Similar to HTTP, but extracts from gRPC data structure
-   */
-  private extractContext(context: ExecutionContext): PermissionContext {
-    // Get gRPC request data
-    const data = context.switchToRpc().getData() as Record<string, unknown>;
-
-    // Extract context IDs from request data
-    // These field names should match the proto message field names
-    return {
-      copropiedadId: data.copropiedadId as string | undefined,
-      apartamentoId: data.apartamentoId as string | undefined,
-      resourceOwnerId: data.userId as string | undefined,
-    };
   }
 }

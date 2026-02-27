@@ -25,18 +25,23 @@ export function StepRawUrl({ register, errors, loading }: StepRawUrlProps) {
             <label className={labelClasses}>
               URL <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              {...register('rawUrl')}
-              disabled={loading}
-              className={`${inputClasses} font-mono text-xs ${errors.rawUrl ? 'border-red-500' : ''}`}
-              placeholder="/api/condominiums/abc-123/goals/xyz-456"
-            />
+            <div className={`mt-1 flex rounded-md border shadow-sm focus-within:ring-1 ${errors.rawUrl ? 'border-red-500 focus-within:ring-red-500' : 'border-gray-300 focus-within:border-blue-500 focus-within:ring-blue-500'}`}>
+              <span className="inline-flex items-center rounded-l-md border-r border-gray-300 bg-gray-50 px-3 py-2 text-xs text-gray-400 font-mono select-none whitespace-nowrap">
+                http://dominio/
+              </span>
+              <input
+                type="text"
+                {...register('rawUrl')}
+                disabled={loading}
+                className="block w-full rounded-r-md px-3 py-2 text-sm font-mono text-xs focus:outline-none disabled:bg-gray-100"
+                placeholder="condominiums/{id}/goals/:goalId"
+              />
+            </div>
             {errors.rawUrl ? (
               <p className="mt-1 text-xs text-red-500">{errors.rawUrl.message}</p>
             ) : (
               <p className="mt-1 text-xs text-gray-500">
-                Debe comenzar con /api/. Ejemplo: /api/condominiums/abc-123/goals/xyz-456
+                Sin slash inicial. Use <code className="bg-gray-100 px-1 rounded">{'{variable}'}</code> o <code className="bg-gray-100 px-1 rounded">:variable</code> para segmentos dinámicos.
               </p>
             )}
           </div>
@@ -78,21 +83,20 @@ export function StepRawUrl({ register, errors, loading }: StepRawUrlProps) {
             />
             {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
           </div>
+        </div>
 
-          <div>
-            <label className={labelClasses}>
-              Alcance <span className="text-red-500">*</span>
-            </label>
-            <select
-              {...register('scope')}
-              disabled={loading}
-              className={`${inputClasses} ${errors.scope ? 'border-red-500' : ''}`}
-            >
-              <option value="global">Global</option>
-              <option value="condominium">Condominium</option>
-            </select>
-            {errors.scope && <p className="mt-1 text-xs text-red-500">{errors.scope.message}</p>}
-          </div>
+        <div className="mt-3">
+          <label className={labelClasses}>
+            Descripción
+          </label>
+          <textarea
+            {...register('description')}
+            disabled={loading}
+            rows={2}
+            className={`${inputClasses} resize-none ${errors.description ? 'border-red-500' : ''}`}
+            placeholder="Descripción opcional del recurso..."
+          />
+          {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description.message}</p>}
         </div>
       </Section>
     </>

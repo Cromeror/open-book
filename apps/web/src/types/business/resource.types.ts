@@ -11,11 +11,32 @@
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 /**
- * Resource scope
- * - global: Resource is not scoped to a condominium (e.g., /api/users)
- * - condominium: Resource is scoped to a condominium (e.g., /api/condominiums/{id}/goals)
+ * Parameter mapping for HATEOAS link resolution
+ * Maps a field from the response body to a URL parameter placeholder
  */
-export type ResourceScope = 'global' | 'condominium';
+export interface ResourceLinkParamMapping {
+  /** Field path in the response body (e.g., 'id', 'goal.id') */
+  responseField: string;
+  /** URL parameter name in the target template (e.g., 'goalId', 'id') */
+  urlParam: string;
+}
+
+/**
+ * Outbound HATEOAS link configuration for a resource HTTP method
+ *
+ * Configures which links are generated when this method's response is returned.
+ * Links point to other resource HTTP methods.
+ */
+export interface ResourceHttpMethodLink {
+  /** UUID of the link record (undefined if not yet saved) */
+  id?: string;
+  /** Relation name included in the `_links` object (e.g., 'self', 'edit', 'delete') */
+  rel: string;
+  /** UUID of the target `resource_http_methods` row */
+  targetHttpMethodId: string;
+  /** Mappings from response fields to URL params of the target resource */
+  paramMappings: ResourceLinkParamMapping[];
+}
 
 /**
  * Resource-HTTP method association
@@ -25,6 +46,12 @@ export type ResourceScope = 'global' | 'condominium';
  * about the expected request payload and response structure.
  */
 export interface ResourceHttpMethod {
+  /**
+   * UUID of the `resource_http_methods` row.
+   * Present when loaded from the backend; undefined for new methods not yet saved.
+   */
+  id?: string;
+
   /**
    * Capability name (e.g., 'list', 'create', 'close', 'export')
    * Used as the 'rel' in HATEOAS links
@@ -56,6 +83,9 @@ export interface ResourceHttpMethod {
 
   /** Whether this resource-method association is active */
   isActive?: boolean;
+
+  /** Outbound HATEOAS links configured for this method */
+  outboundLinks?: ResourceHttpMethodLink[];
 }
 
 /**
@@ -68,8 +98,8 @@ export interface Resource {
   code: string;
   /** Display name */
   name: string;
-  /** Resource scope */
-  scope: ResourceScope;
+  /** Optional description for documentation */
+  description?: string | null;
   /** URL template for this resource */
   templateUrl: string;
   /** HTTP methods associated with this resource */

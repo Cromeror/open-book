@@ -5,10 +5,10 @@ import { ConfigService } from '@nestjs/config';
  * Cached permissions structure for a user
  */
 interface CachedUserPermissions {
-  /** Module codes the user has access to (direct + pool) */
+  /** Module codes the user has access to (inferred from permissions) */
   moduleAccess: Set<string>;
-  /** Permission strings with scope (format: "module:action:scope:scopeId?") */
-  permissions: Map<string, { scope: string; scopeId?: string }[]>;
+  /** Permission strings (format: "module:action") */
+  permissions: Set<string>;
   /** Timestamp when cache was created */
   cachedAt: number;
 }
@@ -22,7 +22,7 @@ interface CachedUserPermissions {
  * Features:
  * - TTL-based expiration
  * - Per-user invalidation
- * - Bulk invalidation by pool or copropiedad
+ * - Bulk invalidation for pool members
  */
 @Injectable()
 export class PermissionsCacheService {

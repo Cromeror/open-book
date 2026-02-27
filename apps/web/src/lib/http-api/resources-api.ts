@@ -1,4 +1,4 @@
-import type { Resource, HttpMethod, ResourceScope } from '@/types/business';
+import type { Resource, HttpMethod } from '@/types/business';
 
 /**
  * Client-side API wrapper for resource management
@@ -12,13 +12,13 @@ import type { Resource, HttpMethod, ResourceScope } from '@/types/business';
 export interface CreateResourceDto {
   code: string;
   name: string;
-  scope: ResourceScope;
+  description?: string | null;
   templateUrl: string;
 }
 
 export interface UpdateResourceDto {
   name?: string;
-  scope?: ResourceScope;
+  description?: string | null;
   templateUrl?: string;
   isActive?: boolean;
 }
@@ -30,7 +30,6 @@ export interface AssignHttpMethodDto {
 }
 
 export interface FindResourcesOptions {
-  scope?: ResourceScope;
   isActive?: boolean;
   search?: string;
   page?: number;
@@ -57,7 +56,6 @@ export async function getAllResources(
 ): Promise<PaginatedResponse<Resource>> {
   const params = new URLSearchParams();
 
-  if (options?.scope) params.append('scope', options.scope);
   if (options?.isActive !== undefined) params.append('isActive', String(options.isActive));
   if (options?.search) params.append('search', options.search);
   if (options?.page) params.append('page', String(options.page));

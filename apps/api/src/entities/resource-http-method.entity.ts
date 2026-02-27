@@ -1,8 +1,9 @@
-import { Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, JoinColumn, Index } from 'typeorm';
 
 import { BaseEntity } from './base.entity';
 import { Resource } from './resource.entity';
 import { HttpMethod } from './http-method.entity';
+import { ResourceHttpMethodLink } from './resource-http-method-link.entity';
 import type {
   PayloadMetadata,
   ResponseMetadata,
@@ -105,4 +106,11 @@ export class ResourceHttpMethod extends BaseEntity {
     default: true,
   })
   isActive!: boolean;
+
+  /**
+   * Outbound HATEOAS links configured for this resource-method combination.
+   * Loaded explicitly when needed (not eager).
+   */
+  @OneToMany(() => ResourceHttpMethodLink, (link) => link.sourceHttpMethod)
+  outboundLinks!: ResourceHttpMethodLink[];
 }

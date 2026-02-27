@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Resource } from '../../../entities/resource.entity';
 import { HttpMethod } from '../../../entities/http-method.entity';
 import { ResourceHttpMethod } from '../../../entities/resource-http-method.entity';
+import { ResourceHttpMethodLink } from '../../../entities/resource-http-method-link.entity';
 import {
   CreateResourceDto,
   UpdateResourceDto,
@@ -26,6 +27,8 @@ export class AdminResourcesService {
     private readonly httpMethodRepository: Repository<HttpMethod>,
     @InjectRepository(ResourceHttpMethod)
     private readonly resourceHttpMethodRepository: Repository<ResourceHttpMethod>,
+    @InjectRepository(ResourceHttpMethodLink)
+    private readonly rhmLinkRepository: Repository<ResourceHttpMethodLink>,
   ) {}
 
   /**
@@ -34,7 +37,6 @@ export class AdminResourcesService {
   async findAll(options: FindResourcesOptions = {}) {
     const {
       search,
-      scope,
       isActive,
       page = 1,
       limit = 50,
@@ -46,6 +48,7 @@ export class AdminResourcesService {
       .createQueryBuilder('r')
       .leftJoinAndSelect('r.httpMethods', 'rhm')
       .leftJoinAndSelect('rhm.httpMethod', 'hm')
+      .leftJoinAndSelect('rhm.outboundLinks', 'links')
       .where('r.deletedAt IS NULL');
 
     // Apply search filter
@@ -54,11 +57,6 @@ export class AdminResourcesService {
         '(r.code ILIKE :search OR r.name ILIKE :search)',
         { search: `%${search}%` },
       );
-    }
-
-    // Apply scope filter
-    if (scope) {
-      queryBuilder.andWhere('r.scope = :scope', { scope });
     }
 
     // Apply active filter
@@ -81,10 +79,18 @@ export class AdminResourcesService {
     const mapped = data.map((resource) => ({
       ...resource,
       httpMethods: (resource.httpMethods ?? []).map((rhm) => ({
+        id: rhm.id,
         method: rhm.httpMethod?.method,
         payloadMetadata: rhm.payloadMetadata,
         responseMetadata: rhm.responseMetadata,
         isActive: rhm.isActive,
+        outboundLinks: (rhm.outboundLinks ?? []).map((link) => ({
+          id: link.id,
+          rel: link.rel,
+          targetHttpMethodId: link.targetHttpMethodId,
+          paramMappings: link.paramMappings,
+          isActive: link.isActive,
+        })),
       })),
     }));
 
@@ -105,7 +111,7 @@ export class AdminResourcesService {
   async findByCode(code: string): Promise<Resource | null> {
     return this.resourceRepository.findOne({
       where: { code },
-      relations: ['httpMethods', 'httpMethods.httpMethod'],
+      relations: ['httpMethods', 'httpMethods.httpMethod', 'httpMethods.outboundLinks'],
     });
   }
 
@@ -115,7 +121,7 @@ export class AdminResourcesService {
   async findById(id: string): Promise<Resource | null> {
     return this.resourceRepository.findOne({
       where: { id },
-      relations: ['httpMethods', 'httpMethods.httpMethod'],
+      relations: ['httpMethods', 'httpMethods.httpMethod', 'httpMethods.outboundLinks'],
     });
   }
 
@@ -126,7 +132,7 @@ export class AdminResourcesService {
     const resource = this.resourceRepository.create({
       code: dto.code,
       name: dto.name,
-      scope: dto.scope,
+      description: dto.description ?? null,
       templateUrl: dto.templateUrl,
       isActive: true,
     });
@@ -147,7 +153,7 @@ export class AdminResourcesService {
     }
 
     if (dto.name !== undefined) resource.name = dto.name;
-    if (dto.scope !== undefined) resource.scope = dto.scope;
+    if (dto.description !== undefined) resource.description = dto.description;
     if (dto.templateUrl !== undefined) resource.templateUrl = dto.templateUrl;
     if (dto.isActive !== undefined) resource.isActive = dto.isActive;
 
@@ -270,5 +276,38 @@ export class AdminResourcesService {
     });
 
     return (result.affected ?? 0) > 0;
+  }
+
+  /**
+   * Replace all outbound links for a resource HTTP method (upsert strategy).
+   *
+   * Deletes all existing links for the given sourceHttpMethodId and inserts the new ones.
+   * Returns the saved links.
+   */
+  async replaceLinks(
+    sourceHttpMethodId: string,
+    links: Array<{
+      rel: string;
+      targetHttpMethodId: string;
+      paramMappings: Array<{ responseField: string; urlParam: string }>;
+    }>,
+  ): Promise<ResourceHttpMethodLink[]> {
+    await this.rhmLinkRepository.delete({ sourceHttpMethodId });
+
+    if (links.length === 0) {
+      return [];
+    }
+
+    const entities = links.map((l) =>
+      this.rhmLinkRepository.create({
+        sourceHttpMethodId,
+        targetHttpMethodId: l.targetHttpMethodId,
+        rel: l.rel,
+        paramMappings: l.paramMappings,
+        isActive: true,
+      }),
+    );
+
+    return this.rhmLinkRepository.save(entities);
   }
 }

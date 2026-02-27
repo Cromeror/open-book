@@ -3,9 +3,10 @@ import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { requireSuperAdmin } from '@/lib/permissions.server';
 import { publicEnv } from '@/config/env';
+import { getGrpcClient } from '@/lib/grpc';
 import { ResourcesManager } from './resources-manager';
 import { ContentLayout } from '@/components/layout';
-import type { Resource, ResourceHttpMethod, HttpMethod } from '@/types/business';
+import type { Resource, ResourceHttpMethod, HttpMethod, SessionContextFieldDescriptor } from '@/types/business';
 import type { PaginatedResponse } from '@/lib/http-api/resources-api';
 
 /**
@@ -58,6 +59,21 @@ async function getResources(): Promise<PaginatedResponse<Resource>> {
   }
 }
 
+async function getSessionContextMetadata(): Promise<SessionContextFieldDescriptor[]> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('access_token')?.value;
+
+  if (!token) return [];
+
+  try {
+    const grpc = getGrpcClient();
+    return await grpc.sessionContext.getSessionContextMetadata(token);
+  } catch (error) {
+    console.error('[resources-page] Error fetching session context metadata:', error);
+    return [];
+  }
+}
+
 export default async function AdminResourcesPage() {
   try {
     await requireSuperAdmin();
@@ -65,7 +81,10 @@ export default async function AdminResourcesPage() {
     redirect('/dashboard');
   }
 
-  const resources = await getResources();
+  const [resources, sessionContextMetadata] = await Promise.all([
+    getResources(),
+    getSessionContextMetadata(),
+  ]);
 
   return (
     <ContentLayout
@@ -78,7 +97,10 @@ export default async function AdminResourcesPage() {
         </Link>
       }
     >
-      <ResourcesManager initialResources={resources} />
+      <ResourcesManager
+        initialResources={resources}
+        sessionContextMetadata={sessionContextMetadata}
+      />
     </ContentLayout>
   );
 }

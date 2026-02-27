@@ -21,3 +21,11 @@ export interface SessionContext {
   userStateLanguage: string;
   userStateSidebarCollapsed: boolean;
 }
+
+/**
+ * Field descriptor for session context metadata
+ */
+export interface SessionContextFieldDescriptor {
+  name: string;
+  type: string;
+}

@@ -23,8 +23,6 @@ import {
   validateCreatePoolDto,
   AddPoolMemberDto,
   validateAddPoolMemberDto,
-  GrantPoolModuleDto,
-  validateGrantPoolModuleDto,
   GrantPoolPermissionDto,
   validateGrantPoolPermissionDto,
 } from './dto';
@@ -159,54 +157,8 @@ export class PoolsController {
   }
 
   /**
-   * POST /api/admin/pools/:id/modules
-   * Grant module access to a pool
-   */
-  @Post(':id/modules')
-  @HttpCode(HttpStatus.CREATED)
-  async grantModuleAccess(
-    @CurrentUser() superAdmin: User,
-    @Param('id') poolId: string,
-    @Body() body: unknown,
-  ) {
-    let dto: GrantPoolModuleDto;
-    try {
-      dto = validateGrantPoolModuleDto(body);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const messages = error.issues.map((issue) => issue.message);
-        throw new BadRequestException({
-          statusCode: 400,
-          message: 'Error de validación',
-          errors: messages,
-        });
-      }
-      throw error;
-    }
-
-    return this.poolsService.grantModuleAccess(
-      superAdmin.id,
-      poolId,
-      dto.moduleId,
-    );
-  }
-
-  /**
-   * DELETE /api/admin/pools/:id/modules/:moduleId
-   * Revoke module access from a pool
-   */
-  @Delete(':id/modules/:moduleId')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async revokeModuleAccess(
-    @Param('id') poolId: string,
-    @Param('moduleId') moduleId: string,
-  ) {
-    await this.poolsService.revokeModuleAccess(poolId, moduleId);
-  }
-
-  /**
    * POST /api/admin/pools/:id/permissions
-   * Grant a granular permission to a pool
+   * Grant a permission to a pool
    */
   @Post(':id/permissions')
   @HttpCode(HttpStatus.CREATED)
@@ -235,7 +187,7 @@ export class PoolsController {
 
   /**
    * DELETE /api/admin/pools/:id/permissions/:permissionId
-   * Revoke a granular permission from a pool
+   * Revoke a permission from a pool
    */
   @Delete(':id/permissions/:permissionId')
   @HttpCode(HttpStatus.NO_CONTENT)

@@ -5,12 +5,6 @@
  * and provides utility functions for runtime permission checks.
  */
 
-// Re-export shared types from business types
-export type { Scope, PermissionContext } from '@/types/business';
-
-// Type alias for compatibility
-export type PermissionScope = 'own' | 'copropiedad' | 'all';
-
 // Auth response types (transport types, re-exported for convenience)
 export type { AuthUser } from './permissions.server';
 

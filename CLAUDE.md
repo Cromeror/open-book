@@ -91,6 +91,68 @@ Domain concepts mapping (Spanish domain → English code):
 ### Components Location
 All React components must be in `src/components/`. Do NOT create `_components/` folders inside route directories.
 
+## Architecture: Core Platform vs. Domain Layer
+
+### The integration model
+
+OpenBook API acts as an **integration layer** between the frontend and external systems:
+
+```
+Frontend (Next.js)
+      ↓  HTTP
+OpenBook API (NestJS)   ← integration layer: auth, permissions, HATEOAS, business rules
+      ↓  HTTP / gRPC / SDK
+External System (ERP, accounting, property management, etc.)
+```
+
+Today there is no external system — the domain logic lives directly in the API (goals, condominiums, etc.). But the architecture anticipates that in the future, domain data would come from an external system and the API would act as the facade: consuming the external, applying permissions and HATEOAS, and responding to the frontend.
+
+**The `resources` registry is our configuration** — we define how the external system's responses are exposed to the frontend (which endpoints exist, what their URLs are, what HATEOAS links they produce). The external system does not know about this registry.
+
+### Two distinct layers
+
+**Core Platform (domain-agnostic, reusable across clients)**
+- **Resources** (`resources`, `resource_http_methods`, `resource_http_method_links`) — catalog of exposed endpoints and their HATEOAS link configurations
+- **HATEOAS** (`HateoasModule`, `HateoasInterceptor`, `HateoasService`, `@HateoasResource`) — enriches responses with `_links` automatically
+- **Permissions** (`modules`, `module_permissions`, `user_permissions`, `pool_permissions`) — granular permission system with direct and pool-based assignment
+- **Users, Auth, Pools** — authentication and user grouping
+
+**Domain Layer (condominium-specific, current client)**
+- `goals`, `activities`, `commitments`, `contributions`
+- `condominiums`, `properties`, `property_residents`
+- `pqr`, `account_statements`, `reports`
+
+### How to implement a new endpoint
+
+**Always follow this order:**
+
+1. **Register the resource in BD** via the admin API:
+   ```
+   POST /admin/resources  → declare the endpoint with its templateUrl
+   POST /admin/resources/:code/http-methods  → assign HTTP methods
+   ```
+
+2. **Configure HATEOAS links** (optional but recommended):
+   ```
+   PUT /admin/resources/:code/http-methods/:methodId/links  → define outbound links
+   ```
+
+3. **Implement the controller** — consume domain logic or call the external system, then decorate:
+   ```typescript
+   @UseGuards(JwtAuthGuard, CondominiumMemberGuard, PermissionsGuard)
+   export class GoalsController {
+     @Get()
+     @HateoasResource('goals', 'GET')      // ← matches resource code in BD
+     @RequirePermission('goals:read')       // ← matches module_permission code in BD
+     async findAll(...) {
+       // today: calls GoalsService (local DB)
+       // future: calls ExternalERP.getGoals(condominiumId)
+     }
+   }
+   ```
+
+The controller is the integration point: it receives the frontend request, applies auth/permissions, calls the data source (local or external), and returns the enriched response. The core platform handles auth, permissions, and HATEOAS transparently — the same regardless of whether the data source is local or external.
+
 ## Legal Compliance Requirements
 
 Colombian Law 1581/2012 (Habeas Data) applies to resident data:

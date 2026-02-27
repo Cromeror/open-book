@@ -95,4 +95,4 @@ export { PoolForm } from './pool-form';
 export type { PoolFormData } from './pool-form';
 
 export { PoolDetail } from './pool-detail';
-export type { PoolDetailProps, PoolMemberInfo, PoolModuleInfo } from './pool-detail';
+export type { PoolDetailProps, PoolMemberInfo, PoolPermissionInfo } from './pool-detail';

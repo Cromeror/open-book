@@ -25,16 +25,14 @@ export { CurrentUser } from './decorators/current-user.decorator';
 export {
   Module,
   ModulePermission,
-  UserModule,
   UserPermission,
   UserPool,
   UserPoolMember,
-  PoolModule,
   PoolPermission,
 } from '../../entities';
 
 // Enums and types
-export { Action, Scope, Permission, PermissionContext } from '../../types/permissions.enum';
+export { Action, Permission } from '../../types/permissions.enum';
 export { SYSTEM_MODULES, ModuleDefinition } from './module-registry';
 
 // DTOs
@@ -43,12 +41,8 @@ export {
   validateCreatePoolDto,
   AddPoolMemberDto,
   validateAddPoolMemberDto,
-  GrantModuleAccessDto,
-  validateGrantModuleAccessDto,
   GrantPermissionDto,
   validateGrantPermissionDto,
-  GrantPoolModuleDto,
-  validateGrantPoolModuleDto,
   GrantPoolPermissionDto,
   validateGrantPoolPermissionDto,
 } from './dto';

@@ -3,8 +3,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Condominium } from '../../entities/condominium.entity';
 import { CondominiumManager } from '../../entities/condominium-manager.entity';
+import { Property } from '../../entities/property.entity';
+import { PropertyResident } from '../../entities/property-resident.entity';
 import { CondominiumsController } from './condominiums.controller';
 import { CondominiumsService } from './condominiums.service';
+import { CondominiumMemberGuard } from './guards/condominium-member.guard';
 
 /**
  * Module for regular user condominium access
@@ -22,10 +25,10 @@ import { CondominiumsService } from './condominiums.service';
  */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Condominium, CondominiumManager]),
+    TypeOrmModule.forFeature([Condominium, CondominiumManager, Property, PropertyResident]),
   ],
   controllers: [CondominiumsController],
-  providers: [CondominiumsService],
-  exports: [CondominiumsService],
+  providers: [CondominiumsService, CondominiumMemberGuard],
+  exports: [CondominiumsService, CondominiumMemberGuard, TypeOrmModule],
 })
 export class CondominiumsModule {}

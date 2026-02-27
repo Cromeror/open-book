@@ -19,8 +19,6 @@ import { AdminPermissionsService } from './admin-permissions.service';
 import { CurrentUser } from './decorators';
 import { SuperAdminGuard } from './guards/superadmin.guard';
 import {
-  GrantModuleAccessDto,
-  validateGrantModuleAccessDto,
   GrantPermissionDto,
   validateGrantPermissionDto,
 } from './dto';
@@ -63,68 +61,8 @@ export class AdminPermissionsController {
   }
 
   /**
-   * GET /api/admin/permissions/users/:userId/modules
-   * Get modules a user has direct access to
-   */
-  @Get('users/:userId/modules')
-  async getUserModules(@Param('userId') userId: string) {
-    return this.adminPermissionsService.getUserModules(userId);
-  }
-
-  /**
-   * POST /api/admin/permissions/users/:userId/modules
-   * Grant module access to a user
-   */
-  @Post('users/:userId/modules')
-  @HttpCode(HttpStatus.CREATED)
-  async grantUserModuleAccess(
-    @CurrentUser() superAdmin: User,
-    @Param('userId') userId: string,
-    @Body() body: unknown,
-  ) {
-    let dto: GrantModuleAccessDto;
-    try {
-      dto = validateGrantModuleAccessDto(body);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const messages = error.issues.map((issue) => issue.message);
-        throw new BadRequestException({
-          statusCode: 400,
-          message: 'Error de validación',
-          errors: messages,
-        });
-      }
-      throw error;
-    }
-
-    return this.adminPermissionsService.grantModuleAccess(
-      superAdmin.id,
-      userId,
-      dto,
-    );
-  }
-
-  /**
-   * DELETE /api/admin/permissions/users/:userId/modules/:moduleId
-   * Revoke module access from a user
-   */
-  @Delete('users/:userId/modules/:moduleId')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async revokeUserModuleAccess(
-    @CurrentUser() superAdmin: User,
-    @Param('userId') userId: string,
-    @Param('moduleId') moduleId: string,
-  ) {
-    await this.adminPermissionsService.revokeModuleAccess(
-      superAdmin.id,
-      userId,
-      moduleId,
-    );
-  }
-
-  /**
    * POST /api/admin/permissions/users/:userId/permissions
-   * Grant a granular permission to a user
+   * Grant a permission to a user
    */
   @Post('users/:userId/permissions')
   @HttpCode(HttpStatus.CREATED)
@@ -157,7 +95,7 @@ export class AdminPermissionsController {
 
   /**
    * DELETE /api/admin/permissions/users/:userId/permissions/:permissionId
-   * Revoke a granular permission from a user
+   * Revoke a permission from a user
    */
   @Delete('users/:userId/permissions/:permissionId')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -195,7 +133,6 @@ export class AdminPermissionsController {
   /**
    * GET /api/admin/permissions/users/by-module/:moduleCode
    * Get module info with actions filtered by current user's permissions
-   * SuperAdmin gets all actions, regular users get only their assigned actions
    */
   @Get('users/by-module/:moduleCode')
   async getModuleWithUserActions(

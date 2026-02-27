@@ -11,6 +11,8 @@ import { PropertiesModule } from '../modules/properties';
 import { PropertyResidentsModule } from '../modules/property-residents';
 import { CondominiumsModule } from '../modules/condominiums';
 import { GrpcModule } from '../grpc/grpc.module';
+import { AppCacheModule } from '../modules/cache/cache.module';
+import { HateoasModule } from '../modules/hateoas/hateoas.module';
 import { AuditSubscriber, ImmutableSubscriber } from '../subscribers';
 
 import { AppController } from './app.controller';
@@ -21,6 +23,8 @@ import { AppService } from './app.service';
     TypeOrmModule.forRootAsync({
       useFactory: typeOrmConfigFactory,
     }),
+    AppCacheModule,
+    HateoasModule,
     AdminModule,
     UsersModule,
     AuthModule,

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Resource, ResourceScope } from '@/types/business';
+import { Resource } from '@/types/business';
 import { Eye, Edit, Trash2, Power } from 'lucide-react';
 
 export interface ResourceListProps {
@@ -30,7 +30,6 @@ export function ResourceList({
   loading = false,
 }: ResourceListProps) {
   const [search, setSearch] = useState('');
-  const [scopeFilter, setScopeFilter] = useState<ResourceScope | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
   // Filter resources
@@ -49,33 +48,13 @@ export function ResourceList({
         if (!matchesSearch) return false;
       }
 
-      // Scope filter
-      if (scopeFilter !== 'all' && resource.scope !== scopeFilter) {
-        return false;
-      }
-
       // Status filter
       if (statusFilter === 'active' && !resource.isActive) return false;
       if (statusFilter === 'inactive' && resource.isActive) return false;
 
       return true;
     });
-  }, [resources, search, scopeFilter, statusFilter]);
-
-  const getScopeBadge = (scope: ResourceScope) => {
-    if (scope === 'global') {
-      return (
-        <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-          Global
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
-        Condominium
-      </span>
-    );
-  };
+  }, [resources, search, statusFilter]);
 
   const getStatusBadge = (isActive: boolean) => {
     if (isActive) {
@@ -126,43 +105,6 @@ export function ResourceList({
 
         {/* Filters */}
         <div className="mt-3 flex flex-wrap gap-2">
-          {/* Scope Filter */}
-          <div className="flex gap-1">
-            <button
-              type="button"
-              onClick={() => setScopeFilter('all')}
-              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
-                scopeFilter === 'all'
-                  ? 'bg-gray-800 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              Todos
-            </button>
-            <button
-              type="button"
-              onClick={() => setScopeFilter('global')}
-              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
-                scopeFilter === 'global'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-green-100 text-green-700 hover:bg-green-200'
-              }`}
-            >
-              Global
-            </button>
-            <button
-              type="button"
-              onClick={() => setScopeFilter('condominium')}
-              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
-                scopeFilter === 'condominium'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-              }`}
-            >
-              Condominium
-            </button>
-          </div>
-
           {/* Status Filter */}
           <div className="flex gap-1">
             <button
@@ -206,7 +148,7 @@ export function ResourceList({
       <div className="overflow-x-auto">
         {filteredResources.length === 0 ? (
           <div className="p-8 text-center text-sm text-gray-500">
-            {search || scopeFilter !== 'all' || statusFilter !== 'all'
+            {search || statusFilter !== 'all'
               ? 'No se encontraron recursos con los filtros aplicados'
               : 'No hay recursos registrados'}
           </div>
@@ -225,12 +167,6 @@ export function ResourceList({
                   className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
                 >
                   Name
-                </th>
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-                >
-                  Scope
                 </th>
                 <th
                   scope="col"
@@ -272,7 +208,6 @@ export function ResourceList({
                   <td className="px-4 py-3 text-sm font-medium text-gray-900">
                     {resource.name}
                   </td>
-                  <td className="px-4 py-3 text-sm">{getScopeBadge(resource.scope)}</td>
                   <td className="px-4 py-3 text-sm">
                     <span className="truncate block max-w-xs font-mono text-xs text-gray-600">
                       {resource.templateUrl}

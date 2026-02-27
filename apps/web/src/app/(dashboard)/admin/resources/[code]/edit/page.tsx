@@ -4,8 +4,24 @@ import Link from 'next/link';
 import { requireSuperAdmin } from '@/lib/permissions.server';
 import { publicEnv } from '@/config/env';
 import { ContentLayout } from '@/components/layout';
-import type { Resource, ResourceHttpMethod, HttpMethod } from '@/types/business';
+import type { Resource, ResourceHttpMethod, ResourceHttpMethodLink, HttpMethod } from '@/types/business';
 import { ResourceEditForm } from './resource-edit-form';
+
+/**
+ * Map a raw resource_http_method_link from the API to the frontend type
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapApiLink(raw: any): ResourceHttpMethodLink {
+  return {
+    id: raw.id,
+    rel: raw.rel,
+    targetHttpMethodId: raw.targetHttpMethodId,
+    paramMappings: (raw.paramMappings ?? []).map((pm: any) => ({
+      responseField: pm.responseField,
+      urlParam: pm.urlParam,
+    })),
+  };
+}
 
 /**
  * Map junction table response to frontend ResourceHttpMethod type
@@ -13,37 +29,57 @@ import { ResourceEditForm } from './resource-edit-form';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapApiResource(raw: any): Resource {
   return {
-    ...raw,
+    id: raw.id,
+    code: raw.code,
+    name: raw.name,
+    description: raw.description ?? null,
+    templateUrl: raw.templateUrl,
+    isActive: raw.isActive,
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
     httpMethods: (raw.httpMethods ?? []).map((rhm: any) => ({
+      id: rhm.id,
       name: rhm.httpMethod?.method?.toLowerCase() ?? '',
       method: (rhm.httpMethod?.method ?? 'GET') as HttpMethod,
       urlPattern: '',
       payloadMetadata: rhm.payloadMetadata ? JSON.stringify(rhm.payloadMetadata) : undefined,
       responseMetadata: rhm.responseMetadata ? JSON.stringify(rhm.responseMetadata) : undefined,
       isActive: rhm.isActive,
+      outboundLinks: (rhm.outboundLinks ?? []).map(mapApiLink),
     } satisfies ResourceHttpMethod)),
   };
 }
 
-async function getResource(code: string): Promise<Resource | null> {
+async function getToken(): Promise<string | null> {
   const cookieStore = await cookies();
-  const token = cookieStore.get('access_token')?.value;
+  return cookieStore.get('access_token')?.value ?? null;
+}
 
-  if (!token) return null;
-
+async function getResource(code: string, token: string): Promise<Resource | null> {
   try {
     const response = await fetch(`${publicEnv.NEXT_PUBLIC_API_URL}/admin/resources/${code}`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: 'no-store',
     });
-
     if (!response.ok) return null;
-
-    const raw = await response.json();
-    return mapApiResource(raw);
-  } catch (error) {
-    console.error('Error fetching resource:', error);
+    return mapApiResource(await response.json());
+  } catch {
     return null;
+  }
+}
+
+async function getAllResources(token: string): Promise<Resource[]> {
+  try {
+    const response = await fetch(`${publicEnv.NEXT_PUBLIC_API_URL}/admin/resources`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    });
+    if (!response.ok) return [];
+    const body = await response.json();
+    // Response is paginated: { data: [], pagination: {} }
+    return (body.data ?? []).map(mapApiResource);
+  } catch {
+    return [];
   }
 }
 
@@ -59,7 +95,16 @@ export default async function EditResourcePage({ params }: Props) {
   }
 
   const { code } = await params;
-  const resource = await getResource(code);
+  const token = await getToken();
+
+  if (!token) {
+    redirect('/login');
+  }
+
+  const [resource, allResources] = await Promise.all([
+    getResource(code, token),
+    getAllResources(token),
+  ]);
 
   if (!resource) {
     notFound();
@@ -77,14 +122,35 @@ export default async function EditResourcePage({ params }: Props) {
       }
     >
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Editar Recurso</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            <code>{resource.code}</code>
-          </p>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Configuración detallada del recurso
+          </h1>
+          <div className="group relative">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 text-gray-400 hover:text-gray-600 cursor-help"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <path d="M12 17h.01" />
+            </svg>
+            <div className="pointer-events-none absolute left-1/2 top-7 z-10 hidden w-80 -translate-x-1/2 rounded-lg border border-gray-200 bg-white p-3 text-xs text-gray-600 shadow-lg group-hover:block">
+              <p className="font-semibold text-gray-800 mb-1">¿Cómo funciona?</p>
+              <ul className="space-y-1 list-disc list-inside">
+                <li><strong>Template URL</strong>: define la estructura de la URL del recurso.</li>
+                <li><strong>Métodos HTTP</strong>: cada método habilitado representa una acción disponible (listar, crear, actualizar, etc.).</li>
+                <li><strong>Links de salida</strong>: configuran los hipervínculos HATEOAS que se inyectan en las respuestas del API para guiar la navegación entre recursos.</li>
+              </ul>
+            </div>
+          </div>
         </div>
 
-        <ResourceEditForm resource={resource} />
+        <ResourceEditForm resource={resource} allResources={allResources} />
       </div>
     </ContentLayout>
   );

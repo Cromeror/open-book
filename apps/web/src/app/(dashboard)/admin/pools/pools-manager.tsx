@@ -8,7 +8,7 @@ import {
   type UserPool,
   type PoolFormData,
   type PoolMemberInfo,
-  type PoolModuleInfo,
+  type PoolPermissionInfo,
 } from '@/components/organisms';
 import {
   ConfirmDialog,
@@ -63,15 +63,15 @@ export function PoolsManager({ initialModules = [] }: PoolsManagerProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [poolToDelete, setPoolToDelete] = useState<UserPool | null>(null);
 
-  // Member/Module management modal state
+  // Member/Permission management modal state
   const [memberModalOpen, setMemberModalOpen] = useState(false);
-  const [moduleModalOpen, setModuleModalOpen] = useState(false);
+  const [permissionModalOpen, setPermissionModalOpen] = useState(false);
 
-  // Members and modules state
+  // Members and permissions state
   const [members, setMembers] = useState<PoolMemberInfo[]>([]);
-  const [modules, setModules] = useState<PoolModuleInfo[]>([]);
+  const [permissions, setPermissions] = useState<PoolPermissionInfo[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
-  const [loadingModules, setLoadingModules] = useState(false);
+  const [loadingPermissions, setLoadingPermissions] = useState(false);
 
   // Available users and modules for selection
   const [availableUsers, setAvailableUsers] = useState<UserForSelect[]>([]);
@@ -125,6 +125,25 @@ export function PoolsManager({ initialModules = [] }: PoolsManagerProps) {
     }
   }, []);
 
+  // Extract members and permissions from pool data
+  const extractPoolDetails = useCallback((freshData: UserPool) => {
+    const poolMembers: PoolMemberInfo[] = (freshData.members || []).map((m: { id: string; userId: string; addedAt?: string; user?: { id: string; name: string; email: string } }) => ({
+      id: m.id,
+      userId: m.userId,
+      addedAt: m.addedAt || '',
+      user: m.user,
+    }));
+    setMembers(poolMembers);
+
+    const poolPerms: PoolPermissionInfo[] = (freshData.permissions || []).map((pp: { id: string; modulePermissionId?: string; grantedAt?: string; modulePermission?: { id: string; code: string; name: string; module?: { id: string; name: string; code: string } } }) => ({
+      id: pp.id,
+      modulePermissionId: pp.modulePermissionId || '',
+      grantedAt: pp.grantedAt || '',
+      modulePermission: pp.modulePermission,
+    }));
+    setPermissions(poolPerms);
+  }, []);
+
   // Fetch available users
   const fetchAvailableUsers = useCallback(async () => {
     try {
@@ -139,7 +158,6 @@ export function PoolsManager({ initialModules = [] }: PoolsManagerProps) {
       setAvailableUsers([]);
     }
   }, []);
-
 
   // Handlers
   const handleSearch = useCallback((query: string) => {
@@ -157,32 +175,15 @@ export function PoolsManager({ initialModules = [] }: PoolsManagerProps) {
       setLoading(true);
       setError(null);
 
-      // Fetch fresh data from API
       const freshData = await fetchPoolById(pool.id);
       if (freshData) {
         setSelectedPool(freshData);
         setViewMode('view');
-
-        // Extract members and modules from response
-        const poolMembers: PoolMemberInfo[] = (freshData.members || []).map((m: { id: string; userId: string; addedAt?: string; user?: { id: string; name: string; email: string } }) => ({
-          id: m.id,
-          userId: m.userId,
-          addedAt: m.addedAt || '',
-          user: m.user,
-        }));
-        setMembers(poolMembers);
-
-        const poolModules: PoolModuleInfo[] = (freshData.modules || []).map((pm: { id: string; moduleId: string; grantedAt?: string; module?: { id: string; name: string; code: string; description?: string } }) => ({
-          id: pm.id,
-          moduleId: pm.moduleId,
-          grantedAt: pm.grantedAt || '',
-          module: pm.module,
-        }));
-        setModules(poolModules);
+        extractPoolDetails(freshData);
       }
       setLoading(false);
     },
-    [fetchPoolById]
+    [fetchPoolById, extractPoolDetails]
   );
 
   const handleEdit = useCallback(
@@ -194,19 +195,11 @@ export function PoolsManager({ initialModules = [] }: PoolsManagerProps) {
       if (freshData) {
         setSelectedPool(freshData);
         setViewMode('edit');
-
-        // Extract modules from response for the edit form
-        const poolModules: PoolModuleInfo[] = (freshData.modules || []).map((pm: { id: string; moduleId: string; grantedAt?: string; module?: { id: string; name: string; code: string; description?: string } }) => ({
-          id: pm.id,
-          moduleId: pm.moduleId,
-          grantedAt: pm.grantedAt || '',
-          module: pm.module,
-        }));
-        setModules(poolModules);
+        extractPoolDetails(freshData);
       }
       setLoading(false);
     },
-    [fetchPoolById]
+    [fetchPoolById, extractPoolDetails]
   );
 
   const handleDelete = useCallback((pool: UserPool) => {
@@ -218,7 +211,7 @@ export function PoolsManager({ initialModules = [] }: PoolsManagerProps) {
     setViewMode('list');
     setSelectedPool(null);
     setMembers([]);
-    setModules([]);
+    setPermissions([]);
     setError(null);
   }, []);
 
@@ -326,9 +319,8 @@ export function PoolsManager({ initialModules = [] }: PoolsManagerProps) {
     setError(null);
 
     try {
-      // Since the API doesn't have a toggle endpoint, we'll use PATCH to update isActive
       const response = await fetch(`/api/admin/pools/${selectedPool.id}`, {
-        method: 'DELETE', // Using DELETE as it deactivates the pool
+        method: 'DELETE',
       });
 
       if (!response.ok && response.status !== 204) {
@@ -372,17 +364,10 @@ export function PoolsManager({ initialModules = [] }: PoolsManagerProps) {
         setSuccessMessage('Miembro agregado correctamente');
         setMemberModalOpen(false);
 
-        // Refresh pool data
         const freshData = await fetchPoolById(selectedPool.id);
         if (freshData) {
           setSelectedPool(freshData);
-          const poolMembers: PoolMemberInfo[] = (freshData.members || []).map((m: { id: string; userId: string; addedAt?: string; user?: { id: string; name: string; email: string } }) => ({
-            id: m.id,
-            userId: m.userId,
-            addedAt: m.addedAt || '',
-            user: m.user,
-          }));
-          setMembers(poolMembers);
+          extractPoolDetails(freshData);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -390,7 +375,7 @@ export function PoolsManager({ initialModules = [] }: PoolsManagerProps) {
         setLoadingMembers(false);
       }
     },
-    [selectedPool, fetchPoolById]
+    [selectedPool, fetchPoolById, extractPoolDetails]
   );
 
   const handleRemoveMember = useCallback(
@@ -410,39 +395,30 @@ export function PoolsManager({ initialModules = [] }: PoolsManagerProps) {
 
         setSuccessMessage('Miembro eliminado correctamente');
 
-        // Refresh pool data
         const freshData = await fetchPoolById(selectedPool.id);
         if (freshData) {
           setSelectedPool(freshData);
-          const poolMembers: PoolMemberInfo[] = (freshData.members || []).map((m: { id: string; userId: string; addedAt?: string; user?: { id: string; name: string; email: string } }) => ({
-            id: m.id,
-            userId: m.userId,
-            addedAt: m.addedAt || '',
-            user: m.user,
-          }));
-          setMembers(poolMembers);
+          extractPoolDetails(freshData);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error desconocido');
       }
     },
-    [selectedPool, fetchPoolById]
+    [selectedPool, fetchPoolById, extractPoolDetails]
   );
 
-  // Module management
-  const handleManageModules = useCallback(() => {
-    setModuleModalOpen(true);
+  // Permission management
+  const handleManagePermissions = useCallback(() => {
+    setPermissionModalOpen(true);
   }, []);
 
-  // Get permissions for a module from local data (no API call needed)
+  // Get permissions for a module from local data
   const fetchModulePermissions = useCallback(async (moduleCode: string): Promise<PermissionOption[]> => {
-    // Find the module in availableModules
     const module = availableModules.find(m => m.code === moduleCode);
     if (!module || !module.permissions) {
       return [];
     }
 
-    // Return the permissions from the module
     return module.permissions.map(p => ({
       id: p.id,
       code: p.code,
@@ -451,34 +427,18 @@ export function PoolsManager({ initialModules = [] }: PoolsManagerProps) {
     }));
   }, [availableModules]);
 
-  // Add module with permissions (used from modal)
-  const handleAddModuleWithPermissions = useCallback(
-    async (moduleId: string, permissionIds: string[]) => {
-      if (!selectedPool || !moduleId) return;
+  // Grant permissions to pool directly (no module-first step)
+  const handleGrantPermissions = useCallback(
+    async (_moduleId: string, permissionIds: string[]) => {
+      if (!selectedPool) return;
 
-      setLoadingModules(true);
+      setLoadingPermissions(true);
       try {
-        // Step 1: Add module to pool
-        const moduleResponse = await fetch(`/api/admin/pools/${selectedPool.id}/modules`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ moduleId }),
-        });
-
-        if (!moduleResponse.ok) {
-          const errorData = await moduleResponse.json();
-          throw new Error(errorData.message || 'Error al agregar modulo');
-        }
-
-        // Step 2: Add permissions for the module
         for (const permissionId of permissionIds) {
           const permResponse = await fetch(`/api/admin/pools/${selectedPool.id}/permissions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              modulePermissionId: permissionId,
-              scope: 'all',
-            }),
+            body: JSON.stringify({ modulePermissionId: permissionId }),
           });
 
           if (!permResponse.ok) {
@@ -486,106 +446,50 @@ export function PoolsManager({ initialModules = [] }: PoolsManagerProps) {
           }
         }
 
-        setSuccessMessage('Modulo y permisos agregados correctamente');
-        setModuleModalOpen(false);
+        setSuccessMessage('Permisos asignados correctamente');
+        setPermissionModalOpen(false);
 
-        // Refresh pool data
         const freshData = await fetchPoolById(selectedPool.id);
         if (freshData) {
           setSelectedPool(freshData);
-          const poolModules: PoolModuleInfo[] = (freshData.modules || []).map((pm: { id: string; moduleId: string; grantedAt?: string; module?: { id: string; name: string; code: string; description?: string } }) => ({
-            id: pm.id,
-            moduleId: pm.moduleId,
-            grantedAt: pm.grantedAt || '',
-            module: pm.module,
-          }));
-          setModules(poolModules);
+          extractPoolDetails(freshData);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error desconocido');
       } finally {
-        setLoadingModules(false);
+        setLoadingPermissions(false);
       }
     },
-    [selectedPool, fetchPoolById]
+    [selectedPool, fetchPoolById, extractPoolDetails]
   );
 
-  // Add module by ID only (used from form - without permissions)
-  const handleAddModuleById = useCallback(
-    async (moduleId: string) => {
-      if (!selectedPool || !moduleId) return;
-
-      setLoadingModules(true);
-      try {
-        const response = await fetch(`/api/admin/pools/${selectedPool.id}/modules`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ moduleId }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Error al agregar modulo');
-        }
-
-        setSuccessMessage('Modulo agregado correctamente');
-        setModuleModalOpen(false);
-
-        // Refresh pool data
-        const freshData = await fetchPoolById(selectedPool.id);
-        if (freshData) {
-          setSelectedPool(freshData);
-          const poolModules: PoolModuleInfo[] = (freshData.modules || []).map((pm: { id: string; moduleId: string; grantedAt?: string; module?: { id: string; name: string; code: string; description?: string } }) => ({
-            id: pm.id,
-            moduleId: pm.moduleId,
-            grantedAt: pm.grantedAt || '',
-            module: pm.module,
-          }));
-          setModules(poolModules);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error desconocido');
-      } finally {
-        setLoadingModules(false);
-      }
-    },
-    [selectedPool, fetchPoolById]
-  );
-
-  const handleRemoveModule = useCallback(
-    async (moduleId: string) => {
+  const handleRevokePermission = useCallback(
+    async (permissionId: string) => {
       if (!selectedPool) return;
 
       try {
         const response = await fetch(
-          `/api/admin/pools/${selectedPool.id}/modules/${moduleId}`,
+          `/api/admin/pools/${selectedPool.id}/permissions/${permissionId}`,
           { method: 'DELETE' }
         );
 
         if (!response.ok && response.status !== 204) {
           const errorData = await response.json();
-          throw new Error(errorData.message || 'Error al eliminar modulo');
+          throw new Error(errorData.message || 'Error al revocar permiso');
         }
 
-        setSuccessMessage('Modulo eliminado correctamente');
+        setSuccessMessage('Permiso revocado correctamente');
 
-        // Refresh pool data
         const freshData = await fetchPoolById(selectedPool.id);
         if (freshData) {
           setSelectedPool(freshData);
-          const poolModules: PoolModuleInfo[] = (freshData.modules || []).map((pm: { id: string; moduleId: string; grantedAt?: string; module?: { id: string; name: string; code: string; description?: string } }) => ({
-            id: pm.id,
-            moduleId: pm.moduleId,
-            grantedAt: pm.grantedAt || '',
-            module: pm.module,
-          }));
-          setModules(poolModules);
+          extractPoolDetails(freshData);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error desconocido');
       }
     },
-    [selectedPool, fetchPoolById]
+    [selectedPool, fetchPoolById, extractPoolDetails]
   );
 
   // Convert pool to form data
@@ -599,11 +503,6 @@ export function PoolsManager({ initialModules = [] }: PoolsManagerProps) {
     (user) => !members.some((m) => m.userId === user.id)
   );
 
-  // Filter modules that are not already assigned
-  const filteredModules = availableModules.filter(
-    (mod) => !modules.some((m) => m.moduleId === mod.id)
-  );
-
   // Transform users to SelectOption format
   const userOptions: SelectOption[] = filteredUsers.map((user) => ({
     id: user.id,
@@ -611,8 +510,8 @@ export function PoolsManager({ initialModules = [] }: PoolsManagerProps) {
     description: user.email,
   }));
 
-  // Transform modules to ModuleOption format
-  const moduleOptions: ModuleOption[] = filteredModules.map((mod) => ({
+  // Transform modules to ModuleOption format (for permission assignment modal)
+  const moduleOptions: ModuleOption[] = availableModules.map((mod) => ({
     id: mod.id,
     code: mod.code,
     name: mod.name,
@@ -654,17 +553,17 @@ export function PoolsManager({ initialModules = [] }: PoolsManagerProps) {
         <PoolDetail
           pool={selectedPool}
           members={members}
-          modules={modules}
+          permissions={permissions}
           loadingMembers={loadingMembers}
-          loadingModules={loadingModules}
+          loadingPermissions={loadingPermissions}
           loading={loading}
           onEdit={handleEdit}
           onToggleStatus={handleToggleStatus}
           onBack={handleBackToList}
           onManageMembers={handleManageMembers}
-          onManageModules={handleManageModules}
+          onManagePermissions={handleManagePermissions}
           onRemoveMember={handleRemoveMember}
-          onRemoveModule={handleRemoveModule}
+          onRevokePermission={handleRevokePermission}
         />
       )}
 
@@ -694,13 +593,9 @@ export function PoolsManager({ initialModules = [] }: PoolsManagerProps) {
             <PoolForm
               initialData={getFormData(selectedPool)}
               isEditMode
-              assignedModules={modules}
-              availableModules={availableModules}
               onSubmit={handleEditSubmit}
               onCancel={handleBackToList}
-              onAddModule={handleAddModuleById}
-              onRemoveModule={handleRemoveModule}
-              loading={loading || loadingModules}
+              loading={loading}
             />
           </div>
         </div>
@@ -720,17 +615,17 @@ export function PoolsManager({ initialModules = [] }: PoolsManagerProps) {
         onCancel={() => setMemberModalOpen(false)}
       />
 
-      {/* Module Modal with Permissions */}
+      {/* Permission Modal (select module, then permissions) */}
       <ModulePermissionsModal
-        isOpen={moduleModalOpen && !!selectedPool}
-        title="Agregar Modulo"
+        isOpen={permissionModalOpen && !!selectedPool}
+        title="Agregar Permisos"
         subtitle={selectedPool?.name}
         modules={moduleOptions}
-        emptyModulesMessage="No hay modulos disponibles para agregar"
-        loading={loadingModules}
+        emptyModulesMessage="No hay modulos disponibles"
+        loading={loadingPermissions}
         onFetchPermissions={fetchModulePermissions}
-        onConfirm={handleAddModuleWithPermissions}
-        onCancel={() => setModuleModalOpen(false)}
+        onConfirm={handleGrantPermissions}
+        onCancel={() => setPermissionModalOpen(false)}
       />
 
       {/* Delete Confirmation Dialog */}

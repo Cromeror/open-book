@@ -9,9 +9,10 @@ import { ResourceForm } from '@/components/organisms/resources/ResourceForm';
 
 interface Props {
   resource: Resource;
+  allResources: Resource[];
 }
 
-export function ResourceEditForm({ resource }: Props) {
+export function ResourceEditForm({ resource, allResources }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +53,7 @@ export function ResourceEditForm({ resource }: Props) {
 
       <ResourceForm
         resource={resource}
+        allResources={allResources}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         loading={loading}

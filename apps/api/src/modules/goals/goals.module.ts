@@ -5,6 +5,7 @@ import { Goal } from '../../entities/goal.entity';
 import { Condominium } from '../../entities/condominium.entity';
 import { GoalHistory } from '../../entities/goal-history.entity';
 
+import { CondominiumsModule } from '../condominiums/condominiums.module';
 import { GoalsController } from './goals.controller';
 import { GoalsService } from './goals.service';
 
@@ -20,11 +21,12 @@ import { GoalsService } from './goals.service';
  * Endpoints are scoped to condominiums:
  * - /api/condominiums/:condominiumId/goals/*
  *
- * Requires PermissionsModule for authorization.
+ * Access restricted to members of the condominium (managers + residents).
  */
 @Module({
   imports: [
     TypeOrmModule.forFeature([Goal, Condominium, GoalHistory]),
+    CondominiumsModule,
   ],
   controllers: [GoalsController],
   providers: [GoalsService],

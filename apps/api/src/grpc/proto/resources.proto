@@ -42,10 +42,10 @@ message ResourceHttpMethodProto {
  * Resource configuration
  */
 message Resource {
-  string code = 1;           // Unique code: 'goals', 'users', etc.
-  string name = 2;           // Display name: 'Objetivos de Recaudo'
-  string scope = 3;          // 'global' or 'condominium'
-  string template_url = 4;   // URL template: '/api/condominiums/{condominiumId}/goals'
+  string code = 1;                    // Unique code: 'goals', 'users', etc.
+  string name = 2;                    // Display name: 'Objetivos de Recaudo'
+  optional string description = 3;   // Optional description
+  string template_url = 4;           // URL template: '/api/condominiums/{condominiumId}/goals'
   repeated ResourceHttpMethodProto http_methods = 5;  // Available HTTP methods
 }
 

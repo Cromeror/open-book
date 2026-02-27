@@ -1,8 +1,11 @@
+import { resolve } from 'path';
 import { Transport, GrpcOptions } from '@nestjs/microservices';
 import { ServerCredentials } from '@grpc/grpc-js';
 
 import { grpcConfig, loadGrpcCertificates } from '../config/grpc.config';
 import { PROTO_FILES } from './proto';
+
+const PROTO_DIR = resolve(process.cwd(), 'apps/api/src/grpc/proto');
 
 /**
  * Create gRPC server options with mTLS configuration
@@ -61,7 +64,7 @@ export function createGrpcOptions(): GrpcOptions {
         defaults: true, // Set default values for missing fields
         oneofs: true, // Set virtual oneof properties to field names
         json: true, // Use toJSON() method for message conversion
-        includeDirs: [], // Additional directories for proto imports
+        includeDirs: [PROTO_DIR], // Directory for resolving proto imports (e.g. common.proto)
       },
 
       // mTLS credentials

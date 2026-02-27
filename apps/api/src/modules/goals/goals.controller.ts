@@ -10,11 +10,9 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
-  Req,
   UseGuards,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { z } from 'zod';
 
 import { User } from '../../entities/user.entity';
@@ -23,9 +21,11 @@ import { GoalHistory } from '../../entities/goal-history.entity';
 
 import { JwtAuthGuard } from '../auth/guards';
 import { CurrentUser } from '../auth/decorators';
-import { PermissionsGuard, RequireModule, RequirePermission } from '../permissions';
+import { PermissionsGuard, RequirePermission } from '../permissions';
+import { HateoasResource } from '../hateoas/hateoas-resource.decorator';
+import { CondominiumMemberGuard } from '../condominiums/guards/condominium-member.guard';
 
-import { GoalsService, AuditContext } from './goals.service';
+import { GoalsService } from './goals.service';
 import {
   CreateGoalDto,
   CreateGoalInput,
@@ -40,31 +40,6 @@ import {
   validateQueryGoalsDto,
   PaginatedResponse,
 } from './dto';
-
-/**
- * Helper to extract client info from request for audit trail
- */
-function getClientInfo(req: Request): { ipAddress: string; userAgent?: string } {
-  const ipAddress =
-    (req.headers['x-forwarded-for'] as string)?.split(',')[0] ||
-    req.socket.remoteAddress ||
-    'unknown';
-  const userAgent = req.headers['user-agent'];
-
-  return { ipAddress, userAgent };
-}
-
-/**
- * Helper to build audit context from request and user
- */
-function buildAuditContext(user: User, req: Request): AuditContext {
-  const { ipAddress, userAgent } = getClientInfo(req);
-  return {
-    userId: user.id,
-    ipAddress,
-    userAgent,
-  };
-}
 
 /**
  * Controller for fundraising goals (Objetivos de Recaudo)
@@ -82,8 +57,7 @@ function buildAuditContext(user: User, req: Request): AuditContext {
  * - GET    /api/condominiums/:condominiumId/goals/:id/transitions - Available transitions
  */
 @Controller('condominiums/:condominiumId/goals')
-@UseGuards(JwtAuthGuard, PermissionsGuard)
-@RequireModule('goals')
+@UseGuards(JwtAuthGuard, CondominiumMemberGuard, PermissionsGuard)
 export class GoalsController {
   constructor(private readonly goalsService: GoalsService) {}
 
@@ -101,7 +75,6 @@ export class GoalsController {
    * @returns Created goal (201)
    */
   @Post()
-  @RequirePermission('goals:create')
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Param('condominiumId', ParseUUIDPipe) condominiumId: string,
@@ -146,6 +119,7 @@ export class GoalsController {
    * @returns Paginated list of goals (200)
    */
   @Get()
+  @HateoasResource('goals', 'GET')
   @RequirePermission('goals:read')
   async findAll(
     @Param('condominiumId', ParseUUIDPipe) condominiumId: string,
@@ -181,6 +155,7 @@ export class GoalsController {
    * @throws NotFoundException if not found (404)
    */
   @Get(':id')
+  @HateoasResource('goals-detail', 'GET')
   @RequirePermission('goals:read')
   async findOne(
     @Param('condominiumId', ParseUUIDPipe) condominiumId: string,
@@ -201,7 +176,6 @@ export class GoalsController {
    * @throws BadRequestException if goal is in terminal state (400)
    */
   @Patch(':id')
-  @RequirePermission('goals:update')
   async update(
     @Param('condominiumId', ParseUUIDPipe) condominiumId: string,
     @Param('id', ParseUUIDPipe) id: string,
@@ -238,7 +212,6 @@ export class GoalsController {
    * @throws BadRequestException if has associated activities (400)
    */
   @Delete(':id')
-  @RequirePermission('goals:delete')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(
     @Param('condominiumId', ParseUUIDPipe) condominiumId: string,
@@ -267,15 +240,12 @@ export class GoalsController {
    * @throws BadRequestException if transition is not allowed (400)
    */
   @Patch(':id/status')
-  @RequirePermission('goals:update')
   async changeStatus(
     @Param('condominiumId', ParseUUIDPipe) condominiumId: string,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: ChangeStatusInput,
     @CurrentUser() user: User,
-    @Req() req: Request,
   ): Promise<Goal> {
-    // Validate input
     let dto: ChangeStatusDto;
     try {
       dto = validateChangeStatusDto(body);
@@ -291,8 +261,7 @@ export class GoalsController {
       throw error;
     }
 
-    const context = buildAuditContext(user, req);
-    return this.goalsService.changeStatus(condominiumId, id, dto, context);
+    return this.goalsService.changeStatus(condominiumId, id, dto, user.id);
   }
 
   /**
@@ -305,7 +274,6 @@ export class GoalsController {
    * @returns Current status and available next statuses (200)
    */
   @Get(':id/transitions')
-  @RequirePermission('goals:read')
   async getTransitions(
     @Param('condominiumId', ParseUUIDPipe) condominiumId: string,
     @Param('id', ParseUUIDPipe) id: string,
@@ -327,7 +295,6 @@ export class GoalsController {
    * @returns List of status changes in descending order (200)
    */
   @Get(':id/history')
-  @RequirePermission('goals:read')
   async getHistory(
     @Param('condominiumId', ParseUUIDPipe) condominiumId: string,
     @Param('id', ParseUUIDPipe) id: string,

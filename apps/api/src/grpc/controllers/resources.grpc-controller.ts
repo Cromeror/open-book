@@ -48,7 +48,7 @@ export class ResourcesGrpcController {
     return {
       code: resource.code,
       name: resource.name,
-      scope: resource.scope,
+      description: resource.description ?? undefined,
       template_url: resource.templateUrl,
       http_methods: (resource.httpMethods ?? []).map((rhm) => ({
         name: rhm.httpMethod.method.toLowerCase(),

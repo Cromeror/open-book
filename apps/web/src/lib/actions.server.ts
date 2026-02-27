@@ -8,7 +8,7 @@ import {
   requireSuperAdmin,
   type ServerPermissions,
 } from './permissions.server';
-import type { PermissionContext } from './types';
+
 
 /**
  * Result type for protected actions
@@ -92,11 +92,10 @@ export function withModule<TArgs extends unknown[], TResult>(
 export function withPermission<TArgs extends unknown[], TResult>(
   permission: string,
   action: (permissions: ServerPermissions, ...args: TArgs) => Promise<TResult>,
-  context?: PermissionContext
 ): (...args: TArgs) => Promise<ActionResult<TResult>> {
   return async (...args: TArgs): Promise<ActionResult<TResult>> => {
     try {
-      const permissions = await requirePermission(permission, context);
+      const permissions = await requirePermission(permission);
       const result = await action(permissions, ...args);
       return { success: true, data: result };
     } catch (error) {

@@ -1,6 +1,5 @@
 import { Entity, Column, OneToMany } from 'typeorm';
 import { BaseEntity } from '../entities/base.entity';
-import { PoolModule } from './pool-module.entity';
 import { PoolPermission } from './pool-permission.entity';
 import { UserPoolMember } from './user-pool-member.entity';
 
@@ -56,13 +55,7 @@ export class UserPool extends BaseEntity {
   members!: UserPoolMember[];
 
   /**
-   * Modules accessible by pool members
-   */
-  @OneToMany(() => PoolModule, (pm) => pm.pool)
-  modules!: PoolModule[];
-
-  /**
-   * Granular permissions granted to pool members
+   * Permissions granted to pool members
    */
   @OneToMany(() => PoolPermission, (pp) => pp.pool)
   permissions!: PoolPermission[];

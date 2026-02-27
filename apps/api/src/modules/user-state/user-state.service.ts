@@ -1,6 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 import { UserState } from '../../entities/user-state.entity';
 import { CondominiumsService } from '../condominiums/condominiums.service';
@@ -35,10 +37,13 @@ export interface UpdateUserStateDto {
  */
 @Injectable()
 export class UserStateService {
+  private readonly logger = new Logger(UserStateService.name);
+
   constructor(
     @InjectRepository(UserState)
     private readonly userStateRepository: Repository<UserState>,
     private readonly condominiumsService: CondominiumsService,
+    @Inject(CACHE_MANAGER) private readonly cache: Cache,
   ) {}
 
   /**
@@ -93,6 +98,9 @@ export class UserStateService {
 
     state = await this.userStateRepository.save(state);
 
+    // Invalidate session context cache
+    await this.invalidateSessionCache(userId);
+
     return this.toResponse(state);
   }
 
@@ -139,6 +147,14 @@ export class UserStateService {
     });
 
     return this.userStateRepository.save(state);
+  }
+
+  /**
+   * Invalidate session context cache for a user
+   */
+  private async invalidateSessionCache(userId: string): Promise<void> {
+    await this.cache.del(`session-context:${userId}`);
+    this.logger.debug(`Session context cache invalidated for user: ${userId}`);
   }
 
   /**
