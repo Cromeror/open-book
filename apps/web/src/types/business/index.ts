@@ -37,14 +37,20 @@ export type { SessionContext, SessionContextFieldDescriptor } from './session-co
 
 // Modules
 export type {
-  ModuleType,
-  ModuleWithActions,
-  ModuleAction,
-  ReadActionSettings,
-  CreateActionSettings,
-  UpdateActionSettings,
-  DeleteActionSettings,
-  ExportActionSettings,
-  TypedModuleAction,
+  ModuleActionConfig,
+  ModuleHttpMethodWithConfig,
+  ModuleResourceWithActionsResponse,
+  ModuleWithActionsResponse,
+  ReadResourceUiConfig,
+  CreateResourceUiConfig,
+  UpdateResourceUiConfig,
+  DeleteResourceUiConfig,
+  GenericResourceUiConfig,
+  ResourceUiConfig,
 } from './module.types';
-export { MODULE_TYPES } from './module.types';
+export {
+  isReadUiConfig,
+  isCreateUiConfig,
+  isUpdateUiConfig,
+  isDeleteUiConfig,
+} from './module.types';

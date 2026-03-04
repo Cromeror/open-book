@@ -1,18 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { User } from '../../entities/user.entity';
 import {
   Module,
-  ModulePermission,
   UserPermission,
   UserPoolMember,
   PoolPermission,
+  ModuleResource,
 } from '../../entities';
-import { PermissionsCacheService } from './permissions-cache.service';
-import type { ModuleWithActions, ModuleAction } from '../../types/module-actions.types';
+import type {
+  ModuleWithActionsResponse,
+  ModuleResourceResponse,
+  ModuleResourceWithActionsResponse,
+  ModuleHttpMethodWithConfig,
+  ModuleActionConfig,
+} from '../../types/module-actions.types';
+import { SessionContextService } from '../session-context/session-context.service';
+import { resolveTemplateUrl, SESSION_PLACEHOLDER_RE, UNRESOLVED_PLACEHOLDER_RE } from '../../utils';
 
 /**
  * Service for checking user permissions
@@ -28,20 +34,17 @@ export class PermissionsService {
   private readonly logger = new Logger(PermissionsService.name);
 
   constructor(
-    private configService: ConfigService,
-    private cacheService: PermissionsCacheService,
     @InjectRepository(User)
     private userRepo: Repository<User>,
     @InjectRepository(Module)
     private moduleRepo: Repository<Module>,
-    @InjectRepository(ModulePermission)
-    private modulePermissionRepo: Repository<ModulePermission>,
     @InjectRepository(UserPermission)
     private userPermissionRepo: Repository<UserPermission>,
-    @InjectRepository(UserPoolMember)
-    private userPoolMemberRepo: Repository<UserPoolMember>,
     @InjectRepository(PoolPermission)
     private poolPermissionRepo: Repository<PoolPermission>,
+    @InjectRepository(ModuleResource)
+    private moduleResourceRepo: Repository<ModuleResource>,
+    private sessionContextService: SessionContextService,
   ) {}
 
   /**
@@ -67,7 +70,6 @@ export class PermissionsService {
       return true;
     }
 
-    // Check direct: any user_permission for this module
     const directAccess = await this.userPermissionRepo
       .createQueryBuilder('up')
       .innerJoin('up.modulePermission', 'mp')
@@ -85,7 +87,6 @@ export class PermissionsService {
       return true;
     }
 
-    // Check pool access
     return this.hasModuleAccessViaPool(userId, moduleCode);
   }
 
@@ -109,39 +110,12 @@ export class PermissionsService {
       return false;
     }
 
-    // Check direct permission
     const hasDirect = await this.hasDirectPermission(userId, moduleCode, action);
     if (hasDirect) {
       return true;
     }
 
-    // Check pool permissions
     return this.hasPermissionViaPool(userId, moduleCode, action);
-  }
-
-  /**
-   * Check if user has a direct permission
-   */
-  private async hasDirectPermission(
-    userId: string,
-    moduleCode: string,
-    action: string,
-  ): Promise<boolean> {
-    const count = await this.userPermissionRepo
-      .createQueryBuilder('up')
-      .innerJoin('up.modulePermission', 'mp')
-      .innerJoin('mp.module', 'm')
-      .where('up.userId = :userId', { userId })
-      .andWhere('m.code = :moduleCode', { moduleCode })
-      .andWhere('mp.code = :action', { action })
-      .andWhere('up.isActive = true')
-      .andWhere('m.isActive = true')
-      .andWhere('(up.expiresAt IS NULL OR up.expiresAt > :now)', {
-        now: new Date(),
-      })
-      .getCount();
-
-    return count > 0;
   }
 
   /**
@@ -191,172 +165,121 @@ export class PermissionsService {
   }
 
   /**
-   * Get all module codes a user has access to
-   *
-   * Derived from user_permissions and pool_permissions.
-   */
-  async getUserModuleCodes(userId: string): Promise<string[]> {
-    if (await this.isSuperAdmin(userId)) {
-      const allModules = await this.moduleRepo.find({
-        where: { isActive: true },
-        select: ['code'],
-      });
-      return allModules.map((m) => m.code);
-    }
-
-    // Direct: module codes from user_permissions
-    const directModules = await this.userPermissionRepo
-      .createQueryBuilder('up')
-      .innerJoin('up.modulePermission', 'mp')
-      .innerJoin('mp.module', 'm')
-      .where('up.userId = :userId', { userId })
-      .andWhere('up.isActive = true')
-      .andWhere('m.isActive = true')
-      .andWhere('(up.expiresAt IS NULL OR up.expiresAt > :now)', {
-        now: new Date(),
-      })
-      .select('DISTINCT m.code', 'code')
-      .getRawMany<{ code: string }>();
-
-    // Pool: module codes from pool_permissions
-    const poolModules = await this.poolPermissionRepo
-      .createQueryBuilder('pp')
-      .innerJoin('pp.pool', 'p')
-      .innerJoin(UserPoolMember, 'upm', 'upm.poolId = p.id')
-      .innerJoin('pp.modulePermission', 'mp')
-      .innerJoin('mp.module', 'm')
-      .where('upm.userId = :userId', { userId })
-      .andWhere('p.isActive = true')
-      .andWhere('m.isActive = true')
-      .select('DISTINCT m.code', 'code')
-      .getRawMany<{ code: string }>();
-
-    const allCodes = new Set([
-      ...directModules.map((m) => m.code),
-      ...poolModules.map((m) => m.code),
-    ]);
-
-    return Array.from(allCodes);
-  }
-
-  /**
-   * Get all permissions for a user in a specific module
-   */
-  async getUserModulePermissions(
-    userId: string,
-    moduleCode: string,
-  ): Promise<{ code: string }[]> {
-    if (await this.isSuperAdmin(userId)) {
-      const modulePermissions = await this.modulePermissionRepo
-        .createQueryBuilder('mp')
-        .innerJoin('mp.module', 'm')
-        .where('m.code = :moduleCode', { moduleCode })
-        .andWhere('m.isActive = true')
-        .select('mp.code', 'code')
-        .getRawMany<{ code: string }>();
-
-      return modulePermissions;
-    }
-
-    // Direct permissions
-    const directPerms = await this.userPermissionRepo
-      .createQueryBuilder('up')
-      .innerJoin('up.modulePermission', 'mp')
-      .innerJoin('mp.module', 'm')
-      .where('up.userId = :userId', { userId })
-      .andWhere('m.code = :moduleCode', { moduleCode })
-      .andWhere('up.isActive = true')
-      .andWhere('m.isActive = true')
-      .andWhere('(up.expiresAt IS NULL OR up.expiresAt > :now)', {
-        now: new Date(),
-      })
-      .select('DISTINCT mp.code', 'code')
-      .getRawMany<{ code: string }>();
-
-    // Pool permissions
-    const poolPerms = await this.poolPermissionRepo
-      .createQueryBuilder('pp')
-      .innerJoin('pp.pool', 'p')
-      .innerJoin(UserPoolMember, 'upm', 'upm.poolId = p.id')
-      .innerJoin('pp.modulePermission', 'mp')
-      .innerJoin('mp.module', 'm')
-      .where('upm.userId = :userId', { userId })
-      .andWhere('m.code = :moduleCode', { moduleCode })
-      .andWhere('p.isActive = true')
-      .andWhere('m.isActive = true')
-      .select('DISTINCT mp.code', 'code')
-      .getRawMany<{ code: string }>();
-
-    const codes = new Set([
-      ...directPerms.map((p) => p.code),
-      ...poolPerms.map((p) => p.code),
-    ]);
-
-    return Array.from(codes).map((code) => ({ code }));
-  }
-
-  /**
    * Get all modules with segregated actions for a user
    *
    * Returns modules the user has access to, with only the actions
    * they have permission for. Action code = Permission code.
+   *
+   * Uses 2 parallel queries (direct + pool permissions), each joining
+   * modules to fetch all needed data in one pass. No additional queries needed.
    */
-  async getModulesWithActionsForUser(userId: string): Promise<ModuleWithActions[]> {
+  async getModulesWithActionsForUser(userId: string): Promise<ModuleWithActionsResponse[]> {
     const isSuperAdmin = await this.isSuperAdmin(userId);
 
     if (isSuperAdmin) {
-      return this.getAllModulesWithAllActions();
+      return this.getAllModulesWithAllActions(userId);
     }
 
-    // Get user's module codes
-    const moduleCodes = await this.getUserModuleCodes(userId);
+    const now = new Date();
 
-    if (moduleCodes.length === 0) {
+    type PermissionRow = {
+      moduleId: string;
+      moduleCode: string;
+      moduleName: string;
+      moduleDescription: string | null;
+      moduleIcon: string | null;
+      moduleNavConfig: string | null;
+      moduleOrder: number;
+      moduleActionsConfig: string | null;
+      permissionCode: string;
+    };
+
+    const [directRows, poolRows] = await Promise.all([
+      this.userPermissionRepo
+        .createQueryBuilder('up')
+        .innerJoin('up.modulePermission', 'mp')
+        .innerJoin('mp.module', 'm')
+        .where('up.userId = :userId', { userId })
+        .andWhere('up.isActive = true')
+        .andWhere('m.isActive = true')
+        .andWhere('(up.expiresAt IS NULL OR up.expiresAt > :now)', { now })
+        .select('m.id', 'moduleId')
+        .addSelect('m.code', 'moduleCode')
+        .addSelect('m.name', 'moduleName')
+        .addSelect('m.description', 'moduleDescription')
+        .addSelect('m.icon', 'moduleIcon')
+        .addSelect('m.nav_config', 'moduleNavConfig')
+        .addSelect('m.order', 'moduleOrder')
+        .addSelect('m.actions_config', 'moduleActionsConfig')
+        .addSelect('mp.code', 'permissionCode')
+        .getRawMany<PermissionRow>(),
+
+      this.poolPermissionRepo
+        .createQueryBuilder('pp')
+        .innerJoin('pp.pool', 'p')
+        .innerJoin(UserPoolMember, 'upm', 'upm.poolId = p.id')
+        .innerJoin('pp.modulePermission', 'mp')
+        .innerJoin('mp.module', 'm')
+        .where('upm.userId = :userId', { userId })
+        .andWhere('p.isActive = true')
+        .andWhere('m.isActive = true')
+        .select('m.id', 'moduleId')
+        .addSelect('m.code', 'moduleCode')
+        .addSelect('m.name', 'moduleName')
+        .addSelect('m.description', 'moduleDescription')
+        .addSelect('m.icon', 'moduleIcon')
+        .addSelect('m.nav_config', 'moduleNavConfig')
+        .addSelect('m.order', 'moduleOrder')
+        .addSelect('m.actions_config', 'moduleActionsConfig')
+        .addSelect('mp.code', 'permissionCode')
+        .getRawMany<PermissionRow>(),
+    ]);
+
+    const moduleMap = new Map<string, { row: PermissionRow; permissionCodes: Set<string> }>();
+
+    for (const row of [...directRows, ...poolRows]) {
+      if (!moduleMap.has(row.moduleId)) {
+        moduleMap.set(row.moduleId, { row, permissionCodes: new Set() });
+      }
+      moduleMap.get(row.moduleId)!.permissionCodes.add(row.permissionCode);
+    }
+
+    if (moduleMap.size === 0) {
       return [];
     }
 
-    // Get full module data for accessible modules
-    const modules = await this.moduleRepo.find({
-      where: moduleCodes.map((code) => ({ code, isActive: true })),
-      order: { order: 'ASC' },
-    });
+    const sessionCtx: Record<string, unknown> = { ...await this.sessionContextService.getContext(userId) };
+    const moduleIds = [...moduleMap.keys()];
+    const resourcesByModule = await this.getResourcesForModules(moduleIds, sessionCtx);
 
-    // Build response with segregated actions
-    const result: ModuleWithActions[] = [];
+    const result: ModuleWithActionsResponse[] = [];
 
-    for (const module of modules) {
-      const userPermissions = await this.getUserModulePermissions(userId, module.code);
-      const permissionCodes = new Set(userPermissions.map((p) => p.code));
+    for (const { row, permissionCodes } of moduleMap.values()) {
+      const actionsConfig = (row.moduleActionsConfig
+        ? (typeof row.moduleActionsConfig === 'string'
+            ? JSON.parse(row.moduleActionsConfig)
+            : row.moduleActionsConfig)
+        : []) as ModuleActionConfig[];
 
-      const allActions = (module.actionsConfig || []) as ModuleAction[];
-      const allowedActions = allActions.filter((action) =>
-        permissionCodes.has(action.code),
-      );
+      // Only include actions the user has permission for (action.code matches module_permission.code)
+      const allowedActions = actionsConfig.filter((action) => permissionCodes.has(action.code));
 
-      if (allowedActions.length === 0) {
-        continue;
-      }
+      const navConfig = row.moduleNavConfig
+        ? (typeof row.moduleNavConfig === 'string'
+            ? JSON.parse(row.moduleNavConfig)
+            : row.moduleNavConfig)
+        : null;
 
-      const moduleWithActions: ModuleWithActions = {
-        code: module.code,
-        label: module.name,
-        description: module.description || '',
-        icon: module.icon || 'FileText',
-        type: module.type as 'crud' | 'specialized',
-        nav: module.navConfig || { path: `/m/${module.code}`, order: module.order },
-        actions: allowedActions,
-      };
+      const rawResources = resourcesByModule.get(row.moduleId) ?? [];
 
-      if (module.type === 'crud') {
-        moduleWithActions.entity = module.entity;
-        moduleWithActions.endpoint = module.endpoint;
-      }
-
-      if (module.type === 'specialized') {
-        moduleWithActions.component = module.component;
-      }
-
-      result.push(moduleWithActions);
+      result.push({
+        code: row.moduleCode,
+        label: row.moduleName,
+        description: row.moduleDescription || '',
+        icon: row.moduleIcon || 'FileText',
+        nav: navConfig || { path: `/m/${row.moduleCode}`, order: row.moduleOrder },
+        resources: this.buildResourcesWithActions(rawResources, allowedActions),
+      });
     }
 
     result.sort((a, b) => a.nav.order - b.nav.order);
@@ -365,35 +288,118 @@ export class PermissionsService {
   }
 
   /**
+   * Load resources (with httpMethods) for a set of module IDs.
+   * Returns a map of moduleId → ModuleResourceResponse[]
+   *
+   * templateUrl placeholders (e.g. {session:condominiumId}) are resolved
+   * using the provided session context so the frontend receives ready-to-use URLs.
+   */
+  private async getResourcesForModules(
+    moduleIds: string[],
+    sessionCtx: Record<string, unknown>,
+  ): Promise<Map<string, ModuleResourceResponse[]>> {
+    const rows = await this.moduleResourceRepo
+      .createQueryBuilder('mr')
+      .innerJoinAndSelect('mr.resource', 'r')
+      .innerJoinAndSelect('r.httpMethods', 'rhm')
+      .innerJoinAndSelect('rhm.httpMethod', 'hm')
+      .where('mr.moduleId IN (:...moduleIds)', { moduleIds })
+      .andWhere('r.isActive = true')
+      .getMany();
+
+    const map = new Map<string, ModuleResourceResponse[]>();
+    for (const mr of rows) {
+      const resolvedUrl = resolveTemplateUrl(mr.resource.templateUrl, sessionCtx, SESSION_PLACEHOLDER_RE);
+
+      // Skip resources with unresolved placeholders (e.g. {id}, {goalId}).
+      // These are detail/action resources that the frontend will discover via HATEOAS _links.
+      if (UNRESOLVED_PLACEHOLDER_RE.test(resolvedUrl)) continue;
+
+      if (!map.has(mr.moduleId)) map.set(mr.moduleId, []);
+      map.get(mr.moduleId)!.push({
+        code: mr.resource.code,
+        templateUrl: resolvedUrl,
+        role: mr.role,
+        httpMethods: mr.resource.httpMethods
+          .filter((rhm) => rhm.isActive)
+          .map((rhm) => ({ method: rhm.httpMethod.method, isActive: rhm.isActive })),
+      });
+    }
+    return map;
+  }
+
+  /**
+   * For each resource, return only the HTTP methods that have an actionsConfig entry
+   * allowed for the user, each paired with its action config.
+   */
+  private buildResourcesWithActions(
+    resources: ModuleResourceResponse[],
+    actions: ModuleActionConfig[],
+  ): ModuleResourceWithActionsResponse[] {
+    const actionByMethod = new Map(actions.map((a) => [a.httpMethod, a]));
+
+    return resources.map((resource) => {
+      const httpMethods: ModuleHttpMethodWithConfig[] = resource.httpMethods
+        .filter((hm) => hm.isActive && actionByMethod.has(hm.method))
+        .map((hm) => ({ method: hm.method, action: actionByMethod.get(hm.method)! }));
+
+      return { code: resource.code, templateUrl: resource.templateUrl, role: resource.role, httpMethods };
+    });
+  }
+
+  /**
+   * Check if user has a direct permission
+   */
+  private async hasDirectPermission(
+    userId: string,
+    moduleCode: string,
+    action: string,
+  ): Promise<boolean> {
+    const count = await this.userPermissionRepo
+      .createQueryBuilder('up')
+      .innerJoin('up.modulePermission', 'mp')
+      .innerJoin('mp.module', 'm')
+      .where('up.userId = :userId', { userId })
+      .andWhere('m.code = :moduleCode', { moduleCode })
+      .andWhere('mp.code = :action', { action })
+      .andWhere('up.isActive = true')
+      .andWhere('m.isActive = true')
+      .andWhere('(up.expiresAt IS NULL OR up.expiresAt > :now)', {
+        now: new Date(),
+      })
+      .getCount();
+
+    return count > 0;
+  }
+
+  /**
    * Get all modules with all actions (for SuperAdmin)
    */
-  private async getAllModulesWithAllActions(): Promise<ModuleWithActions[]> {
+  private async getAllModulesWithAllActions(userId: string): Promise<ModuleWithActionsResponse[]> {
     const modules = await this.moduleRepo.find({
       where: { isActive: true },
       order: { order: 'ASC' },
     });
 
+    if (modules.length === 0) return [];
+
+    const sessionCtx: Record<string, unknown> = { ...await this.sessionContextService.getContext(userId) };
+    
+    const moduleIds = modules.map((m) => m.id);
+    const resourcesByModule = await this.getResourcesForModules(moduleIds, sessionCtx);
+
     return modules.map((module) => {
-      const moduleWithActions: ModuleWithActions = {
+      const allActions = (module.actionsConfig ?? []) as ModuleActionConfig[];
+      const rawResources = resourcesByModule.get(module.id) ?? [];
+
+      return {
         code: module.code,
         label: module.name,
         description: module.description || '',
         icon: module.icon || 'FileText',
-        type: module.type as 'crud' | 'specialized',
         nav: module.navConfig || { path: `/m/${module.code}`, order: module.order },
-        actions: (module.actionsConfig || []) as ModuleAction[],
+        resources: this.buildResourcesWithActions(rawResources, allActions),
       };
-
-      if (module.type === 'crud') {
-        moduleWithActions.entity = module.entity;
-        moduleWithActions.endpoint = module.endpoint;
-      }
-
-      if (module.type === 'specialized') {
-        moduleWithActions.component = module.component;
-      }
-
-      return moduleWithActions;
     });
   }
 }

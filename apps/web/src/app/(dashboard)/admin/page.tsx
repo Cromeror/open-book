@@ -43,7 +43,7 @@ export default async function AdminPage() {
           href="/admin/modules"
           className="rounded-lg border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md"
         >
-          <h3 className="font-semibold text-gray-900">Modulos del Sistema</h3>
+          <h3 className="font-semibold text-gray-900">Módulos del Sistema</h3>
           <p className="mt-2 text-sm text-gray-600">
             Administra los modulos disponibles
           </p>

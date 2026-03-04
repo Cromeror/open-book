@@ -1,12 +1,6 @@
 import { z } from 'zod';
 
 /**
- * Module types constant
- * Defines the available module type options
- */
-export const MODULE_TYPES = ['crud', 'specialized'] as const;
-
-/**
  * Schema for module navigation configuration
  */
 const navConfigSchema = z.object({
@@ -76,9 +70,9 @@ const fieldDefinitionSchema = z.object({
 });
 
 /**
- * Schema for read action settings
+ * Schema for read resource UI config
  */
-const readActionSettingsSchema = z.object({
+const readResourceUiConfigSchema = z.object({
   type: z.literal('read'),
   listColumns: z.array(columnDefinitionSchema),
   filters: z.array(filterDefinitionSchema).optional(),
@@ -117,9 +111,9 @@ const validationRuleSchema = z.object({
 });
 
 /**
- * Schema for create action settings
+ * Schema for create resource UI config
  */
-const createActionSettingsSchema = z.object({
+const createResourceUiConfigSchema = z.object({
   type: z.literal('create'),
   fields: z.array(fieldDefinitionSchema),
   submitLabel: z.string().optional(),
@@ -128,9 +122,9 @@ const createActionSettingsSchema = z.object({
 });
 
 /**
- * Schema for update action settings
+ * Schema for update resource UI config
  */
-const updateActionSettingsSchema = z.object({
+const updateResourceUiConfigSchema = z.object({
   type: z.literal('update'),
   fields: z.array(fieldDefinitionSchema),
   submitLabel: z.string().optional(),
@@ -140,42 +134,42 @@ const updateActionSettingsSchema = z.object({
 });
 
 /**
- * Schema for delete action settings
+ * Schema for delete resource UI config
  */
-const deleteActionSettingsSchema = z.object({
+const deleteResourceUiConfigSchema = z.object({
   type: z.literal('delete'),
   confirmation: z.string().min(1, 'Mensaje de confirmacion requerido'),
   soft: z.boolean().optional(),
 });
 
 /**
- * Schema for generic action settings (specialized modules)
+ * Schema for generic resource UI config (specialized modules)
  */
-const genericActionSettingsSchema = z
+const genericResourceUiConfigSchema = z
   .object({
     type: z.literal('generic'),
   })
   .passthrough(); // Allow additional properties for specialized modules
 
 /**
- * All action settings - discriminated union
+ * All resource UI configs - discriminated union
  */
-const actionSettingsSchema = z.discriminatedUnion('type', [
-  readActionSettingsSchema,
-  createActionSettingsSchema,
-  updateActionSettingsSchema,
-  deleteActionSettingsSchema,
-  genericActionSettingsSchema,
+const resourceUiConfigSchema = z.discriminatedUnion('type', [
+  readResourceUiConfigSchema,
+  createResourceUiConfigSchema,
+  updateResourceUiConfigSchema,
+  deleteResourceUiConfigSchema,
+  genericResourceUiConfigSchema,
 ]);
 
 /**
- * Schema for a module action
+ * Schema for a module action config
  */
 const moduleActionSchema = z.object({
   code: z.string().min(1, 'Codigo de accion requerido').max(50),
-  label: z.string().min(1, 'Etiqueta requerida').max(100),
-  description: z.string().max(500).optional(),
-  settings: actionSettingsSchema,
+  httpMethod: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
+  label: z.string().min(1).max(100).optional(),
+  uiConfig: resourceUiConfigSchema.optional(),
 });
 
 export type ModuleActionDto = z.infer<typeof moduleActionSchema>;
@@ -193,7 +187,6 @@ export const createModuleSchema = z.object({
   name: z.string().min(1, 'Nombre es requerido').max(100),
   description: z.string().max(500).nullable().optional(),
   icon: z.string().max(50).nullable().optional(),
-  type: z.enum(MODULE_TYPES),
   entity: z.string().max(100).nullable().optional(),
   endpoint: z.string().max(255).nullable().optional(),
   component: z.string().max(100).nullable().optional(),
@@ -201,6 +194,8 @@ export const createModuleSchema = z.object({
   actionsConfig: z.array(moduleActionSchema).nullable().optional(),
   order: z.number().int().min(0).default(0),
   tags: z.array(z.string().max(50)).default([]),
+  /** Resource codes to associate with this module */
+  resourceCodes: z.array(z.string().min(1).max(50)).optional(),
 });
 
 export type CreateModuleDto = z.infer<typeof createModuleSchema>;

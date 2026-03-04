@@ -6,6 +6,7 @@ import { Cache } from 'cache-manager';
 
 import { ResourceHttpMethod } from '../../entities/resource-http-method.entity';
 import { ResourceHttpMethodLink, ParamMapping } from '../../entities/resource-http-method-link.entity';
+import { resolveTemplateUrl, SESSION_PLACEHOLDER_RE } from '../../utils';
 
 const CACHE_TTL_MS = 60_000; // 1 minute
 
@@ -77,35 +78,38 @@ export class HateoasService {
   }
 
   /**
+   * Returns true if any config's templateUrl contains a {session:...} placeholder.
+   * Used by the interceptor to decide whether to fetch session context.
+   */
+  needsSessionContext(configs: LinkConfig[]): boolean {
+    return configs.some((c) => SESSION_PLACEHOLDER_RE.test(c.targetTemplateUrl));
+  }
+
+  /**
    * Resolves _links for a single response item.
    *
    * @param item            - The response item (e.g. a Goal object)
    * @param configs         - Link configs loaded from getLinkConfigs()
-   * @param sessionContext  - Route params already known (e.g. { condominiumId: '...' })
+   * @param routeParams     - Route params already known (e.g. { condominiumId: '...' })
+   * @param sessionContext  - Resolved session context for {session:fieldName} placeholders
    */
   resolveLinks(
     item: Record<string, unknown>,
     configs: LinkConfig[],
-    sessionContext: Record<string, string>,
+    routeParams: Record<string, string>,
+    sessionContext?: Record<string, string>,
   ): Record<string, string> {
     const links: Record<string, string> = {};
 
     for (const config of configs) {
-      let href = config.targetTemplateUrl;
-
-      // Replace sessionContext placeholders (e.g. :condominiumId)
-      for (const [key, value] of Object.entries(sessionContext)) {
-        href = href.replace(`:${key}`, value).replace(`{${key}}`, value);
-      }
-
-      // Replace item-specific placeholders via paramMappings
+      const itemContext: Record<string, unknown> = {};
       for (const mapping of config.paramMappings) {
-        const value = this.getNestedField(item, mapping.responseField);
-        if (value !== undefined) {
-          href = href.replace(`:${mapping.urlParam}`, String(value))
-                     .replace(`{${mapping.urlParam}}`, String(value));
-        }
+        const resolved = resolveTemplateUrl(`{${mapping.responseField}}`, item);
+        if (!resolved.startsWith('{')) itemContext[mapping.urlParam] = resolved;
       }
+
+      const withSession = resolveTemplateUrl(config.targetTemplateUrl, sessionContext ?? {}, SESSION_PLACEHOLDER_RE);
+      const href = resolveTemplateUrl(withSession, { ...routeParams, ...itemContext });
 
       links[config.rel] = href;
     }
@@ -113,12 +117,4 @@ export class HateoasService {
     return links;
   }
 
-  private getNestedField(obj: Record<string, unknown>, path: string): unknown {
-    return path.split('.').reduce<unknown>((acc, key) => {
-      if (acc && typeof acc === 'object') {
-        return (acc as Record<string, unknown>)[key];
-      }
-      return undefined;
-    }, obj);
-  }
 }

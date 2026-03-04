@@ -136,9 +136,8 @@ message CondominiumListItem {
   string address = 3;         // Physical address
   string city = 4;            // City
   string nit = 5;             // Colombian tax ID (optional)
-  int32 unit_count = 6;       // Number of properties/units
-  bool is_primary = 7;        // Whether this is the user's primary condominium
-  bool is_active = 8;         // Whether the condominium is active
+  bool is_primary = 6;        // Whether this is the user's primary condominium
+  bool is_active = 7;         // Whether the condominium is active
 }
 
 /**
@@ -150,10 +149,9 @@ message Condominium {
   string address = 3;                      // Physical address
   string city = 4;                         // City
   string nit = 5;                          // Colombian tax ID (optional)
-  int32 unit_count = 6;                    // Number of properties/units
-  bool is_active = 7;                      // Whether the condominium is active
-  google.protobuf.Timestamp created_at = 8; // Creation timestamp
-  google.protobuf.Timestamp updated_at = 9; // Last update timestamp
+  bool is_active = 6;                      // Whether the condominium is active
+  google.protobuf.Timestamp created_at = 7; // Creation timestamp
+  google.protobuf.Timestamp updated_at = 8; // Last update timestamp
 }
 
 // ========================================

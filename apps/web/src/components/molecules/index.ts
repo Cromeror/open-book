@@ -1,3 +1,6 @@
+export { PageTitle } from './PageTitle';
+export type { PageTitleProps } from './PageTitle';
+
 export { ActionConfigDisplay } from './ActionConfigDisplay';
 export type { ActionConfigDisplayProps } from './ActionConfigDisplay';
 

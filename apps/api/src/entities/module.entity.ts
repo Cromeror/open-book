@@ -3,12 +3,8 @@ import { Entity, Column, Index, OneToMany } from 'typeorm';
 import { BaseEntity } from '../entities/base.entity';
 
 import { ModulePermission } from './module-permission.entity';
-import { ModuleAction } from '../types/module-actions.types';
-
-/**
- * Module type - determines how the module is rendered
- */
-export type ModuleType = 'crud' | 'specialized';
+import { ModuleResource } from './module-resource.entity';
+import { ModuleActionConfig } from '../types/module-actions.types';
 
 /**
  * Navigation configuration for a module
@@ -77,20 +73,7 @@ export class Module extends BaseEntity {
   icon?: string;
 
   /**
-   * Module type: 'crud' or 'specialized'
-   * - crud: Uses GenericCRUDModule component
-   * - specialized: Uses a custom component
-   */
-  @Column({
-    type: 'varchar',
-    length: 20,
-    default: 'crud',
-  })
-  type!: ModuleType;
-
-  /**
    * Entity name for CRUD modules (e.g., 'Objetivo')
-   * Only used for crud type modules
    */
   @Column({
     type: 'varchar',
@@ -101,7 +84,6 @@ export class Module extends BaseEntity {
 
   /**
    * API endpoint for CRUD modules (e.g., '/api/goals')
-   * Only used for crud type modules
    */
   @Column({
     type: 'varchar',
@@ -112,7 +94,6 @@ export class Module extends BaseEntity {
 
   /**
    * Component name for specialized modules (e.g., 'ReportsModule')
-   * Only used for specialized type modules
    */
   @Column({
     type: 'varchar',
@@ -140,7 +121,7 @@ export class Module extends BaseEntity {
     type: 'jsonb',
     nullable: true,
   })
-  actionsConfig?: ModuleAction[];
+  actionsConfig?: ModuleActionConfig[];
 
   /**
    * Display order in navigation
@@ -177,4 +158,11 @@ export class Module extends BaseEntity {
    */
   @OneToMany(() => ModulePermission, (permission) => permission.module)
   permissions!: ModulePermission[];
+
+  /**
+   * Resources associated with this module
+   * HTTP methods on these resources are used to infer available actions
+   */
+  @OneToMany(() => ModuleResource, (mr) => mr.module)
+  resources!: ModuleResource[];
 }

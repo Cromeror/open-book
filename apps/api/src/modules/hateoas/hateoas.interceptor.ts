@@ -14,6 +14,7 @@ import {
   HATEOAS_RESOURCE_KEY,
   HateoasResourceMeta,
 } from './hateoas-resource.decorator';
+import { SessionContextService } from '../session-context/session-context.service';
 
 /**
  * Intercepts responses from handlers decorated with @HateoasResource,
@@ -23,12 +24,18 @@ import {
  * - Array:               [item, item, ...]       → each item gets _links
  * - Paginated object:    { data: [...], ... }    → each item in data gets _links
  * - Single object:       { id, ... }             → the object gets _links
+ *
+ * Placeholder resolution order:
+ * 1. {session:fieldName}  → resolved from SessionContextService (user's active condominium, etc.)
+ * 2. {fieldName}          → resolved from route params (e.g. :condominiumId in the URL)
+ * 3. paramMappings        → resolved from the response item's own fields
  */
 @Injectable()
 export class HateoasInterceptor implements NestInterceptor {
   constructor(
     private readonly reflector: Reflector,
     private readonly hateoasService: HateoasService,
+    private readonly sessionContextService: SessionContextService,
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
@@ -42,11 +49,11 @@ export class HateoasInterceptor implements NestInterceptor {
 
     const request = context.switchToHttp().getRequest<Request>();
 
-    // Build sessionContext from route params (e.g. condominiumId)
-    const sessionContext: Record<string, string> = {};
+    // Build routeParams from route params (e.g. condominiumId)
+    const routeParams: Record<string, string> = {};
     for (const [key, value] of Object.entries(request.params ?? {})) {
       if (typeof value === 'string') {
-        sessionContext[key] = value;
+        routeParams[key] = value;
       }
     }
 
@@ -59,7 +66,17 @@ export class HateoasInterceptor implements NestInterceptor {
 
         if (!configs.length) return response;
 
-        return this.enrich(response, configs, sessionContext);
+        // Resolve session context only if any link template requires it
+        let resolvedSession: Record<string, string> | undefined;
+        if (this.hateoasService.needsSessionContext(configs)) {
+          const userId = (request.user as { id?: string } | undefined)?.id;
+          if (userId) {
+            const ctx = await this.sessionContextService.getContext(userId);
+            resolvedSession = ctx as unknown as Record<string, string>;
+          }
+        }
+
+        return this.enrich(response, configs, routeParams, resolvedSession);
       }),
       // Unwrap the Promise that map() produces
       map((promise) => promise),
@@ -69,11 +86,14 @@ export class HateoasInterceptor implements NestInterceptor {
   private enrich(
     response: unknown,
     configs: Parameters<HateoasService['resolveLinks']>[1],
-    sessionContext: Record<string, string>,
+    routeParams: Record<string, string>,
+    resolvedSession?: Record<string, string>,
   ): unknown {
     // Array response
     if (Array.isArray(response)) {
-      return response.map((item) => this.enrichItem(item, configs, sessionContext));
+      return response.map((item) =>
+        this.enrichItem(item, configs, routeParams, resolvedSession),
+      );
     }
 
     // Paginated response: { data: [...], pagination: {...} }
@@ -87,7 +107,7 @@ export class HateoasInterceptor implements NestInterceptor {
       return {
         ...paginated,
         data: paginated.data.map((item) =>
-          this.enrichItem(item, configs, sessionContext),
+          this.enrichItem(item, configs, routeParams, resolvedSession),
         ),
       };
     }
@@ -97,7 +117,8 @@ export class HateoasInterceptor implements NestInterceptor {
       return this.enrichItem(
         response as Record<string, unknown>,
         configs,
-        sessionContext,
+        routeParams,
+        resolvedSession,
       );
     }
 
@@ -107,14 +128,16 @@ export class HateoasInterceptor implements NestInterceptor {
   private enrichItem(
     item: unknown,
     configs: Parameters<HateoasService['resolveLinks']>[1],
-    sessionContext: Record<string, string>,
+    routeParams: Record<string, string>,
+    resolvedSession?: Record<string, string>,
   ): unknown {
     if (!item || typeof item !== 'object') return item;
 
     const links = this.hateoasService.resolveLinks(
       item as Record<string, unknown>,
       configs,
-      sessionContext,
+      routeParams,
+      resolvedSession,
     );
 
     return { ...(item as object), _links: links };

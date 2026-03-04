@@ -116,4 +116,17 @@ export class AdminModulesController {
   async toggleModuleStatus(@Param('id') id: string) {
     return this.adminModulesService.toggleModuleStatus(id);
   }
+
+  /**
+   * GET /api/admin/modules/:id/infer-actions
+   * Infer CRUD actions from the HTTP methods of associated resources.
+   *
+   * Returns a list of InferredAction objects suggesting which action codes
+   * (read, create, update, delete) are supported based on the resources linked
+   * to this module. The admin can use this to pre-populate actionsConfig.
+   */
+  @Get(':id/infer-actions')
+  async inferActions(@Param('id') id: string) {
+    return this.adminModulesService.inferActionsForModule(id);
+  }
 }

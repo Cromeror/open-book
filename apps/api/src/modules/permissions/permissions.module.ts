@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   Module,
   ModulePermission,
+  ModuleResource,
   UserPermission,
   UserPool,
   UserPoolMember,
@@ -19,6 +20,7 @@ import { AdminPermissionsController } from './admin-permissions.controller';
 import { PoolsController } from './pools.controller';
 import { SuperAdminGuard } from './guards/superadmin.guard';
 import { PermissionsGuard } from './guards/permissions.guard';
+import { SessionContextModule } from '../session-context/session-context.module';
 
 /**
  * Permissions Module
@@ -34,9 +36,11 @@ import { PermissionsGuard } from './guards/permissions.guard';
 @NestModule({
   imports: [
     ConfigModule,
+    SessionContextModule,
     TypeOrmModule.forFeature([
       Module,
       ModulePermission,
+      ModuleResource,
       UserPermission,
       UserPool,
       UserPoolMember,

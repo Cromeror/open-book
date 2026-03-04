@@ -25,3 +25,5 @@ export { RenameBaseUrlToTemplateUrl1739405000000 } from './1739405000000-RenameB
 export { SimplifyPermissions1740000000000 } from './1740000000000-SimplifyPermissions';
 export { AddResourceHttpMethodLinks1740100000000 } from './1740100000000-AddResourceHttpMethodLinks';
 export { UpdateResourcesRemoveScopeAddDescription1740200000000 } from './1740200000000-UpdateResourcesRemoveScopeAddDescription';
+export { AddModuleResourcesAndRemoveType1740300000000 } from './1740300000000-AddModuleResourcesAndRemoveType';
+export { RemoveCondominiumUnitCount1740400000000 } from './1740400000000-RemoveCondominiumUnitCount';

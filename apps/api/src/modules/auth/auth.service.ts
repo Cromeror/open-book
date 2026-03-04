@@ -6,7 +6,8 @@ import { comparePassword } from '../../utils/password';
 import { UsersService } from '../users/users.service';
 import { PermissionsService } from '../permissions/permissions.service';
 import { CondominiumManagersService } from '../admin/condominiums/condominium-managers.service';
-import type { ModuleWithActions } from '../../types/module-actions.types';
+import { AdminPropertyResidentsService } from '../admin/property-residents/admin-property-residents.service';
+import type { ModuleWithActionsResponse } from '../../types/module-actions.types';
 
 import { AuthLogService } from './auth-log.service';
 import { RegisterDto } from './dto/register.dto';
@@ -29,6 +30,13 @@ export interface RefreshResponse {
   refreshToken: string;
 }
 
+export const CONDOMINIUM_ROLE = {
+  MANAGER: 'manager',
+  RESIDENT: 'resident',
+} as const;
+
+export type CondominiumRole = typeof CONDOMINIUM_ROLE[keyof typeof CONDOMINIUM_ROLE];
+
 /**
  * Condominium info for auth response
  */
@@ -36,6 +44,7 @@ export interface AuthCondominiumInfo {
   id: string;
   name: string;
   isPrimary: boolean;
+  role: CondominiumRole;
 }
 
 /**
@@ -50,7 +59,7 @@ export interface AuthMeResponse {
     lastName: string;
     isSuperAdmin: boolean;
   };
-  modules: ModuleWithActions[];
+  modules: ModuleWithActionsResponse[];
   condominiums: AuthCondominiumInfo[];
 }
 
@@ -65,6 +74,7 @@ export class AuthService {
     private readonly authLogService: AuthLogService,
     private readonly permissionsService: PermissionsService,
     private readonly condominiumManagersService: CondominiumManagersService,
+    private readonly propertyResidentsService: AdminPropertyResidentsService,
   ) {}
 
   /**
@@ -94,15 +104,31 @@ export class AuthService {
     const modules = await this.permissionsService.getModulesWithActionsForUser(user.id);
 
     // Get condominiums where user is an active manager
-    const managerAssignments = await this.condominiumManagersService.findByUser(user.id, {
-      isActive: true,
-    });
+    const [managerAssignments, residentCondominiums] = await Promise.all([
+      this.condominiumManagersService.findByUser(user.id, { isActive: true }),
+      this.propertyResidentsService.findCondominiumsByUser(user.id),
+    ]);
 
-    const condominiums: AuthCondominiumInfo[] = managerAssignments.map((m) => ({
-      id: m.condominium.id,
-      name: m.condominium.name,
-      isPrimary: m.isPrimary,
-    }));
+    // Merge both sources, deduplicating by id. Managers get isPrimary from their assignment;
+    // resident-only condominiums default to isPrimary = false.
+    const condominiumMap = new Map<string, AuthCondominiumInfo>();
+
+    for (const m of managerAssignments) {
+      condominiumMap.set(m.condominium.id, {
+        id: m.condominium.id,
+        name: m.condominium.name,
+        isPrimary: m.isPrimary,
+        role: CONDOMINIUM_ROLE.MANAGER,
+      });
+    }
+
+    for (const c of residentCondominiums) {
+      if (!condominiumMap.has(c.id)) {
+        condominiumMap.set(c.id, { id: c.id, name: c.name, isPrimary: false, role: CONDOMINIUM_ROLE.RESIDENT });
+      }
+    }
+
+    const condominiums: AuthCondominiumInfo[] = Array.from(condominiumMap.values());
 
     return {
       user: userResponse,

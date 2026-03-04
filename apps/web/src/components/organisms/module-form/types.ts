@@ -202,7 +202,7 @@ export interface ModuleFormData {
   name: string;
   description?: string;
   icon?: string;
-  type: ModuleType;
+  type?: ModuleType;
   entity?: string;
   endpoint?: string;
   component?: string;

@@ -2,6 +2,7 @@ import { Entity, Column, Index, OneToMany } from 'typeorm';
 
 import { BaseEntity } from './base.entity';
 import { ResourceHttpMethod } from './resource-http-method.entity';
+import { ModuleResource } from './module-resource.entity';
 
 /**
  * Resource entity for API gateway configuration
@@ -76,4 +77,10 @@ export class Resource extends BaseEntity {
    */
   @OneToMany(() => ResourceHttpMethod, (rhm) => rhm.resource)
   httpMethods!: ResourceHttpMethod[];
+
+  /**
+   * Modules that reference this resource
+   */
+  @OneToMany(() => ModuleResource, (mr) => mr.resource)
+  modules!: ModuleResource[];
 }

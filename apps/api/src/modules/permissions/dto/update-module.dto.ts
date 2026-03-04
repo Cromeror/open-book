@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-import { MODULE_TYPES } from './create-module.dto';
-
 /**
  * Schema for module navigation configuration
  */
@@ -78,9 +76,9 @@ const fieldDefinitionSchema = z.object({
 });
 
 /**
- * Schema for read action settings
+ * Schema for read resource UI config
  */
-const readActionSettingsSchema = z.object({
+const readResourceUiConfigSchema = z.object({
   type: z.literal('read'),
   listColumns: z.array(columnDefinitionSchema),
   filters: z.array(filterDefinitionSchema).optional(),
@@ -119,9 +117,9 @@ const validationRuleSchema = z.object({
 });
 
 /**
- * Schema for create action settings
+ * Schema for create resource UI config
  */
-const createActionSettingsSchema = z.object({
+const createResourceUiConfigSchema = z.object({
   type: z.literal('create'),
   fields: z.array(fieldDefinitionSchema),
   submitLabel: z.string().optional(),
@@ -130,9 +128,9 @@ const createActionSettingsSchema = z.object({
 });
 
 /**
- * Schema for update action settings
+ * Schema for update resource UI config
  */
-const updateActionSettingsSchema = z.object({
+const updateResourceUiConfigSchema = z.object({
   type: z.literal('update'),
   fields: z.array(fieldDefinitionSchema),
   submitLabel: z.string().optional(),
@@ -142,42 +140,42 @@ const updateActionSettingsSchema = z.object({
 });
 
 /**
- * Schema for delete action settings
+ * Schema for delete resource UI config
  */
-const deleteActionSettingsSchema = z.object({
+const deleteResourceUiConfigSchema = z.object({
   type: z.literal('delete'),
   confirmation: z.string().min(1, 'Mensaje de confirmacion requerido'),
   soft: z.boolean().optional(),
 });
 
 /**
- * Schema for generic action settings (specialized modules)
+ * Schema for generic resource UI config (specialized modules)
  */
-const genericActionSettingsSchema = z
+const genericResourceUiConfigSchema = z
   .object({
     type: z.literal('generic'),
   })
   .passthrough(); // Allow additional properties for specialized modules
 
 /**
- * All action settings - discriminated union
+ * All resource UI configs - discriminated union
  */
-const actionSettingsSchema = z.discriminatedUnion('type', [
-  readActionSettingsSchema,
-  createActionSettingsSchema,
-  updateActionSettingsSchema,
-  deleteActionSettingsSchema,
-  genericActionSettingsSchema,
+const resourceUiConfigSchema = z.discriminatedUnion('type', [
+  readResourceUiConfigSchema,
+  createResourceUiConfigSchema,
+  updateResourceUiConfigSchema,
+  deleteResourceUiConfigSchema,
+  genericResourceUiConfigSchema,
 ]);
 
 /**
- * Schema for a module action
+ * Schema for a module action config
  */
 const moduleActionSchema = z.object({
   code: z.string().min(1, 'Codigo de accion requerido').max(50),
-  label: z.string().min(1, 'Etiqueta requerida').max(100),
-  description: z.string().max(500).optional(),
-  settings: actionSettingsSchema,
+  httpMethod: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
+  label: z.string().min(1).max(100).optional(),
+  uiConfig: resourceUiConfigSchema.optional(),
 });
 
 export type ModuleActionDto = z.infer<typeof moduleActionSchema>;
@@ -195,7 +193,6 @@ export const updateModuleSchema = z.object({
   name: z.string().min(1, 'Nombre es requerido').max(100).optional(),
   description: z.string().max(500).nullable().optional(),
   icon: z.string().max(50).nullable().optional(),
-  type: z.enum(MODULE_TYPES).optional(),
   entity: z.string().max(100).nullable().optional(),
   endpoint: z.string().max(255).nullable().optional(),
   component: z.string().max(100).nullable().optional(),
@@ -204,6 +201,8 @@ export const updateModuleSchema = z.object({
   order: z.number().int().min(0).optional(),
   tags: z.array(z.string().max(50)).optional(),
   isActive: z.boolean().optional(),
+  /** Resource codes to associate with this module (replaces existing associations) */
+  resourceCodes: z.array(z.string().min(1).max(50)).optional(),
 });
 
 export type UpdateModuleDto = z.infer<typeof updateModuleSchema>;
@@ -216,35 +215,18 @@ export function validateUpdateModuleDto(data: unknown): UpdateModuleDto {
 }
 
 /**
- * Validate actionsConfig for CRUD modules
- * - Only allows CRUD action codes (read, create, update, delete)
- * - Validates action code matches settings type
+ * Validate actionsConfig
+ * - Validates action code exists in module_permissions
  * - Validates no duplicate action codes
  *
  * @param actionsConfig - Array of actions to validate
  * @param existingPermissionCodes - Array of permission codes from module_permissions
  */
-export function validateCrudActionsConfig(
+export function validateActionsConfig(
   actionsConfig: ModuleActionDto[],
   existingPermissionCodes: string[],
 ): void {
   for (const action of actionsConfig) {
-    // Check if action code is valid for CRUD
-    if (!CRUD_ACTION_CODES.includes(action.code as CrudActionCode)) {
-      throw new Error(
-        `Codigo de accion '${action.code}' no es valido para modulos CRUD. ` +
-          `Codigos permitidos: ${CRUD_ACTION_CODES.join(', ')}`,
-      );
-    }
-
-    // Validate settings type matches action code for CRUD actions
-    if (action.settings.type !== 'generic' && action.settings.type !== action.code) {
-      throw new Error(
-        `El tipo de settings '${action.settings.type}' no coincide con el codigo de accion '${action.code}'`,
-      );
-    }
-
-    // Validate action code exists in module_permissions
     if (!existingPermissionCodes.includes(action.code)) {
       throw new Error(
         `El codigo de accion '${action.code}' no existe como permiso del modulo. ` +
@@ -253,38 +235,6 @@ export function validateCrudActionsConfig(
     }
   }
 
-  // Check for duplicate action codes
-  const codes = actionsConfig.map((a) => a.code);
-  const uniqueCodes = new Set(codes);
-  if (codes.length !== uniqueCodes.size) {
-    throw new Error('No se permiten codigos de accion duplicados');
-  }
-}
-
-/**
- * Validate actionsConfig for specialized modules
- * - Allows any action code
- * - Settings type should be 'generic'
- * - Validates action code exists in module_permissions
- *
- * @param actionsConfig - Array of actions to validate
- * @param existingPermissionCodes - Array of permission codes from module_permissions
- */
-export function validateSpecializedActionsConfig(
-  actionsConfig: ModuleActionDto[],
-  existingPermissionCodes: string[],
-): void {
-  for (const action of actionsConfig) {
-    // Validate action code exists in module_permissions
-    if (!existingPermissionCodes.includes(action.code)) {
-      throw new Error(
-        `El codigo de accion '${action.code}' no existe como permiso del modulo. ` +
-          `Permisos disponibles: ${existingPermissionCodes.join(', ')}`,
-      );
-    }
-  }
-
-  // Check for duplicate action codes
   const codes = actionsConfig.map((a) => a.code);
   const uniqueCodes = new Set(codes);
   if (codes.length !== uniqueCodes.size) {

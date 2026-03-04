@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { requireSuperAdmin } from '@/lib/permissions.server';
 import { publicEnv } from '@/config/env';
 import { ContentLayout } from '@/components/layout';
+import { PageTitle } from '@/components/molecules';
 import type { Resource, ResourceHttpMethod, ResourceHttpMethodLink, HttpMethod } from '@/types/business';
 import { ResourceEditForm } from './resource-edit-form';
 
@@ -122,33 +123,19 @@ export default async function EditResourcePage({ params }: Props) {
       }
     >
       <div className="space-y-6">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Configuración detallada del recurso
-          </h1>
-          <div className="group relative">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-gray-400 hover:text-gray-600 cursor-help"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-              <path d="M12 17h.01" />
-            </svg>
-            <div className="pointer-events-none absolute left-1/2 top-7 z-10 hidden w-80 -translate-x-1/2 rounded-lg border border-gray-200 bg-white p-3 text-xs text-gray-600 shadow-lg group-hover:block">
+        <PageTitle
+          title="Configuración detallada del recurso"
+          tooltip={
+            <>
               <p className="font-semibold text-gray-800 mb-1">¿Cómo funciona?</p>
               <ul className="space-y-1 list-disc list-inside">
                 <li><strong>Template URL</strong>: define la estructura de la URL del recurso.</li>
                 <li><strong>Métodos HTTP</strong>: cada método habilitado representa una acción disponible (listar, crear, actualizar, etc.).</li>
                 <li><strong>Links de salida</strong>: configuran los hipervínculos HATEOAS que se inyectan en las respuestas del API para guiar la navegación entre recursos.</li>
               </ul>
-            </div>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         <ResourceEditForm resource={resource} allResources={allResources} />
       </div>

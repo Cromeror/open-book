@@ -1,214 +1,62 @@
 /**
- * Types for module actions and metadata
- * Used by /api/auth/me to return segregated actions based on user permissions
+ * Response types for /api/auth/me — modules and actions visible to the user.
  *
- * Key principle: action code = permission code
- * If a user has permission 'read', they receive the action with code 'read'
+ * action.code    = permission code (e.g. 'read', 'create') — matches module_permission.code.
+ * action.httpMethod = HTTP verb that executes this action (e.g. 'GET', 'POST').
+ * uiConfig is opaque in the API: validated by Zod on write, passed through as-is on read.
+ * The frontend owns the typed definitions of uiConfig internals.
  */
 
-// ============================================
-// Action Settings Types
-// ============================================
-
-/**
- * Base settings for all action types
- */
-export type ActionSettings = CrudActionSettings | GenericActionSettings;
-
-/**
- * Settings for CRUD actions (typed)
- */
-export type CrudActionSettings =
-  | ReadActionSettings
-  | CreateActionSettings
-  | UpdateActionSettings
-  | DeleteActionSettings;
-
-/**
- * Settings for 'read' action
- */
-export interface ReadActionSettings {
-  type: 'read';
-  listColumns: ColumnDefinition[];
-  filters?: FilterDefinition[];
-  sortable?: string[];
-  defaultSort?: { field: string; order: 'asc' | 'desc' };
-  search?: {
-    enabled: boolean;
-    placeholder?: string;
-    fields?: string[];
-  };
-  pagination?: {
-    enabled: boolean;
-    defaultPageSize?: number;
-    pageSizeOptions?: number[];
-  };
+/** One action the user can perform in a module. */
+export interface ModuleActionConfig {
+  code: string;       // permission code, e.g. 'read', 'create' — matches module_permission.code
+  httpMethod: string; // HTTP verb that executes this action, e.g. 'GET', 'POST'
+  label?: string;     // display label, e.g. 'Ver'
+  uiConfig?: Record<string, unknown>; // frontend UI config (list columns, form fields, etc.)
 }
 
-/**
- * Settings for 'create' action
- */
-export interface CreateActionSettings {
-  type: 'create';
-  fields: FieldDefinition[];
-  submitLabel?: string;
-  layout?: 'single-column' | 'two-columns';
-  validation?: ValidationRules;
+/** HTTP method enabled on a resource. */
+export interface ModuleHttpMethodResponse {
+  method: string; // 'GET' | 'POST' | 'PATCH' | 'DELETE'
+  isActive: boolean;
 }
 
-/**
- * Settings for 'update' action
- */
-export interface UpdateActionSettings {
-  type: 'update';
-  fields: FieldDefinition[];
-  submitLabel?: string;
-  layout?: 'single-column' | 'two-columns';
-  validation?: ValidationRules;
-  readOnlyFields?: string[];
+/** HTTP method with its associated action config (UI config + permission). */
+export interface ModuleHttpMethodWithConfig {
+  method: string;           // 'GET' | 'POST' | 'PATCH' | 'DELETE'
+  action: ModuleActionConfig; // config associated to this method
 }
 
-/**
- * Settings for 'delete' action
- */
-export interface DeleteActionSettings {
-  type: 'delete';
-  confirmation: string;
-  soft?: boolean;
+/** Resource exposed by a module, with its active HTTP methods. */
+export interface ModuleResourceResponse {
+  code: string;
+  templateUrl: string; // resolved URL, ready to use (no placeholders)
+  role?: string; // resource role within the module: 'primary' | 'detail' | 'related'
+  httpMethods: ModuleHttpMethodResponse[];
 }
 
-/**
- * Settings for specialized (non-CRUD) actions
- */
-export interface GenericActionSettings {
-  type: 'generic';
-  [key: string]: unknown;
+/** Resource with only the HTTP methods that have an actionsConfig entry for the user. */
+export interface ModuleResourceWithActionsResponse {
+  code: string;
+  templateUrl: string;
+  role?: string;
+  httpMethods: ModuleHttpMethodWithConfig[]; // only methods with a configured action
 }
 
-// ============================================
-// Module Action
-// ============================================
-
-/**
- * A module action with its settings
- * The action code matches the permission code
- */
-export interface ModuleAction {
-  code: string; // 'read', 'create', 'update', 'delete', 'view', 'export', etc.
-  label: string; // 'Ver', 'Crear', 'Editar', 'Eliminar'
-  description?: string;
-  settings: ActionSettings;
-}
-
-// ============================================
-// Module with Actions (API Response)
-// ============================================
-
-/**
- * Module with segregated actions based on user permissions
- * Returned by /api/auth/me
- */
-export interface ModuleWithActions {
-  code: string; // 'objetivos', 'aportes', etc.
-  label: string; // 'Objetivos de Recaudo'
+/** Module entry returned by /api/auth/me — only modules and actions the user can access. */
+export interface ModuleWithActionsResponse {
+  code: string; // e.g. 'goals', 'users'
+  label: string; // e.g. 'Objetivos de Recaudo'
   description: string;
-  icon: string; // 'Target' (lucide icon name)
-  type: 'crud' | 'specialized';
-
+  icon: string; // Lucide icon name, e.g. 'Target'
   nav: {
-    path: string; // '/goals' or '/m/objetivos'
+    path: string; // e.g. '/goals' or '/m/goals'
     order: number;
   };
-
-  // CRUD-specific fields
-  entity?: string; // 'Objetivo' (only for CRUD)
-  endpoint?: string; // '/api/goals' (only for CRUD)
-
-  // Specialized-specific fields
-  component?: string; // 'ReportsModule' (only for specialized)
-
-  // Segregated actions (only those the user has permission for)
-  actions: ModuleAction[];
+  resources: ModuleResourceWithActionsResponse[];
 }
 
-// ============================================
-// Field and Column Definitions
-// ============================================
-
-/**
- * Field definition for forms
- */
-export interface FieldDefinition {
-  name: string;
-  label: string;
-  type:
-    | 'text'
-    | 'number'
-    | 'date'
-    | 'select'
-    | 'textarea'
-    | 'boolean'
-    | 'money'
-    | 'email'
-    | 'password'
-    | 'checkbox'
-    | 'multiselect';
-  required?: boolean;
-  placeholder?: string;
-  helpText?: string;
-  options?: Array<{ value: string; label: string }>;
-  min?: number;
-  max?: number;
-  validation?: {
-    min?: number;
-    max?: number;
-    minLength?: number;
-    maxLength?: number;
-    pattern?: string;
-    custom?: string;
-  };
-}
-
-/**
- * Column definition for lists/tables
- */
-export interface ColumnDefinition {
-  field: string;
-  label: string;
-  sortable?: boolean;
-  format?: 'date' | 'money' | 'boolean';
-}
-
-/**
- * Filter definition for lists
- */
-export interface FilterDefinition {
-  field: string;
-  label: string;
-  type: 'text' | 'select' | 'date' | 'dateRange';
-  options?: Array<{ value: string; label: string }>;
-}
-
-/**
- * Validation rules for forms
- */
-export interface ValidationRules {
-  [field: string]: {
-    required?: boolean;
-    min?: number;
-    max?: number;
-    pattern?: string;
-    message?: string;
-  };
-}
-
-// ============================================
-// Auth Me Response (Extended)
-// ============================================
-
-/**
- * Extended auth/me response with modules and actions
- */
+/** Full /api/auth/me response shape. */
 export interface AuthMeResponseWithModules {
   user: {
     id: string;
@@ -217,5 +65,5 @@ export interface AuthMeResponseWithModules {
     lastName: string;
     isSuperAdmin: boolean;
   };
-  modules: ModuleWithActions[];
+  modules: ModuleWithActionsResponse[];
 }

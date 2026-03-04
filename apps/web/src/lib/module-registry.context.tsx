@@ -16,17 +16,15 @@ import {
   type ReactNode,
 } from 'react';
 import type {
-  ModuleWithActions,
+  ModuleWithActionsResponse,
   NavItem,
-  ActionSettings,
-  ModuleAction,
 } from './types/modules';
 
 interface ModuleRegistryContextValue {
   /** Whether the user is SuperAdmin */
   isSuperAdmin: boolean;
-  /** All user modules with their actions */
-  modules: ModuleWithActions[];
+  /** All user modules */
+  modules: ModuleWithActionsResponse[];
   /** Navigation configuration derived from modules */
   navConfig: NavItem[];
   /** Check if user has access to a module */
@@ -34,16 +32,7 @@ interface ModuleRegistryContextValue {
   /** Check if user has a specific action (permission) in a module */
   hasAction: (moduleCode: string, actionCode: string) => boolean;
   /** Get metadata for a specific module */
-  getMetadata: (code: string) => ModuleWithActions | undefined;
-  /** Get action codes for a module (equivalent to permissions) */
-  getPermissions: (moduleCode: string) => string[];
-  /** Get a specific action from a module */
-  getAction: (moduleCode: string, actionCode: string) => ModuleAction | undefined;
-  /** Get action settings with type casting */
-  getActionSettings: <T extends ActionSettings>(
-    moduleCode: string,
-    actionCode: string
-  ) => T | undefined;
+  getMetadata: (code: string) => ModuleWithActionsResponse | undefined;
 }
 
 const ModuleRegistryContext = createContext<ModuleRegistryContextValue | null>(null);
@@ -51,7 +40,7 @@ const ModuleRegistryContext = createContext<ModuleRegistryContextValue | null>(n
 interface ModuleRegistryProviderProps {
   children: ReactNode;
   /** Modules from server-side rendering */
-  initialModules: ModuleWithActions[];
+  initialModules: ModuleWithActionsResponse[];
   /** Whether user is SuperAdmin */
   initialIsSuperAdmin?: boolean;
 }
@@ -84,29 +73,11 @@ export function ModuleRegistryProvider({
     const hasModule = (code: string): boolean =>
       modules.some((m) => m.code === code);
 
-    const getMetadata = (code: string): ModuleWithActions | undefined =>
+    const getMetadata = (code: string): ModuleWithActionsResponse | undefined =>
       modules.find((m) => m.code === code);
 
-    const hasAction = (moduleCode: string, actionCode: string): boolean => {
-      const module = getMetadata(moduleCode);
-      return module?.actions.some((a) => a.code === actionCode) ?? false;
-    };
-
-    const getPermissions = (moduleCode: string): string[] =>
-      getMetadata(moduleCode)?.actions.map((a) => a.code) ?? [];
-
-    const getAction = (moduleCode: string, actionCode: string): ModuleAction | undefined => {
-      const module = getMetadata(moduleCode);
-      return module?.actions.find((a) => a.code === actionCode);
-    };
-
-    const getActionSettings = <T extends ActionSettings>(
-      moduleCode: string,
-      actionCode: string
-    ): T | undefined => {
-      const action = getAction(moduleCode, actionCode);
-      return action?.settings as T | undefined;
-    };
+    const hasAction = (moduleCode: string, _actionCode: string): boolean =>
+      hasModule(moduleCode);
 
     return {
       isSuperAdmin: initialIsSuperAdmin,
@@ -115,9 +86,6 @@ export function ModuleRegistryProvider({
       hasModule,
       hasAction,
       getMetadata,
-      getPermissions,
-      getAction,
-      getActionSettings,
     };
   }, [initialModules, initialIsSuperAdmin]);
 

@@ -20,6 +20,7 @@ export { Goal, GoalStatus } from './goal.entity';
 export { GoalHistory } from './goal-history.entity';
 export { Module } from './module.entity';
 export { ModulePermission } from './module-permission.entity';
+export { ModuleResource } from './module-resource.entity';
 export { UserPermission } from './user-permission.entity';
 export { UserPool } from './user-pool.entity';
 export { UserPoolMember } from './user-pool-member.entity';

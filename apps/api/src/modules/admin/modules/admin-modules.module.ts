@@ -3,6 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Module as ModuleEntity } from '../../../entities';
 import { ModulePermission } from '../../../entities/module-permission.entity';
+import { ModuleResource } from '../../../entities/module-resource.entity';
+import { Resource } from '../../../entities/resource.entity';
 
 import { AdminModulesController } from './admin-modules.controller';
 import { AdminModulesService } from './admin-modules.service';
@@ -19,7 +21,7 @@ import { AdminModulesService } from './admin-modules.service';
  * Endpoints at /api/admin/modules
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([ModuleEntity, ModulePermission])],
+  imports: [TypeOrmModule.forFeature([ModuleEntity, ModulePermission, ModuleResource, Resource])],
   controllers: [AdminModulesController],
   providers: [AdminModulesService],
   exports: [AdminModulesService],

@@ -1,6 +1,8 @@
 'use client';
 
-import type { FieldDefinition } from '@/lib/types/modules';
+import type { CreateResourceUiConfig } from '@/lib/types/modules';
+
+type FieldDefinition = CreateResourceUiConfig['fields'][number];
 import type { UseFormRegister, FieldErrors, FieldValues } from 'react-hook-form';
 
 interface DynamicFieldProps {

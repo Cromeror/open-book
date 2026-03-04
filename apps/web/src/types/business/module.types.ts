@@ -1,150 +1,88 @@
 /**
- * Module and Action type definitions
+ * Module type definitions — mirror of the API response types for /api/auth/me.
  *
- * These types define the structure of modules and their available actions.
- * Used by both API (to serve) and Web (to consume) for type safety.
+ * action.code    = permission code (e.g. 'read', 'create') — matches module_permission.code.
+ * action.httpMethod = HTTP verb that executes this action (e.g. 'GET', 'POST').
+ * uiConfig internals are owned by the frontend — the API passes them through as-is.
  */
 
-/**
- * Valid module types
- */
-export const MODULE_TYPES = ['crud', 'specialized'] as const;
-export type ModuleType = (typeof MODULE_TYPES)[number];
+// NOTE: Modules used to have a `type` field ('crud' | 'specialized') and related fields
+// (endpoint, entity, component) that were removed from the API. If in the future we need
+// to differentiate module rendering behavior, a new flag or convention should be introduced.
 
-/**
- * A module with its available actions for a user
- */
-export interface ModuleWithActions {
-  /** Unique module code (e.g., 'goals', 'users') */
+/** One action the user can perform in a module. */
+export interface ModuleActionConfig {
+  /** Permission code — matches module_permission.code, e.g. 'read', 'create' */
   code: string;
-  /** Display label for the module */
+  /** HTTP verb that executes this action, e.g. 'GET', 'POST' */
+  httpMethod: string;
+  /** Display label, e.g. 'Ver' */
+  label?: string;
+  /** Frontend UI config (list columns, form fields, etc.) — opaque from API perspective */
+  uiConfig?: Record<string, unknown>;
+}
+
+/** HTTP method paired with its action config — only methods with a configured action are included. */
+export interface ModuleHttpMethodWithConfig {
+  /** HTTP verb, e.g. 'GET', 'POST', 'PATCH', 'DELETE' */
+  method: string;
+  /** Action config associated to this method */
+  action: ModuleActionConfig;
+}
+
+/** Resource with only the HTTP methods that have an actionsConfig entry for the user. */
+export interface ModuleResourceWithActionsResponse {
+  code: string;
+  /** Resolved URL, ready to use (no placeholders) */
+  templateUrl: string;
+  /** Resource role within the module: 'primary' | 'detail' | 'related' */
+  role?: string;
+  /** Only methods with a configured action allowed for the user */
+  httpMethods: ModuleHttpMethodWithConfig[];
+}
+
+/** Module entry returned by /api/auth/me — only modules and resources the user can access. */
+export interface ModuleWithActionsResponse {
+  /** Unique module code, e.g. 'goals', 'users' */
+  code: string;
+  /** Display label, e.g. 'Objetivos de Recaudo' */
   label: string;
-  /** Description */
   description: string;
-  /** Icon name (Lucide icon) */
+  /** Lucide icon name, e.g. 'Target' */
   icon: string;
-  /** Module type */
-  type: ModuleType;
-  /** Navigation configuration */
   nav: {
     path: string;
     order: number;
   };
-  /** API endpoint for this module (for CRUD modules) */
-  endpoint?: string;
-  /** Entity name (singular, for display, for CRUD modules) */
-  entity?: string;
-  /** Component name (for specialized modules) */
-  component?: string;
-  /** Actions available for this module */
-  actions: ModuleAction[];
+  resources: ModuleResourceWithActionsResponse[];
 }
 
-/**
- * An action within a module
- */
-export interface ModuleAction {
-  /** Action code (also serves as permission code) */
-  code: string;
-  /** Display label for the action */
-  label: string;
-  /** Optional description */
-  description?: string;
-  /** Action-specific settings (typed per action) */
-  settings?: unknown;
-}
+// ---------------------------------------------------------------------------
+// UI config types — owned by the frontend, used to interpret uiConfig fields
+// ---------------------------------------------------------------------------
 
-/**
- * Settings for 'read' action (list view)
- */
-export interface ReadActionSettings {
-  /** Type discriminator */
+export interface ReadResourceUiConfig {
   type: 'read';
-  /** Columns to display in the list */
   listColumns: Array<{
     field: string;
     label: string;
     sortable?: boolean;
     format?: 'date' | 'money' | 'boolean';
   }>;
-  /** Optional filters for the list */
   filters?: Array<{
     field: string;
     label: string;
     type: 'text' | 'select' | 'date' | 'dateRange';
     options?: Array<{ value: string; label: string }>;
   }>;
-  /** Fields that can be sorted */
   sortable?: string[];
-  /** Default sort configuration */
-  defaultSort?: {
-    field: string;
-    order: 'asc' | 'desc';
-  };
-  /** Optional search configuration */
-  search?: {
-    enabled: boolean;
-    placeholder?: string;
-    fields?: string[];
-  };
-  /** Optional pagination settings */
-  pagination?: {
-    enabled: boolean;
-    defaultPageSize?: number;
-    pageSizeOptions?: number[];
-  };
+  defaultSort?: { field: string; order: 'asc' | 'desc' };
+  search?: { enabled: boolean; placeholder?: string; fields?: string[] };
+  pagination?: { enabled: boolean; defaultPageSize?: number; pageSizeOptions?: number[] };
 }
 
-/**
- * Settings for 'create' action (form view)
- */
-export interface CreateActionSettings {
-  /** Type discriminator */
+export interface CreateResourceUiConfig {
   type: 'create';
-  /** Fields for the create form */
-  fields: Array<{
-    name: string; // Changed from 'key' to 'name' for compatibility
-    label: string;
-    type: 'text' | 'number' | 'date' | 'select' | 'textarea' | 'email' | 'password' | 'checkbox' | 'multiselect' | 'boolean' | 'money';
-    required?: boolean;
-    placeholder?: string;
-    helpText?: string;
-    options?: Array<{ value: string; label: string }>;
-    min?: number;
-    max?: number;
-    validation?: {
-      min?: number;
-      max?: number;
-      minLength?: number;
-      maxLength?: number;
-      pattern?: string;
-      custom?: string;
-    };
-  }>;
-  /** Optional custom submit label */
-  submitLabel?: string;
-  /** Optional form layout */
-  layout?: 'single-column' | 'two-columns';
-  /** Validation rules */
-  validation?: {
-    [field: string]: {
-      required?: boolean;
-      min?: number;
-      max?: number;
-      pattern?: string;
-      message?: string;
-    };
-  };
-}
-
-/**
- * Settings for 'update' action (edit form)
- * Similar to CreateActionSettings but with type 'update'
- */
-export interface UpdateActionSettings {
-  /** Type discriminator */
-  type: 'update';
-  /** Fields for the edit form */
   fields: Array<{
     name: string;
     label: string;
@@ -155,60 +93,42 @@ export interface UpdateActionSettings {
     options?: Array<{ value: string; label: string }>;
     min?: number;
     max?: number;
-    validation?: {
-      min?: number;
-      max?: number;
-      minLength?: number;
-      maxLength?: number;
-      pattern?: string;
-      custom?: string;
-    };
+    validation?: { min?: number; max?: number; minLength?: number; maxLength?: number; pattern?: string; custom?: string };
   }>;
-  /** Optional custom submit label */
   submitLabel?: string;
-  /** Optional form layout */
   layout?: 'single-column' | 'two-columns';
-  /** Validation rules */
-  validation?: {
-    [field: string]: {
-      required?: boolean;
-      min?: number;
-      max?: number;
-      pattern?: string;
-      message?: string;
-    };
-  };
-  /** Fields that cannot be edited */
+  validation?: Record<string, { required?: boolean; min?: number; max?: number; pattern?: string; message?: string }>;
+}
+
+export interface UpdateResourceUiConfig {
+  type: 'update';
+  fields: CreateResourceUiConfig['fields'];
+  submitLabel?: string;
+  layout?: 'single-column' | 'two-columns';
+  validation?: Record<string, { required?: boolean; min?: number; max?: number; pattern?: string; message?: string }>;
   readOnlyFields?: string[];
 }
 
-/**
- * Settings for 'delete' action
- */
-export interface DeleteActionSettings {
-  /** Type discriminator */
+export interface DeleteResourceUiConfig {
   type: 'delete';
-  /** Confirmation message to show before deleting */
   confirmation: string;
-  /** Whether to perform soft delete */
   soft?: boolean;
 }
 
-/**
- * Settings for 'export' action
- */
-export interface ExportActionSettings {
-  /** Available export formats */
-  formats: Array<'csv' | 'xlsx' | 'pdf' | 'json'>;
-  /** Default format */
-  defaultFormat?: 'csv' | 'xlsx' | 'pdf' | 'json';
-  /** Fields to include in export */
-  fields?: string[];
+export interface GenericResourceUiConfig {
+  type: 'generic';
+  [key: string]: unknown;
 }
 
-/**
- * Type helper to get action with typed settings
- */
-export type TypedModuleAction<T> = ModuleAction & {
-  settings: T;
-};
+export type ResourceUiConfig =
+  | ReadResourceUiConfig
+  | CreateResourceUiConfig
+  | UpdateResourceUiConfig
+  | DeleteResourceUiConfig
+  | GenericResourceUiConfig;
+
+// Type guards
+export function isReadUiConfig(c: ResourceUiConfig): c is ReadResourceUiConfig { return c.type === 'read'; }
+export function isCreateUiConfig(c: ResourceUiConfig): c is CreateResourceUiConfig { return c.type === 'create'; }
+export function isUpdateUiConfig(c: ResourceUiConfig): c is UpdateResourceUiConfig { return c.type === 'update'; }
+export function isDeleteUiConfig(c: ResourceUiConfig): c is DeleteResourceUiConfig { return c.type === 'delete'; }

@@ -35,14 +35,6 @@ export default async function DynamicModulePage({ params }: Props) {
     notFound();
   }
 
-  // For specialized modules, redirect to their static routes
-  // or handle them here with registered components
-  if (metadata.type === 'specialized') {
-    // Specialized modules have static routes defined in nav.path
-    // Redirect to the static route if navigated via /m/
-    redirect(metadata.nav.path);
-  }
-
   // Render CRUD module with GenericCRUDModule
   return (
     <GenericCRUDModule

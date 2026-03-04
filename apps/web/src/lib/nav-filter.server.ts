@@ -1,7 +1,7 @@
 import 'server-only';
 
 import type { ServerPermissions } from './permissions.server';
-import type { NavItem, ModuleWithActions } from './types/modules';
+import type { NavItem, ModuleWithActionsResponse } from './types/modules';
 
 /**
  * Generate navigation items from user's modules
@@ -31,7 +31,7 @@ export function getNavFromModules(permissions: ServerPermissions): NavItem[] {
 /**
  * Get user modules for the ModuleRegistry context
  */
-export function getModulesForContext(permissions: ServerPermissions): ModuleWithActions[] {
+export function getModulesForContext(permissions: ServerPermissions): ModuleWithActionsResponse[] {
   return permissions.modules;
 }
 

@@ -9,6 +9,7 @@ import { RefreshToken } from '../../entities/refresh-token.entity';
 import { UsersModule } from '../users/users.module';
 import { PermissionsModule } from '../permissions/permissions.module';
 import { CondominiumsModule } from '../admin/condominiums/condominiums.module';
+import { AdminPropertyResidentsModule } from '../admin/property-residents/admin-property-residents.module';
 
 import { AuthLogService } from './auth-log.service';
 import { AuthController } from './auth.controller';
@@ -33,6 +34,7 @@ import { TokenService } from './token.service';
     UsersModule,
     PermissionsModule,
     CondominiumsModule, // For CondominiumManagersService
+    AdminPropertyResidentsModule, // For resident condominium lookup
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: jwtConfig.secret,

@@ -2,11 +2,11 @@
 
 import { useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
-import type { CreateActionSettings, UpdateActionSettings } from '@/lib/types/modules';
+import type { CreateResourceUiConfig, UpdateResourceUiConfig } from '@/lib/types/modules';
 import { DynamicField } from './fields';
 
 interface GenericFormProps {
-  config: CreateActionSettings | UpdateActionSettings;
+  config: CreateResourceUiConfig | UpdateResourceUiConfig;
   endpoint: string;
   entity: string;
   mode: 'create' | 'edit';

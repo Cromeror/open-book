@@ -191,6 +191,26 @@ export class AdminPropertyResidentsService {
   }
 
   /**
+   * Find distinct condominiums where a user has an active property residency
+   */
+  async findCondominiumsByUser(userId: string): Promise<Array<{ id: string; name: string }>> {
+    return this.propertyResidentRepository
+      .createQueryBuilder('pr')
+      .innerJoin('pr.property', 'property')
+      .innerJoin('property.condominium', 'condominium')
+      .select('condominium.id', 'id')
+      .addSelect('condominium.name', 'name')
+      .where('pr.userId = :userId', { userId })
+      .andWhere('pr.status = :status', { status: AssociationStatus.ACTIVE })
+      .andWhere('pr.deletedAt IS NULL')
+      .andWhere('property.isActive = true')
+      .andWhere('condominium.deletedAt IS NULL')
+      .distinct(true)
+      .orderBy('condominium.name', 'ASC')
+      .getRawMany<{ id: string; name: string }>();
+  }
+
+  /**
    * Create a property-resident association with ACTIVE status (admin only)
    */
   async create(dto: AdminCreatePropertyResidentDto): Promise<PropertyResident> {

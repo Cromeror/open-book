@@ -8,6 +8,13 @@
 // Auth response types (transport types, re-exported for convenience)
 export type { AuthUser } from './permissions.server';
 
+export const CONDOMINIUM_ROLE = {
+  MANAGER: 'manager',
+  RESIDENT: 'resident',
+} as const;
+
+export type CondominiumRole = typeof CONDOMINIUM_ROLE[keyof typeof CONDOMINIUM_ROLE];
+
 /**
  * Auth me response from API
  * This is a transport type, not a business type
@@ -20,11 +27,12 @@ export interface AuthMeResponse {
     lastName: string;
     isSuperAdmin: boolean;
   };
-  modules: ModuleWithActions[];
+  modules: ModuleWithActionsResponse[];
   condominiums: Array<{
     id: string;
     name: string;
     isPrimary: boolean;
+    role: CondominiumRole;
   }>;
 }
 
@@ -32,7 +40,7 @@ export interface AuthMeResponse {
 export * from './types/modules';
 
 // Import for local use
-import type { ModuleWithActions } from './types/modules';
+import type { ModuleWithActionsResponse } from './types/modules';
 
 // ============================================
 // Runtime Validation Helpers
@@ -43,7 +51,7 @@ import type { ModuleWithActions } from './types/modules';
  * Runtime validation using generic strings
  */
 export function hasModule(
-  modules: ModuleWithActions[],
+  modules: ModuleWithActionsResponse[],
   moduleCode: string
 ): boolean {
   return modules.some((m) => m.code === moduleCode);
@@ -51,26 +59,12 @@ export function hasModule(
 
 /**
  * Check if user has a specific action in a module
- * Action code = Permission code
+ * Having the module in the response means the user has permission
  */
 export function hasAction(
-  modules: ModuleWithActions[],
+  modules: ModuleWithActionsResponse[],
   moduleCode: string,
-  actionCode: string
+  _actionCode: string
 ): boolean {
-  const module = modules.find((m) => m.code === moduleCode);
-  return module?.actions.some((a) => a.code === actionCode) ?? false;
-}
-
-/**
- * Get action settings with type casting
- */
-export function getActionSettings<T>(
-  modules: ModuleWithActions[],
-  moduleCode: string,
-  actionCode: string
-): T | undefined {
-  const module = modules.find((m) => m.code === moduleCode);
-  const action = module?.actions.find((a) => a.code === actionCode);
-  return action?.settings as T | undefined;
+  return modules.some((m) => m.code === moduleCode);
 }

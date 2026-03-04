@@ -24,7 +24,7 @@ export function isLikelyDynamicSegment(value: string): boolean {
  */
 function extractPlaceholderKey(value: string): string | null {
   const match = PLACEHOLDER_REGEX.exec(value);
-  return match ? match[1] : null;
+  return match ? (match[1] ?? null) : null;
 }
 
 /**

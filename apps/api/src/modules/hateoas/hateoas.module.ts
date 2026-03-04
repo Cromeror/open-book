@@ -3,6 +3,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { ResourceHttpMethod } from '../../entities/resource-http-method.entity';
+import { SessionContextModule } from '../session-context/session-context.module';
 
 import { HateoasService } from './hateoas.service';
 import { HateoasInterceptor } from './hateoas.interceptor';
@@ -18,7 +19,10 @@ import { HateoasInterceptor } from './hateoas.interceptor';
  */
 @Global()
 @Module({
-  imports: [TypeOrmModule.forFeature([ResourceHttpMethod])],
+  imports: [
+    TypeOrmModule.forFeature([ResourceHttpMethod]),
+    SessionContextModule,
+  ],
   providers: [
     HateoasService,
     {

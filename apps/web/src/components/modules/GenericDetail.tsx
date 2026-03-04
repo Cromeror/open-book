@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { ReadActionSettings } from '@/lib/types/modules';
+import type { ReadResourceUiConfig } from '@/lib/types/modules';
 import { formatValue } from '@/lib/formatters';
 import { Icon } from '@/components/layout/Icon';
 
 interface GenericDetailProps {
-  config: ReadActionSettings;
+  config: ReadResourceUiConfig;
   endpoint: string;
   entity: string;
   id: string;

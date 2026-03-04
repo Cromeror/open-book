@@ -130,7 +130,6 @@ export class CondominiumsService {
       nit: dto.nit,
       address: dto.address,
       city: dto.city,
-      unitCount: 0, // Deprecated field, kept for compatibility
       isActive: true,
     });
 

@@ -1,14 +1,9 @@
 import 'server-only';
 
 import { cookies } from 'next/headers';
-import { cache } from 'react';
 
-import { publicEnv } from '@/config/env';
-
-import type {
-  AuthMeResponse,
-  ModuleWithActions,
-} from './types';
+import { fetchAuthMe } from './http-api/auth-api';
+import type { ModuleWithActionsResponse } from './types';
 
 /**
  * User info from authentication
@@ -24,7 +19,7 @@ export interface AuthUser {
 /**
  * Server-side permissions object returned by getServerPermissions()
  *
- * Now uses ModuleWithActions from /api/auth/me
+ * Now uses ModuleWithActionsResponse from /api/auth/me
  * Action code = Permission code
  */
 export interface ServerPermissions {
@@ -33,7 +28,7 @@ export interface ServerPermissions {
   isSuperAdmin: boolean;
   isAuthenticated: boolean;
   /** User's modules with their allowed actions */
-  modules: ModuleWithActions[];
+  modules: ModuleWithActionsResponse[];
 
   /**
    * Check if user has access to a module
@@ -56,7 +51,7 @@ export interface ServerPermissions {
   /**
    * Get a module's metadata
    */
-  getModule: (moduleCode: string) => ModuleWithActions | undefined;
+  getModule: (moduleCode: string) => ModuleWithActionsResponse | undefined;
 }
 
 /**
@@ -81,17 +76,17 @@ function createEmptyPermissions(): ServerPermissions {
  */
 function createSuperAdminPermissions(
   user: AuthUser,
-  modules: ModuleWithActions[]
+  modules: ModuleWithActionsResponse[],
 ): ServerPermissions {
   return {
     userId: user.id,
     user,
     isSuperAdmin: true,
     isAuthenticated: true,
-    modules, // SuperAdmin gets all modules with all actions
-    hasModule: () => true, // SuperAdmin has access to all modules
-    can: () => true, // SuperAdmin can do everything
-    hasAction: () => true, // SuperAdmin has all actions
+    modules,
+    hasModule: () => true,
+    can: () => true,
+    hasAction: () => true,
     getModule: (code) => modules.find((m) => m.code === code),
   };
 }
@@ -101,7 +96,7 @@ function createSuperAdminPermissions(
  */
 function createUserPermissions(
   user: AuthUser,
-  modules: ModuleWithActions[]
+  modules: ModuleWithActionsResponse[],
 ): ServerPermissions {
   return {
     userId: user.id,
@@ -115,59 +110,18 @@ function createUserPermissions(
     },
 
     can: (permission: string) => {
-      const [moduleCode, actionCode] = permission.split(':');
-
-      if (!moduleCode || !actionCode) {
-        return false;
-      }
-
-      // Find the module
-      const module = modules.find((m) => m.code === moduleCode);
-      if (!module) {
-        return false;
-      }
-
-      // Check if user has the action
-      return module.actions.some((a) => a.code === actionCode);
+      const [moduleCode] = permission.split(':');
+      if (!moduleCode) return false;
+      return modules.some((m) => m.code === moduleCode);
     },
 
-    hasAction: (moduleCode: string, actionCode: string) => {
-      const module = modules.find((m) => m.code === moduleCode);
-      return module?.actions.some((a) => a.code === actionCode) ?? false;
+    hasAction: (moduleCode: string, _actionCode: string) => {
+      return modules.some((m) => m.code === moduleCode);
     },
 
     getModule: (code) => modules.find((m) => m.code === code),
   };
 }
-
-/**
- * Fetch user authentication and permissions from the backend
- *
- * This is cached per-request using React's cache() function
- * to avoid multiple calls during a single render.
- */
-const fetchAuthMe = cache(async (token: string): Promise<AuthMeResponse | null> => {
-  try {
-    const response = await fetch(`${publicEnv.NEXT_PUBLIC_API_URL}/auth/me`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      // Don't cache this response - always get fresh data
-      cache: 'no-store',
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching auth/me:', error);
-    return null;
-  }
-});
 
 /**
  * Get server-side permissions for the current user

@@ -38,7 +38,6 @@ export interface Condominium {
   nit?: string;
   address: string;
   city: string;
-  unitCount: number;
   isActive: boolean;
   isPrimary?: boolean;
   createdAt: string;

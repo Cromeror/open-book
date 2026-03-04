@@ -182,6 +182,203 @@ pnpm nx run api:migration:run
 pnpm nx run api:migration:generate
 ```
 
+## Session Context
+
+The `SessionContextModule` assembles and caches the user session context consumed by the frontend via gRPC.
+
+The core method is `SessionContextService.resolveContext(userId)` — the single source of truth for building a healthy session context. It gathers data from three sources:
+
+1. **User** (`UsersService.findById`) — identity, email, role (`isSuperAdmin`)
+2. **UserState** (`UserStateService.getOrCreate`) — preferences (theme, language, sidebar) and `selectedCondominiumId`
+3. **Condominium** (`CondominiumsService.findOne`) — resolves the selected condominium name and validates user access
+
+If any source fails or is missing, the context degrades gracefully (empty strings / defaults) instead of throwing.
+
+### Data flow
+
+```
+getContext(userId)
+  ├── cache hit? → return cached
+  └── cache miss? → resolveContext(userId)
+                      ├── UsersService.findById(userId)
+                      ├── UserStateService.getOrCreate(userId)
+                      └── CondominiumsService.findOne(selectedCondominiumId, userId)
+                            └── userHasAccess(userId, condominiumId)
+                                  ├── checks condominium_managers
+                                  └── checks property_residents → properties
+```
+
+### Caching
+
+- Results are cached per-user with a configurable TTL (`SESSION_CONTEXT_CACHE_TTL_MS`, default 5 min).
+- Call `invalidateContext(userId)` when user data, preferences, or condominium selection changes.
+- Metadata (field names/types) is cached globally since the schema is static.
+
+### ResolvedSessionContext fields
+
+| Field | Source | Description |
+|-------|--------|-------------|
+| `userId` | User | User UUID |
+| `userEmail` | User | Email address |
+| `userFirstName` | User | First name |
+| `userLastName` | User | Last name |
+| `isSuperAdmin` | User | SuperAdmin flag |
+| `condominiumId` | UserState + Condominium | Selected condominium UUID |
+| `condominiumName` | Condominium | Selected condominium name |
+| `userStateTheme` | UserState | UI theme preference |
+| `userStateLanguage` | UserState | Language preference |
+| `userStateSidebarCollapsed` | UserState | Sidebar state |
+
+## Module & Resource Configuration
+
+This section documents the permission, resource, and UI configuration system used to control what each user can see and do in each module.
+
+---
+
+### Key Concepts
+
+#### `module_permissions`
+
+Each module has a set of named permissions stored in the `module_permissions` table.
+
+```
+module_permissions
+  module_id  → FK to modules
+  code       → 'read' | 'create' | 'update' | 'delete' (or custom)
+  name       → human-readable label
+```
+
+A user gets access to a module by being granted one or more of its permissions, either directly (`user_permissions`) or through a pool (`pool_permissions` → `user_pool_members`).
+
+**Access is inferred** — there is no "module access" row. If a user has at least one `module_permission` for a module, the module appears in their session.
+
+---
+
+#### `resources` and `resource_http_methods`
+
+A resource represents an API endpoint (`templateUrl`). Each resource can have one or more HTTP methods registered.
+
+```
+resources
+  code         → e.g. 'goals', 'goals-detail'
+  template_url → e.g. '/api/condominiums/{session:condominiumId}/goals'
+
+resource_http_methods
+  resource_id  → FK to resources
+  http_method  → GET | POST | PATCH | DELETE
+  is_active    → controls visibility
+```
+
+`{session:condominiumId}` placeholders are resolved at runtime from the user's session context before the URL is sent to the frontend.
+
+---
+
+#### `module_resources`
+
+Join table that associates resources to a module. A module can have multiple resources (e.g. a list endpoint and a detail endpoint).
+
+```
+module_resources
+  module_id   → FK to modules
+  resource_id → FK to resources
+  role        → 'primary' | 'detail' | 'related' (optional label)
+```
+
+---
+
+#### `actionsConfig` (JSONB column on `modules`)
+
+The `actions_config` column is a JSONB array of `ModuleActionConfig` objects. It defines which HTTP methods have UI configuration, and maps them to module permissions.
+
+**Structure:**
+
+```jsonc
+[
+  {
+    "code": "read",        // module_permission.code — controls access
+    "httpMethod": "GET",   // HTTP verb that executes this action
+    "label": "Ver",        // display label shown to the user
+    "uiConfig": {          // opaque to the API, owned by the frontend
+      "type": "read",
+      "listColumns": [...],
+      "filters": [...],
+      "defaultSort": { "field": "deadline", "order": "asc" }
+    }
+  },
+  {
+    "code": "create",
+    "httpMethod": "POST",
+    "label": "Crear",
+    "uiConfig": {
+      "type": "create",
+      "fields": [...]
+    }
+  }
+]
+```
+
+**Rules:**
+- `code` must match an existing `module_permissions.code` for this module.
+- `httpMethod` must match an `is_active` method registered on one of the module's resources.
+- `uiConfig` is validated by Zod on write (API) but treated as opaque on read — the frontend owns the typed definitions.
+- An HTTP method without a matching `actionsConfig` entry is **never shown** to the user, even if it is active on the resource.
+
+---
+
+### How `/api/auth/me` builds the module list
+
+For each module the user has permissions for:
+
+1. Collect all `module_permission.code` values the user has → `permissionCodes`
+2. Parse `module.actions_config` → `actionsConfig`
+3. Filter: `actionsConfig.filter(a => permissionCodes.has(a.code))` → `allowedActions`
+4. For each resource in `module_resources`:
+   - Index `allowedActions` by `httpMethod`
+   - Keep only `is_active` HTTP methods that have a matching entry in `allowedActions`
+   - Each surviving method is paired with its `action` (permission code + uiConfig)
+5. Return the module with `resources[].httpMethods[]` containing only the allowed, configured methods
+
+**Two conditions must be met for a method to appear:**
+1. The resource HTTP method is `is_active = true`
+2. There is an `actionsConfig` entry with `httpMethod` matching it **and** the user has the corresponding permission (`code`)
+
+---
+
+### Adding a new endpoint to a module
+
+1. **Register the resource** (if it doesn't exist):
+   ```
+   POST /admin/resources        → { code, templateUrl }
+   POST /admin/resources/:code/http-methods → { method: 'GET' }
+   ```
+
+2. **Associate the resource to the module**:
+   ```
+   PATCH /admin/modules/:id     → { resourceCodes: ['my-resource'] }
+   ```
+
+3. **Add an actionsConfig entry** on the module with the new `code` + `httpMethod` + `uiConfig`.
+
+4. **Create a migration** to persist the changes to `actions_config` (see `1740500000000-UpdateGoalsActionsConfig.ts` as reference).
+
+---
+
+### `uiConfig` types (frontend-owned)
+
+The API validates `uiConfig` structure on write using Zod schemas in `dto/create-module.dto.ts` and `dto/update-module.dto.ts`. The discriminator is `uiConfig.type`:
+
+| `type`    | Used for         | Key fields                              |
+|-----------|------------------|-----------------------------------------|
+| `read`    | List views       | `listColumns`, `filters`, `defaultSort` |
+| `create`  | Create forms     | `fields`, `submitLabel`, `layout`       |
+| `update`  | Edit forms       | `fields`, `readOnlyFields`, `layout`    |
+| `delete`  | Delete confirm   | `confirmation`, `soft`                  |
+| `generic` | Custom/specialized | passthrough — any additional properties |
+
+The frontend TypeScript definitions live in `apps/web/src/types/business/module.types.ts`.
+
+---
+
 ## Related Documentation
 
 - [Architecture Overview](../../docs/ARCHITECTURE.md)

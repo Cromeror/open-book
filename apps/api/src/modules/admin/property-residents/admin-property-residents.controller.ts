@@ -22,8 +22,9 @@ import { AdminPropertyResidentsService } from './admin-property-residents.servic
 
 interface AuthenticatedRequest {
   user: {
-    userId: string;
+    id: string;
     email: string;
+    isSuperAdmin: boolean;
   };
 }
 
@@ -133,7 +134,7 @@ export class AdminPropertyResidentsController {
 
     return this.adminPropertyResidentsService.create({
       ...result.data,
-      assignedBy: req.user.userId,
+      assignedBy: req.user.id,
     });
   }
 }

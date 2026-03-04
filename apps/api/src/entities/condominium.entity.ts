@@ -49,13 +49,6 @@ export class Condominium extends BaseEntity {
   city!: string;
 
   /**
-   * Total number of residential units in the condominium
-   * @deprecated Use properties count instead - kept for backwards compatibility
-   */
-  @Column({ name: 'unit_count', type: 'integer', default: 0 })
-  unitCount!: number;
-
-  /**
    * Whether the condominium is active in the system
    */
   @Column({ name: 'is_active', type: 'boolean', default: true })

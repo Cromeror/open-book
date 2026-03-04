@@ -8,6 +8,10 @@ import { Repository } from 'typeorm';
 
 import { Condominium } from '../../entities/condominium.entity';
 import { CondominiumManager } from '../../entities/condominium-manager.entity';
+import {
+  PropertyResident,
+  AssociationStatus,
+} from '../../entities/property-resident.entity';
 
 /**
  * Response for condominium list
@@ -18,7 +22,6 @@ export interface CondominiumListItem {
   address: string;
   city: string;
   nit?: string;
-  unitCount: number;
   isPrimary: boolean;
 }
 
@@ -31,7 +34,6 @@ export interface CondominiumDetail {
   address: string;
   city: string;
   nit?: string;
-  unitCount: number;
   isActive: boolean;
   createdAt: Date;
 }
@@ -54,6 +56,8 @@ export class CondominiumsService {
     private readonly condominiumRepository: Repository<Condominium>,
     @InjectRepository(CondominiumManager)
     private readonly managerRepository: Repository<CondominiumManager>,
+    @InjectRepository(PropertyResident)
+    private readonly propertyResidentRepository: Repository<PropertyResident>
   ) {}
 
   /**
@@ -81,7 +85,6 @@ export class CondominiumsService {
       address: m.condominium.address,
       city: m.condominium.city,
       nit: m.condominium.nit,
-      unitCount: m.condominium.unitCount,
       isPrimary: m.isPrimary,
     }));
   }
@@ -96,14 +99,12 @@ export class CondominiumsService {
    */
   async findOne(
     condominiumId: string,
-    userId: string,
+    userId: string
   ): Promise<CondominiumDetail> {
     // First verify user has access to this condominium
     const hasAccess = await this.userHasAccess(userId, condominiumId);
     if (!hasAccess) {
-      throw new ForbiddenException(
-        'No tienes acceso a este condominio',
-      );
+      throw new ForbiddenException('No tienes acceso a este condominio');
     }
 
     const condominium = await this.condominiumRepository.findOne({
@@ -124,7 +125,6 @@ export class CondominiumsService {
       address: condominium.address,
       city: condominium.city,
       nit: condominium.nit,
-      unitCount: condominium.unitCount,
       isActive: condominium.isActive,
       createdAt: condominium.createdAt,
     };
@@ -133,10 +133,12 @@ export class CondominiumsService {
   /**
    * Check if user has access to a specific condominium
    *
-   * User has access if they are assigned as an active manager.
+   * User has access if they are an active manager OR an active resident
+   * of a property in the condominium.
    */
   async userHasAccess(userId: string, condominiumId: string): Promise<boolean> {
-    const count = await this.managerRepository.count({
+    // Check as manager
+    const managerCount = await this.managerRepository.count({
       where: {
         userId,
         condominiumId,
@@ -145,15 +147,30 @@ export class CondominiumsService {
       },
     });
 
-    return count > 0;
+    if (managerCount > 0) return true;
+
+    // Check as resident via property_residents → properties
+    const residentCount = await this.propertyResidentRepository
+      .createQueryBuilder('pr')
+      .innerJoin('pr.property', 'property')
+      .where('pr.userId = :userId', { userId })
+      .andWhere('property.condominiumId = :condominiumId', { condominiumId })
+      .andWhere('pr.status = :status', { status: AssociationStatus.ACTIVE })
+      .andWhere('pr.deletedAt IS NULL')
+      .andWhere('property.isActive = true')
+      .getCount();
+
+    return residentCount > 0;
   }
 
   /**
    * Get user's primary condominium
    *
-   * Returns the condominium marked as primary, or the first one if none is primary.
+   * Checks manager assignments first (isPrimary DESC), then resident associations.
+   * Returns the first match found, or null if user has no condominiums.
    */
   async getPrimaryForUser(userId: string): Promise<CondominiumListItem | null> {
+    // Check as manager first (primary managers take priority)
     const manager = await this.managerRepository
       .createQueryBuilder('m')
       .leftJoinAndSelect('m.condominium', 'c')
@@ -166,18 +183,41 @@ export class CondominiumsService {
       .addOrderBy('c.name', 'ASC')
       .getOne();
 
-    if (!manager) {
-      return null;
+    if (manager) {
+      return {
+        id: manager.condominium.id,
+        name: manager.condominium.name,
+        address: manager.condominium.address,
+        city: manager.condominium.city,
+        nit: manager.condominium.nit,
+        isPrimary: manager.isPrimary,
+      };
     }
 
+    // Check as resident
+    const resident = await this.propertyResidentRepository
+      .createQueryBuilder('pr')
+      .innerJoinAndSelect('pr.property', 'property')
+      .innerJoinAndSelect('property.condominium', 'c')
+      .where('pr.userId = :userId', { userId })
+      .andWhere('pr.status = :status', { status: AssociationStatus.ACTIVE })
+      .andWhere('pr.deletedAt IS NULL')
+      .andWhere('property.isActive = true')
+      .andWhere('c.isActive = true')
+      .andWhere('c.deletedAt IS NULL')
+      .orderBy('c.name', 'ASC')
+      .getOne();
+
+    if (!resident) return null;
+
+    const condo = resident.property.condominium;
     return {
-      id: manager.condominium.id,
-      name: manager.condominium.name,
-      address: manager.condominium.address,
-      city: manager.condominium.city,
-      nit: manager.condominium.nit,
-      unitCount: manager.condominium.unitCount,
-      isPrimary: manager.isPrimary,
+      id: condo.id,
+      name: condo.name,
+      address: condo.address,
+      city: condo.city,
+      nit: condo.nit,
+      isPrimary: false,
     };
   }
 }
