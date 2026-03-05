@@ -27,3 +27,5 @@ export { AddResourceHttpMethodLinks1740100000000 } from './1740100000000-AddReso
 export { UpdateResourcesRemoveScopeAddDescription1740200000000 } from './1740200000000-UpdateResourcesRemoveScopeAddDescription';
 export { AddModuleResourcesAndRemoveType1740300000000 } from './1740300000000-AddModuleResourcesAndRemoveType';
 export { RemoveCondominiumUnitCount1740400000000 } from './1740400000000-RemoveCondominiumUnitCount';
+export { NormalizeActionsConfig1740500000000 } from './1740500000000-NormalizeActionsConfig';
+export { AddRelsToModulePermissions1740600000000 } from './1740600000000-AddRelsToModulePermissions';

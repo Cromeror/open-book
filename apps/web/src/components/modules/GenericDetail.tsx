@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { ReadResourceUiConfig } from '@/lib/types/modules';
+import type { DetailUiConfig } from '@/lib/types/modules';
 import { formatValue } from '@/lib/formatters';
 import { Icon } from '@/components/layout/Icon';
 
 interface GenericDetailProps {
-  config: ReadResourceUiConfig;
+  config: DetailUiConfig;
   endpoint: string;
-  entity: string;
+  title: string;
   id: string;
   onEdit?: () => void;
   onBack: () => void;
@@ -25,7 +25,7 @@ interface DataItem {
 export function GenericDetail({
   config,
   endpoint,
-  entity,
+  title,
   id,
   onEdit,
   onBack,
@@ -113,7 +113,7 @@ export function GenericDetail({
     return (
       <div className="p-8 text-center text-gray-500">
         <Icon name="AlertCircle" className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-        <p>{entity} no encontrado.</p>
+        <p>{title} no encontrado.</p>
       </div>
     );
   }
@@ -122,7 +122,7 @@ export function GenericDetail({
     <div className="bg-white rounded-lg border">
       <div className="px-6 py-4 border-b flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900">
-          Detalle de {entity}
+          Detalle de {title}
         </h2>
         {onEdit && (
           <button
@@ -137,7 +137,7 @@ export function GenericDetail({
       </div>
 
       <dl className="divide-y divide-gray-200">
-        {config.listColumns.map((col) => (
+        {config.fields.map((col) => (
           <div
             key={col.field}
             className="px-6 py-4 grid grid-cols-3 gap-4"

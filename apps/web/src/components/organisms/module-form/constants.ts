@@ -4,7 +4,7 @@
  */
 
 import type { ModuleAction, ActionSettings } from './types';
-import { ACTION_SETTINGS_TYPES, SORT_ORDERS } from './types';
+import { UI_COMPONENTS, SORT_ORDERS } from './types';
 
 // CRUD action codes
 export const CRUD_ACTION_CODES = ['read', 'create', 'update', 'delete'] as const;
@@ -16,8 +16,8 @@ export const DEFAULT_CRUD_ACTIONS: ModuleAction[] = [
     label: 'Ver',
     description: 'Ver listado y detalle de registros',
     settings: {
-      type: ACTION_SETTINGS_TYPES.READ,
-      listColumns: [],
+      component: UI_COMPONENTS.LIST,
+      columns: [],
       filters: [],
       defaultSort: { field: 'createdAt', order: SORT_ORDERS.DESC },
     },
@@ -27,7 +27,7 @@ export const DEFAULT_CRUD_ACTIONS: ModuleAction[] = [
     label: 'Crear',
     description: 'Crear nuevos registros',
     settings: {
-      type: ACTION_SETTINGS_TYPES.CREATE,
+      component: UI_COMPONENTS.FORM,
       fields: [],
     },
   },
@@ -36,7 +36,7 @@ export const DEFAULT_CRUD_ACTIONS: ModuleAction[] = [
     label: 'Editar',
     description: 'Modificar registros existentes',
     settings: {
-      type: ACTION_SETTINGS_TYPES.UPDATE,
+      component: UI_COMPONENTS.FORM,
       fields: [],
     },
   },
@@ -45,9 +45,9 @@ export const DEFAULT_CRUD_ACTIONS: ModuleAction[] = [
     label: 'Eliminar',
     description: 'Eliminar registros',
     settings: {
-      type: ACTION_SETTINGS_TYPES.DELETE,
-      confirmation: '¿Esta seguro de eliminar este registro?',
-      soft: true,
+      component: UI_COMPONENTS.CONFIRM,
+      message: '¿Esta seguro de eliminar este registro?',
+      variant: 'danger',
     },
   },
 ];
@@ -59,13 +59,13 @@ export const SPECIALIZED_ACTION_TEMPLATES: Record<string, ModuleAction[]> = {
       code: 'read',
       label: 'Ver reportes',
       description: 'Consultar reportes disponibles',
-      settings: { type: ACTION_SETTINGS_TYPES.GENERIC },
+      settings: { component: UI_COMPONENTS.LIST, columns: [] },
     },
     {
       code: 'export',
       label: 'Exportar',
       description: 'Descargar en PDF/Excel',
-      settings: { type: ACTION_SETTINGS_TYPES.GENERIC },
+      settings: { component: UI_COMPONENTS.CONFIRM, message: '¿Desea exportar este reporte?' },
     },
   ],
   audit: [
@@ -73,7 +73,7 @@ export const SPECIALIZED_ACTION_TEMPLATES: Record<string, ModuleAction[]> = {
       code: 'read',
       label: 'Ver auditoria',
       description: 'Consultar historial de cambios',
-      settings: { type: ACTION_SETTINGS_TYPES.GENERIC },
+      settings: { component: UI_COMPONENTS.LIST, columns: [] },
     },
   ],
   pqr: [
@@ -81,19 +81,19 @@ export const SPECIALIZED_ACTION_TEMPLATES: Record<string, ModuleAction[]> = {
       code: 'create',
       label: 'Crear PQR',
       description: 'Crear nueva peticion, queja o reclamo',
-      settings: { type: ACTION_SETTINGS_TYPES.CREATE, fields: [] },
+      settings: { component: UI_COMPONENTS.FORM, fields: [] },
     },
     {
       code: 'read',
       label: 'Ver PQR',
       description: 'Consultar PQRs',
-      settings: { type: ACTION_SETTINGS_TYPES.READ, listColumns: [], filters: [] },
+      settings: { component: UI_COMPONENTS.LIST, columns: [], filters: [] },
     },
     {
       code: 'manage',
       label: 'Gestionar PQR',
       description: 'Responder y cerrar PQR',
-      settings: { type: ACTION_SETTINGS_TYPES.GENERIC },
+      settings: { component: UI_COMPONENTS.MODAL_FORM, fields: [] },
     },
   ],
   notifications: [
@@ -101,13 +101,13 @@ export const SPECIALIZED_ACTION_TEMPLATES: Record<string, ModuleAction[]> = {
       code: 'read',
       label: 'Ver notificaciones',
       description: 'Consultar notificaciones',
-      settings: { type: ACTION_SETTINGS_TYPES.GENERIC },
+      settings: { component: UI_COMPONENTS.LIST, columns: [] },
     },
     {
       code: 'create',
       label: 'Enviar notificaciones',
       description: 'Crear y enviar notificaciones',
-      settings: { type: ACTION_SETTINGS_TYPES.GENERIC },
+      settings: { component: UI_COMPONENTS.FORM, fields: [] },
     },
   ],
 };
@@ -119,29 +119,29 @@ export function getDefaultSettingsForCode(code: string): ActionSettings {
   switch (code) {
     case 'read':
       return {
-        type: ACTION_SETTINGS_TYPES.READ,
-        listColumns: [],
+        component: UI_COMPONENTS.LIST,
+        columns: [],
         filters: [],
         defaultSort: { field: 'createdAt', order: SORT_ORDERS.DESC },
       };
     case 'create':
       return {
-        type: ACTION_SETTINGS_TYPES.CREATE,
+        component: UI_COMPONENTS.FORM,
         fields: [],
       };
     case 'update':
       return {
-        type: ACTION_SETTINGS_TYPES.UPDATE,
+        component: UI_COMPONENTS.FORM,
         fields: [],
       };
     case 'delete':
       return {
-        type: ACTION_SETTINGS_TYPES.DELETE,
-        confirmation: '¿Esta seguro de eliminar este registro?',
-        soft: true,
+        component: UI_COMPONENTS.CONFIRM,
+        message: '¿Esta seguro de eliminar este registro?',
+        variant: 'danger',
       };
     default:
-      return { type: ACTION_SETTINGS_TYPES.GENERIC };
+      return { component: UI_COMPONENTS.LIST, columns: [] };
   }
 }
 

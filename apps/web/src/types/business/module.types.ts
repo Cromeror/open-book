@@ -10,6 +10,25 @@
 // (endpoint, entity, component) that were removed from the API. If in the future we need
 // to differentiate module rendering behavior, a new flag or convention should be introduced.
 
+/** A single step in a post-action chain */
+export type PostActionStep =
+  | { type: 'confirm'; message: string; variant?: 'danger' | 'warning' }
+  | { type: 'execute' }
+  | { type: 'navigate'; path: string }
+  | { type: 'refresh' };
+
+/** UI configuration for a single HATEOAS link within an action */
+export interface LinkUiConfig {
+  /** Lucide icon name, e.g. 'Eye', 'Pencil', 'Trash2' */
+  icon?: string;
+  /** Display label, e.g. 'Ver detalle', 'Editar' */
+  label?: string;
+  /** Visual variant for the action button */
+  variant?: 'default' | 'danger' | 'warning' | 'success';
+  /** Chain of steps to execute when the action is triggered */
+  postAction?: PostActionStep[];
+}
+
 /** One action the user can perform in a module. */
 export interface ModuleActionConfig {
   /** Permission code — matches module_permission.code, e.g. 'read', 'create' */
@@ -20,6 +39,8 @@ export interface ModuleActionConfig {
   label?: string;
   /** Frontend UI config (list columns, form fields, etc.) — opaque from API perspective */
   uiConfig?: Record<string, unknown>;
+  /** UI config per HATEOAS link rel, e.g. { self: { icon: 'Eye' }, delete: { icon: 'Trash2', variant: 'danger' } } */
+  linkConfig?: Record<string, LinkUiConfig>;
 }
 
 /** HTTP method paired with its action config — only methods with a configured action are included. */
@@ -58,77 +79,94 @@ export interface ModuleWithActionsResponse {
 }
 
 // ---------------------------------------------------------------------------
-// UI config types — owned by the frontend, used to interpret uiConfig fields
+// UI config types — owned by the frontend, used to interpret uiConfig fields.
+//
+// The `component` field tells the frontend WHICH component to render.
+// The `httpMethod` on the action tells HOW to call the endpoint (GET, POST, etc.).
+// Together they fully describe what to render and how to interact with the API.
 // ---------------------------------------------------------------------------
 
-export interface ReadResourceUiConfig {
-  type: 'read';
-  listColumns: Array<{
-    field: string;
-    label: string;
-    sortable?: boolean;
-    format?: 'date' | 'money' | 'boolean';
-  }>;
-  filters?: Array<{
-    field: string;
-    label: string;
-    type: 'text' | 'select' | 'date' | 'dateRange';
-    options?: Array<{ value: string; label: string }>;
-  }>;
-  sortable?: string[];
+/** Column definition for list/table components */
+export interface ListColumnConfig {
+  field: string;
+  label: string;
+  sortable?: boolean;
+  format?: 'date' | 'money' | 'boolean';
+}
+
+/** Filter definition for list components */
+export interface ListFilterConfig {
+  field: string;
+  label: string;
+  type: 'text' | 'select' | 'date' | 'dateRange';
+  options?: Array<{ value: string; label: string }>;
+}
+
+/** Field definition for form components */
+export interface FormFieldConfig {
+  name: string;
+  label: string;
+  type: 'text' | 'number' | 'date' | 'select' | 'textarea' | 'email' | 'password' | 'checkbox' | 'multiselect' | 'boolean' | 'money';
+  required?: boolean;
+  placeholder?: string;
+  helpText?: string;
+  options?: Array<{ value: string; label: string }>;
+  min?: number;
+  max?: number;
+  validation?: { min?: number; max?: number; minLength?: number; maxLength?: number; pattern?: string; custom?: string };
+}
+
+/** Renders a paginated table/list */
+export interface ListUiConfig {
+  component: 'list';
+  columns: ListColumnConfig[];
+  filters?: ListFilterConfig[];
   defaultSort?: { field: string; order: 'asc' | 'desc' };
   search?: { enabled: boolean; placeholder?: string; fields?: string[] };
   pagination?: { enabled: boolean; defaultPageSize?: number; pageSizeOptions?: number[] };
 }
 
-export interface CreateResourceUiConfig {
-  type: 'create';
-  fields: Array<{
-    name: string;
-    label: string;
-    type: 'text' | 'number' | 'date' | 'select' | 'textarea' | 'email' | 'password' | 'checkbox' | 'multiselect' | 'boolean' | 'money';
-    required?: boolean;
-    placeholder?: string;
-    helpText?: string;
-    options?: Array<{ value: string; label: string }>;
-    min?: number;
-    max?: number;
-    validation?: { min?: number; max?: number; minLength?: number; maxLength?: number; pattern?: string; custom?: string };
-  }>;
-  submitLabel?: string;
-  layout?: 'single-column' | 'two-columns';
-  validation?: Record<string, { required?: boolean; min?: number; max?: number; pattern?: string; message?: string }>;
+/** Renders a detail view (key-value display) */
+export interface DetailUiConfig {
+  component: 'detail';
+  fields: Array<{ field: string; label: string; format?: 'date' | 'money' | 'boolean' }>;
 }
 
-export interface UpdateResourceUiConfig {
-  type: 'update';
-  fields: CreateResourceUiConfig['fields'];
+/** Renders a form (for create or edit) */
+export interface FormUiConfig {
+  component: 'form';
+  fields: FormFieldConfig[];
   submitLabel?: string;
   layout?: 'single-column' | 'two-columns';
-  validation?: Record<string, { required?: boolean; min?: number; max?: number; pattern?: string; message?: string }>;
   readOnlyFields?: string[];
 }
 
-export interface DeleteResourceUiConfig {
-  type: 'delete';
-  confirmation: string;
-  soft?: boolean;
+/** Renders a confirmation dialog before executing the action */
+export interface ConfirmUiConfig {
+  component: 'confirm';
+  message: string;
+  variant?: 'danger' | 'warning' | 'success';
+  icon?: string;
 }
 
-export interface GenericResourceUiConfig {
-  type: 'generic';
-  [key: string]: unknown;
+/** Renders a small modal with a form before executing the action */
+export interface ModalFormUiConfig {
+  component: 'modal-form';
+  fields: FormFieldConfig[];
+  submitLabel?: string;
 }
 
+/** Union of all known UI config types */
 export type ResourceUiConfig =
-  | ReadResourceUiConfig
-  | CreateResourceUiConfig
-  | UpdateResourceUiConfig
-  | DeleteResourceUiConfig
-  | GenericResourceUiConfig;
+  | ListUiConfig
+  | DetailUiConfig
+  | FormUiConfig
+  | ConfirmUiConfig
+  | ModalFormUiConfig;
 
 // Type guards
-export function isReadUiConfig(c: ResourceUiConfig): c is ReadResourceUiConfig { return c.type === 'read'; }
-export function isCreateUiConfig(c: ResourceUiConfig): c is CreateResourceUiConfig { return c.type === 'create'; }
-export function isUpdateUiConfig(c: ResourceUiConfig): c is UpdateResourceUiConfig { return c.type === 'update'; }
-export function isDeleteUiConfig(c: ResourceUiConfig): c is DeleteResourceUiConfig { return c.type === 'delete'; }
+export function isListUiConfig(c: ResourceUiConfig): c is ListUiConfig { return c.component === 'list'; }
+export function isDetailUiConfig(c: ResourceUiConfig): c is DetailUiConfig { return c.component === 'detail'; }
+export function isFormUiConfig(c: ResourceUiConfig): c is FormUiConfig { return c.component === 'form'; }
+export function isConfirmUiConfig(c: ResourceUiConfig): c is ConfirmUiConfig { return c.component === 'confirm'; }
+export function isModalFormUiConfig(c: ResourceUiConfig): c is ModalFormUiConfig { return c.component === 'modal-form'; }

@@ -20,26 +20,23 @@ export interface NavConfig {
 }
 
 // ============================================
-// Action Settings Constants
+// UI Component Constants
 // ============================================
 
-export const ACTION_SETTINGS_TYPES = {
-  READ: 'read',
-  CREATE: 'create',
-  UPDATE: 'update',
-  DELETE: 'delete',
-  GENERIC: 'generic',
+export const UI_COMPONENTS = {
+  LIST: 'list',
+  DETAIL: 'detail',
+  FORM: 'form',
+  CONFIRM: 'confirm',
+  MODAL_FORM: 'modal-form',
 } as const;
 
-export type ActionSettingsType = (typeof ACTION_SETTINGS_TYPES)[keyof typeof ACTION_SETTINGS_TYPES];
+export type UiComponentType = (typeof UI_COMPONENTS)[keyof typeof UI_COMPONENTS];
 
 export const LIST_COLUMN_FORMATS = {
-  TEXT: 'text',
-  CURRENCY: 'currency',
   DATE: 'date',
-  DATETIME: 'datetime',
+  MONEY: 'money',
   BOOLEAN: 'boolean',
-  BADGE: 'badge',
 } as const;
 
 export type ListColumnFormat = (typeof LIST_COLUMN_FORMATS)[keyof typeof LIST_COLUMN_FORMATS];
@@ -49,8 +46,6 @@ export const FILTER_TYPES = {
   SELECT: 'select',
   DATE: 'date',
   DATE_RANGE: 'dateRange',
-  NUMBER: 'number',
-  BOOLEAN: 'boolean',
 } as const;
 
 export type FilterType = (typeof FILTER_TYPES)[keyof typeof FILTER_TYPES];
@@ -67,18 +62,19 @@ export const FORM_FIELD_TYPES = {
   TEXTAREA: 'textarea',
   NUMBER: 'number',
   SELECT: 'select',
+  MULTISELECT: 'multiselect',
   DATE: 'date',
-  DATETIME: 'datetime',
   BOOLEAN: 'boolean',
+  CHECKBOX: 'checkbox',
   EMAIL: 'email',
   PASSWORD: 'password',
-  CURRENCY: 'currency',
+  MONEY: 'money',
 } as const;
 
 export type FormFieldType = (typeof FORM_FIELD_TYPES)[keyof typeof FORM_FIELD_TYPES];
 
 // ============================================
-// Action Settings Interfaces
+// UI Config Interfaces (mirror of ResourceUiConfig in module.types.ts)
 // ============================================
 
 /**
@@ -96,8 +92,8 @@ export interface ListColumn {
  */
 export interface ListFilter {
   field: string;
-  type: FilterType;
   label: string;
+  type: FilterType;
   options?: Array<{ value: string; label: string }>;
 }
 
@@ -121,68 +117,68 @@ export interface FormField {
   min?: number;
   max?: number;
   placeholder?: string;
-  defaultValue?: unknown;
+  helpText?: string;
 }
 
 /**
- * Settings for READ actions (list/detail views)
+ * Settings for list component
  */
-export interface ActionSettingsRead {
-  type: typeof ACTION_SETTINGS_TYPES.READ;
-  listColumns: ListColumn[];
+export interface ActionSettingsList {
+  component: typeof UI_COMPONENTS.LIST;
+  columns: ListColumn[];
   filters?: ListFilter[];
   defaultSort?: SortConfig;
-  pageSize?: number;
-  showDetail?: boolean;
+  search?: { enabled: boolean; placeholder?: string; fields?: string[] };
+  pagination?: { enabled: boolean; defaultPageSize?: number; pageSizeOptions?: number[] };
 }
 
 /**
- * Settings for CREATE actions
+ * Settings for detail component
  */
-export interface ActionSettingsCreate {
-  type: typeof ACTION_SETTINGS_TYPES.CREATE;
+export interface ActionSettingsDetail {
+  component: typeof UI_COMPONENTS.DETAIL;
+  fields: Array<{ field: string; label: string; format?: ListColumnFormat }>;
+}
+
+/**
+ * Settings for form component (create/edit)
+ */
+export interface ActionSettingsForm {
+  component: typeof UI_COMPONENTS.FORM;
   fields: FormField[];
-  successMessage?: string;
-  redirectAfter?: string;
+  submitLabel?: string;
+  layout?: 'single-column' | 'two-columns';
+  readOnlyFields?: string[];
 }
 
 /**
- * Settings for UPDATE actions
+ * Settings for confirm component
  */
-export interface ActionSettingsUpdate {
-  type: typeof ACTION_SETTINGS_TYPES.UPDATE;
+export interface ActionSettingsConfirm {
+  component: typeof UI_COMPONENTS.CONFIRM;
+  message: string;
+  variant?: 'danger' | 'warning' | 'success';
+  icon?: string;
+}
+
+/**
+ * Settings for modal-form component
+ */
+export interface ActionSettingsModalForm {
+  component: typeof UI_COMPONENTS.MODAL_FORM;
   fields: FormField[];
-  successMessage?: string;
-  redirectAfter?: string;
-}
-
-/**
- * Settings for DELETE actions
- */
-export interface ActionSettingsDelete {
-  type: typeof ACTION_SETTINGS_TYPES.DELETE;
-  confirmation: string;
-  soft: boolean;
-  successMessage?: string;
-}
-
-/**
- * Settings for GENERIC/specialized actions
- */
-export interface ActionSettingsGeneric {
-  type: typeof ACTION_SETTINGS_TYPES.GENERIC;
-  [key: string]: unknown;
+  submitLabel?: string;
 }
 
 /**
  * Union type for all action settings
  */
 export type ActionSettings =
-  | ActionSettingsRead
-  | ActionSettingsCreate
-  | ActionSettingsUpdate
-  | ActionSettingsDelete
-  | ActionSettingsGeneric;
+  | ActionSettingsList
+  | ActionSettingsDetail
+  | ActionSettingsForm
+  | ActionSettingsConfirm
+  | ActionSettingsModalForm;
 
 export interface ModuleAction {
   code: string;

@@ -13,6 +13,7 @@ export interface ModuleActionConfig {
   httpMethod: string; // HTTP verb that executes this action, e.g. 'GET', 'POST'
   label?: string;     // display label, e.g. 'Ver'
   uiConfig?: Record<string, unknown>; // frontend UI config (list columns, form fields, etc.)
+  linkConfig?: Record<string, Record<string, unknown>>; // UI config per HATEOAS link rel (opaque, frontend-owned)
 }
 
 /** HTTP method enabled on a resource. */

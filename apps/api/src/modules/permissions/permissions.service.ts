@@ -373,6 +373,75 @@ export class PermissionsService {
   }
 
   /**
+   * Returns the set of HATEOAS `rel` values the user is allowed to see
+   * for a given module, based on the `rels` field of their permissions.
+   *
+   * Returns null if no filtering should be applied (superAdmin or any
+   * permission has null rels).
+   * Returns empty Set if user has no permissions for the module.
+   */
+  async getUserAllowedRels(
+    userId: string,
+    moduleCode: string,
+  ): Promise<Set<string> | null> {
+    if (await this.isSuperAdmin(userId)) {
+      return null;
+    }
+
+    type RelsRow = { rels: string | null };
+    const now = new Date();
+
+    const [directRows, poolRows] = await Promise.all([
+      this.userPermissionRepo
+        .createQueryBuilder('up')
+        .innerJoin('up.modulePermission', 'mp')
+        .innerJoin('mp.module', 'm')
+        .where('up.userId = :userId', { userId })
+        .andWhere('m.code = :moduleCode', { moduleCode })
+        .andWhere('up.isActive = true')
+        .andWhere('m.isActive = true')
+        .andWhere('(up.expiresAt IS NULL OR up.expiresAt > :now)', { now })
+        .select('mp.rels', 'rels')
+        .getRawMany<RelsRow>(),
+
+      this.poolPermissionRepo
+        .createQueryBuilder('pp')
+        .innerJoin('pp.pool', 'p')
+        .innerJoin(UserPoolMember, 'upm', 'upm.poolId = p.id')
+        .innerJoin('pp.modulePermission', 'mp')
+        .innerJoin('mp.module', 'm')
+        .where('upm.userId = :userId', { userId })
+        .andWhere('m.code = :moduleCode', { moduleCode })
+        .andWhere('p.isActive = true')
+        .andWhere('m.isActive = true')
+        .select('mp.rels', 'rels')
+        .getRawMany<RelsRow>(),
+    ]);
+
+    const allRows = [...directRows, ...poolRows];
+
+    if (allRows.length === 0) {
+      return new Set();
+    }
+
+    // If any permission has null rels, it imposes no link restriction
+    if (allRows.some((r) => r.rels === null)) {
+      return null;
+    }
+
+    const allowed = new Set<string>();
+    for (const row of allRows) {
+      if (row.rels) {
+        for (const rel of row.rels.split(',')) {
+          allowed.add(rel.trim());
+        }
+      }
+    }
+
+    return allowed;
+  }
+
+  /**
    * Get all modules with all actions (for SuperAdmin)
    */
   private async getAllModulesWithAllActions(userId: string): Promise<ModuleWithActionsResponse[]> {

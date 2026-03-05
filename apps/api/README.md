@@ -295,12 +295,12 @@ The `actions_config` column is a JSONB array of `ModuleActionConfig` objects. It
 ```jsonc
 [
   {
-    "code": "read",        // module_permission.code — controls access
+    "code": "read",        // action identifier (see dual role below)
     "httpMethod": "GET",   // HTTP verb that executes this action
     "label": "Ver",        // display label shown to the user
     "uiConfig": {          // opaque to the API, owned by the frontend
-      "type": "read",
-      "listColumns": [...],
+      "component": "list",
+      "columns": [...],
       "filters": [...],
       "defaultSort": { "field": "deadline", "order": "asc" }
     }
@@ -310,15 +310,25 @@ The `actions_config` column is a JSONB array of `ModuleActionConfig` objects. It
     "httpMethod": "POST",
     "label": "Crear",
     "uiConfig": {
-      "type": "create",
+      "component": "form",
       "fields": [...]
     }
   }
 ]
 ```
 
+**The dual role of `code`:**
+
+The `code` field serves two purposes simultaneously:
+
+1. **Permission identifier** — it matches `module_permissions.code`. The system uses it to check whether the user has access to this action (e.g. `goals:read`, `goals:create`).
+2. **HATEOAS `rel` name** — when the backend returns HATEOAS `_links` on a resource response, the `rel` value must match the `code` of the corresponding action. This is how the frontend knows which link triggers which action.
+
+This is important for non-CRUD actions: a module could have `code: "approve"` (POST) and `code: "create"` (POST) — both use the same HTTP method, but they are different actions with different permissions and different HATEOAS links.
+
 **Rules:**
 - `code` must match an existing `module_permissions.code` for this module.
+- `code` must match the HATEOAS `rel` name used in `_links` responses for the corresponding resource.
 - `httpMethod` must match an `is_active` method registered on one of the module's resources.
 - `uiConfig` is validated by Zod on write (API) but treated as opaque on read — the frontend owns the typed definitions.
 - An HTTP method without a matching `actionsConfig` entry is **never shown** to the user, even if it is active on the resource.
@@ -365,15 +375,15 @@ For each module the user has permissions for:
 
 ### `uiConfig` types (frontend-owned)
 
-The API validates `uiConfig` structure on write using Zod schemas in `dto/create-module.dto.ts` and `dto/update-module.dto.ts`. The discriminator is `uiConfig.type`:
+The API validates `uiConfig` structure on write using Zod schemas in `dto/create-module.dto.ts` and `dto/update-module.dto.ts`. The discriminator is `uiConfig.component`:
 
-| `type`    | Used for         | Key fields                              |
-|-----------|------------------|-----------------------------------------|
-| `read`    | List views       | `listColumns`, `filters`, `defaultSort` |
-| `create`  | Create forms     | `fields`, `submitLabel`, `layout`       |
-| `update`  | Edit forms       | `fields`, `readOnlyFields`, `layout`    |
-| `delete`  | Delete confirm   | `confirmation`, `soft`                  |
-| `generic` | Custom/specialized | passthrough — any additional properties |
+| `component`  | Used for           | Key fields                              |
+|--------------|--------------------|-----------------------------------------|
+| `list`       | List/table views   | `columns`, `filters`, `defaultSort`, `search`, `pagination` |
+| `detail`     | Detail views       | `fields` (with `field`, `label`, `format`) |
+| `form`       | Create/edit forms  | `fields`, `submitLabel`, `layout`, `readOnlyFields` |
+| `confirm`    | Confirmation dialogs | `message`, `variant`, `icon`          |
+| `modal-form` | Modal forms        | `fields`, `submitLabel`                 |
 
 The frontend TypeScript definitions live in `apps/web/src/types/business/module.types.ts`.
 

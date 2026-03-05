@@ -5,7 +5,7 @@
  * Key principle: action code = permission code
  */
 
-export { GenericCRUDModule, type ModuleProps } from './GenericCRUDModule';
+export { GenericModule, type ModuleProps } from './GenericModule';
 export { GenericList } from './GenericList';
 export { GenericForm } from './GenericForm';
 export { GenericDetail } from './GenericDetail';

@@ -8,12 +8,12 @@ export type {
   ModulePermission,
   NavConfig,
   ActionSettings,
-  ActionSettingsType,
-  ActionSettingsRead,
-  ActionSettingsCreate,
-  ActionSettingsUpdate,
-  ActionSettingsDelete,
-  ActionSettingsGeneric,
+  ActionSettingsList,
+  ActionSettingsDetail,
+  ActionSettingsForm,
+  ActionSettingsConfirm,
+  ActionSettingsModalForm,
+  UiComponentType,
   ListColumn,
   ListColumnFormat,
   ListFilter,
@@ -34,7 +34,7 @@ export type {
 
 // Type Constants
 export {
-  ACTION_SETTINGS_TYPES,
+  UI_COMPONENTS,
   LIST_COLUMN_FORMATS,
   FILTER_TYPES,
   SORT_ORDERS,

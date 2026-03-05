@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { ModuleAction, ModulePermission, ModuleType, ActionSettings } from './types';
-import { ACTION_SETTINGS_TYPES } from './types';
+import { UI_COMPONENTS } from './types';
 import {
   DEFAULT_CRUD_ACTIONS,
   SPECIALIZED_ACTION_TEMPLATES,
@@ -62,7 +62,7 @@ export function ActionsConfigEditor({
       const settings =
         moduleType === 'crud' && isCrudCode
           ? getDefaultSettingsForCode(permission.code)
-          : { type: 'generic' as const };
+          : { component: UI_COMPONENTS.LIST } as ActionSettings;
 
       const newAction: ModuleAction = {
         code: permission.code,
@@ -84,7 +84,7 @@ export function ActionsConfigEditor({
       code: '',
       label: '',
       description: '',
-      settings: { type: 'generic' },
+      settings: { component: UI_COMPONENTS.LIST } as ActionSettings,
     };
     onChange([...actions, newAction]);
     setExpandedAction(`new-${actions.length}`);
@@ -134,7 +134,7 @@ export function ActionsConfigEditor({
     const currentAction = newActions[index];
     if (!currentAction) return;
     const currentSettings = currentAction.settings || {
-      type: ACTION_SETTINGS_TYPES.GENERIC,
+      component: UI_COMPONENTS.LIST,
     };
     // Use type assertion since we're dynamically updating settings
     const updatedSettings = {
@@ -320,16 +320,16 @@ export function ActionsConfigEditor({
                         <div>
                           <label className={labelClasses}>Tipo de Settings</label>
                           <select
-                            value={action.settings?.type || 'generic'}
-                            onChange={(e) => handleUpdateSettings(actionIndex, 'type', e.target.value)}
+                            value={action.settings?.component || 'list'}
+                            onChange={(e) => handleUpdateSettings(actionIndex, 'component', e.target.value)}
                             className={inputClasses}
                             disabled={disabled || (moduleType === 'crud' && isCrudCode)}
                           >
-                            <option value="read">Read (Lista/Detalle)</option>
-                            <option value="create">Create (Formulario)</option>
-                            <option value="update">Update (Formulario)</option>
-                            <option value="delete">Delete (Eliminar)</option>
-                            <option value="generic">Generic (Especializado)</option>
+                            <option value="list">Lista</option>
+                            <option value="detail">Detalle</option>
+                            <option value="form">Formulario</option>
+                            <option value="confirm">Confirmacion</option>
+                            <option value="modal-form">Modal con Formulario</option>
                           </select>
                           {moduleType === 'crud' && isCrudCode && (
                             <p className="mt-1 text-xs text-gray-400">Tipo fijo para acciones CRUD</p>
@@ -350,37 +350,38 @@ export function ActionsConfigEditor({
                         </div>
                       </div>
 
-                      {/* Type-specific settings */}
-                      {action.settings?.type === 'delete' && (
+                      {/* Confirm-specific settings */}
+                      {action.settings?.component === 'confirm' && (
                         <div className="border-t border-gray-100 pt-3">
                           <p className="text-xs font-medium text-gray-700 mb-2">
-                            Configuracion de Eliminacion
+                            Configuracion de Confirmacion
                           </p>
                           <div className="grid grid-cols-2 gap-3">
                             <div>
-                              <label className={labelClasses}>Soft Delete</label>
+                              <label className={labelClasses}>Variante</label>
                               <select
-                                value={action.settings?.soft ? 'true' : 'false'}
+                                value={action.settings?.variant || 'warning'}
                                 onChange={(e) =>
-                                  handleUpdateSettings(actionIndex, 'soft', e.target.value === 'true')
+                                  handleUpdateSettings(actionIndex, 'variant', e.target.value)
                                 }
                                 className={inputClasses}
                                 disabled={disabled}
                               >
-                                <option value="true">Si (logico)</option>
-                                <option value="false">No (permanente)</option>
+                                <option value="danger">Peligro</option>
+                                <option value="warning">Advertencia</option>
+                                <option value="success">Exito</option>
                               </select>
                             </div>
                             <div className="col-span-2">
                               <label className={labelClasses}>Mensaje de Confirmacion</label>
                               <input
                                 type="text"
-                                value={action.settings?.confirmation || ''}
+                                value={action.settings?.message || ''}
                                 onChange={(e) =>
-                                  handleUpdateSettings(actionIndex, 'confirmation', e.target.value)
+                                  handleUpdateSettings(actionIndex, 'message', e.target.value)
                                 }
                                 className={inputClasses}
-                                placeholder="¿Esta seguro de eliminar este registro?"
+                                placeholder="¿Esta seguro de realizar esta accion?"
                                 disabled={disabled}
                               />
                             </div>
@@ -523,51 +524,48 @@ export function ActionsConfigEditor({
                             <div>
                               <label className={labelClasses}>Tipo</label>
                               <select
-                                value={action.settings?.type || 'generic'}
+                                value={action.settings?.component || 'list'}
                                 onChange={(e) =>
-                                  handleUpdateSettings(index, 'type', e.target.value)
+                                  handleUpdateSettings(index, 'component', e.target.value)
                                 }
                                 className={inputClasses}
                                 disabled={disabled}
                               >
-                                <option value="read">Read (Lista/Detalle)</option>
-                                <option value="create">Create (Formulario)</option>
-                                <option value="update">Update (Formulario)</option>
-                                <option value="delete">Delete (Eliminar)</option>
-                                <option value="generic">Generic (Especializado)</option>
+                                <option value="list">Lista</option>
+                                <option value="detail">Detalle</option>
+                                <option value="form">Formulario</option>
+                                <option value="confirm">Confirmacion</option>
+                                <option value="modal-form">Modal con Formulario</option>
                               </select>
                             </div>
 
-                            {action.settings?.type === 'delete' && (
+                            {action.settings?.component === 'confirm' && (
                               <>
                                 <div>
-                                  <label className={labelClasses}>Soft Delete</label>
+                                  <label className={labelClasses}>Variante</label>
                                   <select
-                                    value={action.settings?.soft ? 'true' : 'false'}
+                                    value={action.settings?.variant || 'warning'}
                                     onChange={(e) =>
-                                      handleUpdateSettings(
-                                        index,
-                                        'soft',
-                                        e.target.value === 'true'
-                                      )
+                                      handleUpdateSettings(index, 'variant', e.target.value)
                                     }
                                     className={inputClasses}
                                     disabled={disabled}
                                   >
-                                    <option value="true">Si (logico)</option>
-                                    <option value="false">No (permanente)</option>
+                                    <option value="danger">Peligro</option>
+                                    <option value="warning">Advertencia</option>
+                                    <option value="success">Exito</option>
                                   </select>
                                 </div>
                                 <div className="col-span-2">
                                   <label className={labelClasses}>Mensaje de Confirmacion</label>
                                   <input
                                     type="text"
-                                    value={action.settings?.confirmation || ''}
+                                    value={action.settings?.message || ''}
                                     onChange={(e) =>
-                                      handleUpdateSettings(index, 'confirmation', e.target.value)
+                                      handleUpdateSettings(index, 'message', e.target.value)
                                     }
                                     className={inputClasses}
-                                    placeholder="¿Esta seguro de eliminar este registro?"
+                                    placeholder="¿Esta seguro de realizar esta accion?"
                                     disabled={disabled}
                                   />
                                 </div>

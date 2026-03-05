@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation';
 
 import { getServerPermissions } from '@/lib/permissions.server';
-import { GenericCRUDModule } from '@/components/modules';
+import { GenericModule } from '@/components/modules';
 
 interface Props {
   params: Promise<{ moduleCode: string }>;
@@ -10,7 +10,7 @@ interface Props {
 /**
  * Dynamic module page
  *
- * Renders CRUD modules using GenericCRUDModule component.
+ * Renders CRUD modules using GenericModule component.
  * Specialized modules can be handled here or maintain separate routes.
  */
 export default async function DynamicModulePage({ params }: Props) {
@@ -35,9 +35,9 @@ export default async function DynamicModulePage({ params }: Props) {
     notFound();
   }
 
-  // Render CRUD module with GenericCRUDModule
+  // Render CRUD module with GenericModule
   return (
-    <GenericCRUDModule
+    <GenericModule
       moduleCode={moduleCode}
       metadata={metadata}
     />

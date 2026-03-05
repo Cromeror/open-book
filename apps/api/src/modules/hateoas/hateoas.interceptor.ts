@@ -9,16 +9,20 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Request } from 'express';
 
-import { HateoasService } from './hateoas.service';
+import { HateoasService, LinkConfig } from './hateoas.service';
 import {
   HATEOAS_RESOURCE_KEY,
   HateoasResourceMeta,
 } from './hateoas-resource.decorator';
 import { SessionContextService } from '../session-context/session-context.service';
+import { PermissionsService } from '../permissions/permissions.service';
 
 /**
  * Intercepts responses from handlers decorated with @HateoasResource,
  * enriches each item with a `_links` map built from configured outbound links.
+ *
+ * Links are filtered based on the user's permissions: only links whose `rel`
+ * is allowed by the user's module permissions (via the `rels` field) are included.
  *
  * Supports two response shapes:
  * - Array:               [item, item, ...]       → each item gets _links
@@ -36,6 +40,7 @@ export class HateoasInterceptor implements NestInterceptor {
     private readonly reflector: Reflector,
     private readonly hateoasService: HateoasService,
     private readonly sessionContextService: SessionContextService,
+    private readonly permissionsService: PermissionsService,
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
@@ -66,17 +71,30 @@ export class HateoasInterceptor implements NestInterceptor {
 
         if (!configs.length) return response;
 
+        const userId = (request.user as { id?: string } | undefined)?.id;
+
         // Resolve session context only if any link template requires it
         let resolvedSession: Record<string, string> | undefined;
-        if (this.hateoasService.needsSessionContext(configs)) {
-          const userId = (request.user as { id?: string } | undefined)?.id;
-          if (userId) {
-            const ctx = await this.sessionContextService.getContext(userId);
-            resolvedSession = ctx as unknown as Record<string, string>;
+        if (this.hateoasService.needsSessionContext(configs) && userId) {
+          const ctx = await this.sessionContextService.getContext(userId);
+          resolvedSession = ctx as unknown as Record<string, string>;
+        }
+
+        // Resolve allowed rels based on user permissions
+        let allowedRels: Set<string> | null = null;
+        if (userId) {
+          const moduleCode = await this.hateoasService.getModuleCodeForResource(
+            meta.resourceCode,
+          );
+          if (moduleCode) {
+            allowedRels = await this.permissionsService.getUserAllowedRels(
+              userId,
+              moduleCode,
+            );
           }
         }
 
-        return this.enrich(response, configs, routeParams, resolvedSession);
+        return this.enrich(response, configs, routeParams, resolvedSession, allowedRels);
       }),
       // Unwrap the Promise that map() produces
       map((promise) => promise),
@@ -85,14 +103,15 @@ export class HateoasInterceptor implements NestInterceptor {
 
   private enrich(
     response: unknown,
-    configs: Parameters<HateoasService['resolveLinks']>[1],
+    configs: LinkConfig[],
     routeParams: Record<string, string>,
     resolvedSession?: Record<string, string>,
+    allowedRels?: Set<string> | null,
   ): unknown {
     // Array response
     if (Array.isArray(response)) {
       return response.map((item) =>
-        this.enrichItem(item, configs, routeParams, resolvedSession),
+        this.enrichItem(item, configs, routeParams, resolvedSession, allowedRels),
       );
     }
 
@@ -107,7 +126,7 @@ export class HateoasInterceptor implements NestInterceptor {
       return {
         ...paginated,
         data: paginated.data.map((item) =>
-          this.enrichItem(item, configs, routeParams, resolvedSession),
+          this.enrichItem(item, configs, routeParams, resolvedSession, allowedRels),
         ),
       };
     }
@@ -119,6 +138,7 @@ export class HateoasInterceptor implements NestInterceptor {
         configs,
         routeParams,
         resolvedSession,
+        allowedRels,
       );
     }
 
@@ -127,9 +147,10 @@ export class HateoasInterceptor implements NestInterceptor {
 
   private enrichItem(
     item: unknown,
-    configs: Parameters<HateoasService['resolveLinks']>[1],
+    configs: LinkConfig[],
     routeParams: Record<string, string>,
     resolvedSession?: Record<string, string>,
+    allowedRels?: Set<string> | null,
   ): unknown {
     if (!item || typeof item !== 'object') return item;
 
@@ -138,6 +159,7 @@ export class HateoasInterceptor implements NestInterceptor {
       configs,
       routeParams,
       resolvedSession,
+      allowedRels,
     );
 
     return { ...(item as object), _links: links };

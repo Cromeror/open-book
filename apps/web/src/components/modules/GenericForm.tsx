@@ -2,13 +2,13 @@
 
 import { useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
-import type { CreateResourceUiConfig, UpdateResourceUiConfig } from '@/lib/types/modules';
+import type { FormUiConfig } from '@/lib/types/modules';
 import { DynamicField } from './fields';
 
 interface GenericFormProps {
-  config: CreateResourceUiConfig | UpdateResourceUiConfig;
+  config: FormUiConfig;
   endpoint: string;
-  entity: string;
+  title: string;
   mode: 'create' | 'edit';
   id?: string;
   onSuccess: () => void;
@@ -21,7 +21,7 @@ interface GenericFormProps {
 export function GenericForm({
   config,
   endpoint,
-  entity,
+  title,
   mode,
   id,
   onSuccess,
@@ -119,7 +119,7 @@ export function GenericForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <h2 className="text-xl font-semibold text-gray-900">
-        {mode === 'create' ? `Crear ${entity}` : `Editar ${entity}`}
+        {mode === 'create' ? `Crear ${title}` : `Editar ${title}`}
       </h2>
 
       {serverError && (

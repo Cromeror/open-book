@@ -70,13 +70,12 @@ const fieldDefinitionSchema = z.object({
 });
 
 /**
- * Schema for read resource UI config
+ * Schema for list UI config — renders a paginated table
  */
-const readResourceUiConfigSchema = z.object({
-  type: z.literal('read'),
-  listColumns: z.array(columnDefinitionSchema),
+const listUiConfigSchema = z.object({
+  component: z.literal('list'),
+  columns: z.array(columnDefinitionSchema),
   filters: z.array(filterDefinitionSchema).optional(),
-  sortable: z.array(z.string()).optional(),
   defaultSort: z
     .object({
       field: z.string(),
@@ -100,67 +99,79 @@ const readResourceUiConfigSchema = z.object({
 });
 
 /**
- * Schema for validation rules
+ * Schema for detail UI config — renders a key-value detail view
  */
-const validationRuleSchema = z.object({
-  required: z.boolean().optional(),
-  min: z.number().optional(),
-  max: z.number().optional(),
-  pattern: z.string().optional(),
-  message: z.string().optional(),
+const detailUiConfigSchema = z.object({
+  component: z.literal('detail'),
+  fields: z.array(
+    z.object({
+      field: z.string().min(1),
+      label: z.string().min(1),
+      format: z.enum(['date', 'money', 'boolean']).optional(),
+    }),
+  ),
 });
 
 /**
- * Schema for create resource UI config
+ * Schema for form UI config — renders a create/edit form
  */
-const createResourceUiConfigSchema = z.object({
-  type: z.literal('create'),
+const formUiConfigSchema = z.object({
+  component: z.literal('form'),
   fields: z.array(fieldDefinitionSchema),
   submitLabel: z.string().optional(),
   layout: z.enum(['single-column', 'two-columns']).optional(),
-  validation: z.record(z.string(), validationRuleSchema).optional(),
-});
-
-/**
- * Schema for update resource UI config
- */
-const updateResourceUiConfigSchema = z.object({
-  type: z.literal('update'),
-  fields: z.array(fieldDefinitionSchema),
-  submitLabel: z.string().optional(),
-  layout: z.enum(['single-column', 'two-columns']).optional(),
-  validation: z.record(z.string(), validationRuleSchema).optional(),
   readOnlyFields: z.array(z.string()).optional(),
 });
 
 /**
- * Schema for delete resource UI config
+ * Schema for confirm UI config — renders a confirmation dialog
  */
-const deleteResourceUiConfigSchema = z.object({
-  type: z.literal('delete'),
-  confirmation: z.string().min(1, 'Mensaje de confirmacion requerido'),
-  soft: z.boolean().optional(),
+const confirmUiConfigSchema = z.object({
+  component: z.literal('confirm'),
+  message: z.string().min(1, 'Mensaje de confirmacion requerido'),
+  variant: z.enum(['danger', 'warning', 'success']).optional(),
+  icon: z.string().optional(),
 });
 
 /**
- * Schema for generic resource UI config (specialized modules)
+ * Schema for modal-form UI config — renders a small modal with a form
  */
-const genericResourceUiConfigSchema = z
-  .object({
-    type: z.literal('generic'),
-  })
-  .passthrough(); // Allow additional properties for specialized modules
+const modalFormUiConfigSchema = z.object({
+  component: z.literal('modal-form'),
+  fields: z.array(fieldDefinitionSchema),
+  submitLabel: z.string().optional(),
+});
 
 /**
- * All resource UI configs - discriminated union
+ * All resource UI configs - discriminated union by `component`
  */
-const resourceUiConfigSchema = z.discriminatedUnion('type', [
-  readResourceUiConfigSchema,
-  createResourceUiConfigSchema,
-  updateResourceUiConfigSchema,
-  deleteResourceUiConfigSchema,
-  genericResourceUiConfigSchema,
+const resourceUiConfigSchema = z.discriminatedUnion('component', [
+  listUiConfigSchema,
+  detailUiConfigSchema,
+  formUiConfigSchema,
+  confirmUiConfigSchema,
+  modalFormUiConfigSchema,
 ]);
+
+/**
+ * Schema for a single step in a post-action chain
+ */
+const postActionStepSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('confirm'), message: z.string().min(1), variant: z.enum(['danger', 'warning']).optional() }),
+  z.object({ type: z.literal('execute') }),
+  z.object({ type: z.literal('navigate'), path: z.string().min(1).max(255) }),
+  z.object({ type: z.literal('refresh') }),
+]);
+
+/**
+ * Schema for link UI config — per-rel display configuration
+ */
+const linkUiConfigSchema = z.object({
+  icon: z.string().max(50).optional(),
+  label: z.string().max(100).optional(),
+  variant: z.enum(['default', 'danger', 'warning', 'success']).optional(),
+  postAction: z.array(postActionStepSchema).optional(),
+});
 
 /**
  * Schema for a module action config
@@ -170,6 +181,7 @@ const moduleActionSchema = z.object({
   httpMethod: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
   label: z.string().min(1).max(100).optional(),
   uiConfig: resourceUiConfigSchema.optional(),
+  linkConfig: z.record(z.string(), linkUiConfigSchema).optional(),
 });
 
 export type ModuleActionDto = z.infer<typeof moduleActionSchema>;

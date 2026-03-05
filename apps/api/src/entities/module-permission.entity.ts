@@ -69,4 +69,16 @@ export class ModulePermission extends BaseEntity {
     nullable: true,
   })
   description?: string;
+
+  /**
+   * Comma-separated HATEOAS link `rel` values this permission enables.
+   * E.g. "self,edit,delete" means a user with this permission can see those links.
+   * NULL means this permission imposes no link-level restriction.
+   */
+  @Column({
+    type: 'varchar',
+    length: 500,
+    nullable: true,
+  })
+  rels?: string | null;
 }

@@ -6,6 +6,7 @@ import { Cache } from 'cache-manager';
 
 import { ResourceHttpMethod } from '../../entities/resource-http-method.entity';
 import { ResourceHttpMethodLink, ParamMapping } from '../../entities/resource-http-method-link.entity';
+import { ModuleResource } from '../../entities/module-resource.entity';
 import { resolveTemplateUrl, SESSION_PLACEHOLDER_RE } from '../../utils';
 
 const CACHE_TTL_MS = 60_000; // 1 minute
@@ -13,11 +14,13 @@ const CACHE_TTL_MS = 60_000; // 1 minute
 export interface ResolvedLink {
   rel: string;
   href: string;
+  method: string;
 }
 
 export interface LinkConfig {
   rel: string;
   targetTemplateUrl: string;
+  targetHttpMethod: string;
   paramMappings: ParamMapping[];
 }
 
@@ -35,6 +38,8 @@ export class HateoasService {
   constructor(
     @InjectRepository(ResourceHttpMethod)
     private readonly rhmRepository: Repository<ResourceHttpMethod>,
+    @InjectRepository(ModuleResource)
+    private readonly moduleResourceRepo: Repository<ModuleResource>,
     @Inject(CACHE_MANAGER)
     private readonly cache: Cache,
   ) {}
@@ -55,6 +60,7 @@ export class HateoasService {
       .leftJoinAndSelect('rhm.outboundLinks', 'links')
       .leftJoinAndSelect('links.targetHttpMethod', 'targetRhm')
       .leftJoinAndSelect('targetRhm.resource', 'targetResource')
+      .leftJoinAndSelect('targetRhm.httpMethod', 'targetHm')
       .where('r.code = :resourceCode', { resourceCode })
       .andWhere('hm.method = :httpMethod', { httpMethod })
       .andWhere('r.isActive = true')
@@ -70,6 +76,7 @@ export class HateoasService {
       .map((link) => ({
         rel: link.rel,
         targetTemplateUrl: link.targetHttpMethod.resource.templateUrl,
+        targetHttpMethod: link.targetHttpMethod.httpMethod.method,
         paramMappings: link.paramMappings,
       }));
 
@@ -92,16 +99,22 @@ export class HateoasService {
    * @param configs         - Link configs loaded from getLinkConfigs()
    * @param routeParams     - Route params already known (e.g. { condominiumId: '...' })
    * @param sessionContext  - Resolved session context for {session:fieldName} placeholders
+   * @param allowedRels     - Set of allowed rel values, or null/undefined to include all
    */
   resolveLinks(
     item: Record<string, unknown>,
     configs: LinkConfig[],
     routeParams: Record<string, string>,
     sessionContext?: Record<string, string>,
-  ): Record<string, string> {
-    const links: Record<string, string> = {};
+    allowedRels?: Set<string> | null,
+  ): Record<string, { href: string; method: string }> {
+    const links: Record<string, { href: string; method: string }> = {};
 
     for (const config of configs) {
+      if (allowedRels && !allowedRels.has(config.rel)) {
+        continue;
+      }
+
       const itemContext: Record<string, unknown> = {};
       for (const mapping of config.paramMappings) {
         const resolved = resolveTemplateUrl(`{${mapping.responseField}}`, item);
@@ -111,10 +124,33 @@ export class HateoasService {
       const withSession = resolveTemplateUrl(config.targetTemplateUrl, sessionContext ?? {}, SESSION_PLACEHOLDER_RE);
       const href = resolveTemplateUrl(withSession, { ...routeParams, ...itemContext });
 
-      links[config.rel] = href;
+      links[config.rel] = { href, method: config.targetHttpMethod };
     }
 
     return links;
+  }
+
+  /**
+   * Returns the module code associated with a resource code.
+   * Cached for 1 minute. Returns null if no module is associated.
+   */
+  async getModuleCodeForResource(resourceCode: string): Promise<string | null> {
+    const cacheKey = `hateoas:res2mod:${resourceCode}`;
+    const cached = await this.cache.get<string>(cacheKey);
+    if (cached !== undefined) return cached === '__null__' ? null : cached;
+
+    const row = await this.moduleResourceRepo
+      .createQueryBuilder('mr')
+      .innerJoin('mr.resource', 'r')
+      .innerJoin('mr.module', 'm')
+      .where('r.code = :resourceCode', { resourceCode })
+      .andWhere('m.isActive = true')
+      .select('m.code', 'moduleCode')
+      .getRawOne();
+
+    const moduleCode = row?.moduleCode ?? null;
+    await this.cache.set(cacheKey, moduleCode ?? '__null__', CACHE_TTL_MS);
+    return moduleCode;
   }
 
 }
