@@ -88,7 +88,7 @@ function getEnv(): EnvConfig {
       PORT: 3000,
       DATABASE_HOST: process.env.DATABASE_HOST || 'localhost',
       DATABASE_PORT: parseInt(process.env.DATABASE_PORT || '5433', 10),
-      DATABASE_NAME: process.env.DATABASE_NAME || 'openbook_test',
+      DATABASE_NAME: process.env.DATABASE_NAME || 'captudata_test',
       DATABASE_USER: process.env.DATABASE_USER || 'postgres',
       DATABASE_PASSWORD: process.env.DATABASE_PASSWORD || 'postgres',
       DATABASE_URL: process.env.DATABASE_URL,
