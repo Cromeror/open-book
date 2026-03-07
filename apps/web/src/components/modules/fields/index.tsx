@@ -55,6 +55,7 @@ export function DynamicField({
         return (
           <input
             type="number"
+            step="any"
             min={field.min}
             max={field.max}
             className={inputClasses}

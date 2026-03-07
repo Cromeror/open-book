@@ -203,6 +203,73 @@ Si el puerto 5432 está ocupado, puedes cambiar `DATABASE_PORT` en `.env` y actu
 | Validación | Zod |
 | Estilos | Tailwind CSS |
 
+## Convenciones de Recursos
+
+### Carga de datos en formularios PATCH/PUT
+
+Para los metodos `PATCH` y `PUT`, el frontend carga automaticamente los datos existentes haciendo un `GET` al mismo `href` del recurso antes de mostrar el formulario. Esto sigue la convencion REST donde la URL que identifica un recurso es la misma para leerlo y modificarlo.
+
+**Ejemplo:** si el link HATEOAS apunta a `PATCH /api/condominiums/123/goals/456`, el formulario primero hace `GET /api/condominiums/123/goals/456` para prellenar los campos con los valores actuales.
+
+**Implicaciones para nuevos recursos:**
+- Todo recurso con `PATCH` o `PUT` debe tener un `GET` en la misma URL que retorne los datos del recurso
+- Si el `GET` falla o no retorna datos, el formulario se muestra vacio (modo creacion)
+- Los campos del formulario se generan a partir del `payloadMetadata` configurado en el `resource_http_methods`
+
+### PayloadMetadata
+
+El `payloadMetadata` (columna jsonb en `resource_http_methods`) describe la estructura del request body usando un formato OpenAPI-like. El frontend lo usa para:
+
+1. **Generar campos automaticamente**: tipo de input, label, placeholder
+2. **Validar en cliente**: schema Zod generado a partir de las propiedades
+
+Formato esperado:
+```json
+{
+  "method": "PATCH",
+  "summary": "Titulo del formulario",
+  "requestBody": {
+    "required": false,
+    "contentType": "application/json",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Label del campo",
+          "minLength": 3,
+          "maxLength": 200,
+          "required": true,
+          "example": "Placeholder del campo"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Monto",
+          "minimum": 0.01
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "inactive"],
+          "description": "Estado"
+        }
+      }
+    }
+  }
+}
+```
+
+Mapeo de tipos `PropertySchema` a inputs:
+| type + format | Input |
+|---------------|-------|
+| `string` | text |
+| `string` + `email` | email |
+| `string` + `password` | password |
+| `string` + `date` | date |
+| `string` (maxLength > 255) | textarea |
+| `string` + `enum` | select |
+| `number` / `integer` | number |
+| `boolean` | checkbox |
+
 ## Licencia
 
 MIT

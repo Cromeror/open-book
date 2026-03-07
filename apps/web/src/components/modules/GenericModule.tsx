@@ -9,13 +9,11 @@ import type {
   ResourceUiConfig,
   HateoasDataItem,
   ListUiConfig,
-  DetailUiConfig,
   FormUiConfig,
 } from '@/lib/types/modules';
 import { isListUiConfig } from '@/lib/types/modules';
 import { ModuleHeader } from './ModuleHeader';
 import { GenericList } from './GenericList';
-import { GenericDetail } from './GenericDetail';
 import { GenericForm } from './GenericForm';
 
 export interface ModuleProps {
@@ -117,15 +115,16 @@ export function GenericModule({ moduleCode, metadata }: ModuleProps) {
         </>
       )}
 
-      {/* Detail view */}
+      {/* Detail view — placeholder */}
       {viewState.component === 'detail' && 'href' in viewState && (
-        <GenericDetail
-          config={actionsMap.get(viewState.code)!.uiConfig as DetailUiConfig}
-          endpoint={viewState.href}
-          title={metadata.label}
-          id={viewState.item.id}
-          onBack={handleBack}
-        />
+        <div className="rounded-md bg-gray-50 border border-gray-200 p-6">
+          <p className="text-sm text-gray-800">
+            Vista de detalle pendiente de implementar (code: {viewState.code}).
+          </p>
+          <button type="button" onClick={handleBack} className="mt-3 text-sm font-medium text-gray-700 hover:text-gray-600">
+            Volver
+          </button>
+        </div>
       )}
 
       {/* Form view */}
@@ -133,7 +132,6 @@ export function GenericModule({ moduleCode, metadata }: ModuleProps) {
         <GenericForm
           config={actionsMap.get(viewState.code)!.uiConfig as FormUiConfig}
           endpoint={viewState.href}
-          title={metadata.label}
           mode={viewState.item.id ? 'edit' : 'create'}
           id={viewState.item.id || undefined}
           onSuccess={handleSuccess}

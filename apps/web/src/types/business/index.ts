@@ -18,12 +18,25 @@ export type { User, PublicUser } from './user.types';
 // Resources (HATEOAS)
 export type {
   Resource,
+  ResourcePublic,
   ResourceHttpMethod,
+  ResourceHttpMethodPublic,
   ResourceHttpMethodLink,
   ResourceLinkParamMapping,
   HttpMethod,
   HateoasLink,
 } from './resource.types';
+export { HTTP_METHODS } from './resource.types';
+
+// Resource Metadata (payload/response schemas)
+export type {
+  PayloadMetadata,
+  ResponseMetadata,
+  PropertySchema,
+  ParameterDefinition,
+  RequestBodyDefinition,
+  SuccessResponseDefinition,
+} from './resource-metadata.types';
 
 // Capability Presets
 export type { CapabilityPreset, PresetCapability } from './capability-preset.types';

@@ -15,10 +15,12 @@ export interface ResolvedLink {
   rel: string;
   href: string;
   method: string;
+  resourceId: string;
 }
 
 export interface LinkConfig {
   rel: string;
+  targetResourceId: string;
   targetTemplateUrl: string;
   targetHttpMethod: string;
   paramMappings: ParamMapping[];
@@ -75,6 +77,7 @@ export class HateoasService {
       .filter((link) => link.isActive)
       .map((link) => ({
         rel: link.rel,
+        targetResourceId: link.targetHttpMethod.resource.id,
         targetTemplateUrl: link.targetHttpMethod.resource.templateUrl,
         targetHttpMethod: link.targetHttpMethod.httpMethod.method,
         paramMappings: link.paramMappings,
@@ -107,8 +110,8 @@ export class HateoasService {
     routeParams: Record<string, string>,
     sessionContext?: Record<string, string>,
     allowedRels?: Set<string> | null,
-  ): Record<string, { href: string; method: string }> {
-    const links: Record<string, { href: string; method: string }> = {};
+  ): Record<string, { href: string; method: string; resourceId: string }> {
+    const links: Record<string, { href: string; method: string; resourceId: string }> = {};
 
     for (const config of configs) {
       if (allowedRels && !allowedRels.has(config.rel)) {
@@ -124,7 +127,7 @@ export class HateoasService {
       const withSession = resolveTemplateUrl(config.targetTemplateUrl, sessionContext ?? {}, SESSION_PLACEHOLDER_RE);
       const href = resolveTemplateUrl(withSession, { ...routeParams, ...itemContext });
 
-      links[config.rel] = { href, method: config.targetHttpMethod };
+      links[config.rel] = { href, method: config.targetHttpMethod, resourceId: config.targetResourceId };
     }
 
     return links;

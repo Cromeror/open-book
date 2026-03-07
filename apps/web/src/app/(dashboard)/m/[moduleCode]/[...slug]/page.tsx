@@ -1,56 +1,50 @@
 import { redirect, notFound } from 'next/navigation';
-
 import { getServerPermissions } from '@/lib/permissions.server';
+import { decodeLinkToken } from '@/lib/link-token';
+import { fetchResourceById } from '@/lib/http-api/resources-server-api';
+import { ModuleActionPageClient } from './ModuleActionPageClient';
 
 interface Props {
   params: Promise<{ moduleCode: string; slug: string[] }>;
 }
 
-/**
- * Catch-all sub-route for module pages.
- *
- * Handles paths like:
- *   /m/goals/abc123        → detail view (slug = ['abc123'])
- *   /m/goals/abc123/edit   → edit view   (slug = ['abc123', 'edit'])
- *
- * For now renders a placeholder — full component rendering will be
- * wired up once detail/form views are implemented.
- */
-export default async function ModuleSubPage({ params }: Props) {
+export default async function ModuleActionPage({ params }: Props) {
   const { moduleCode, slug } = await params;
-
   const permissions = await getServerPermissions();
-
-  if (!permissions.isAuthenticated) {
-    redirect('/login');
-  }
 
   if (!permissions.hasModule(moduleCode)) {
     redirect('/dashboard');
   }
 
   const metadata = permissions.modules.find((m) => m.code === moduleCode);
+  const [token] = slug;
 
-  if (!metadata) {
+  if (!metadata || !token) {
     notFound();
   }
 
-  const [id, action] = slug;
-  const view = action ?? 'detail';
+  const link = decodeLinkToken(token);
+
+  if (!link) {
+    notFound();
+  }
+
+  const resource = await fetchResourceById(link.resourceId);
+
+  if (!resource) {
+    notFound();
+  }
+
+  const httpMethod = resource.httpMethods.find(
+    (rhm) => rhm.httpMethod.method === link.method,
+  );
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-lg border bg-white p-6">
-        <p className="text-sm text-gray-500">
-          Modulo: <span className="font-medium text-gray-900">{metadata.label}</span>
-        </p>
-        <p className="text-sm text-gray-500 mt-1">
-          ID: <span className="font-mono text-gray-900">{id}</span>
-        </p>
-        <p className="text-sm text-gray-500 mt-1">
-          Vista: <span className="font-medium text-gray-900">{view}</span>
-        </p>
-      </div>
-    </div>
+    <ModuleActionPageClient
+      href={link.href}
+      method={link.method}
+      payloadMetadata={httpMethod?.payloadMetadata ?? undefined}
+      responseMetadata={httpMethod?.responseMetadata ?? undefined}
+    />
   );
 }

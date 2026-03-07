@@ -30,7 +30,7 @@ export {
   isModalFormUiConfig,
 } from '@/types/business';
 
-import type { ModuleWithActionsResponse } from '@/types/business';
+import type { ModuleWithActionsResponse, HttpMethod } from '@/types/business';
 
 // ============================================
 // HATEOAS & Action types
@@ -39,10 +39,11 @@ import type { ModuleWithActionsResponse } from '@/types/business';
 /** Single HATEOAS link value as returned by the API */
 export interface HateoasLinkValue {
   href: string;
-  method: string;
+  method: HttpMethod;
+  resourceId: string;
 }
 
-/** HATEOAS links as returned by the API: rel → { href, method } */
+/** HATEOAS links as returned by the API: rel → { href, method, resourceId } */
 export type HateoasLinks = Record<string, HateoasLinkValue>;
 
 /** Data item with optional HATEOAS links */

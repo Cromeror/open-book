@@ -159,7 +159,7 @@ const resourceUiConfigSchema = z.discriminatedUnion('component', [
 const postActionStepSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('confirm'), message: z.string().min(1), variant: z.enum(['danger', 'warning']).optional() }),
   z.object({ type: z.literal('execute') }),
-  z.object({ type: z.literal('navigate'), path: z.string().min(1).max(255) }),
+  z.object({ type: z.literal('navigate'), target: z.enum(['_self', '_blank']).optional(), url: z.string().min(1).max(500).optional() }),
   z.object({ type: z.literal('refresh') }),
 ]);
 

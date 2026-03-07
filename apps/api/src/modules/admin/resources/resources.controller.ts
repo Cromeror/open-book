@@ -19,8 +19,16 @@ import { z } from 'zod';
 
 import { SuperAdminGuard } from '../../permissions/guards/superadmin.guard';
 import { JwtAuthGuard } from '../../auth/guards';
+import {
+  payloadMetadataSchema,
+  responseMetadataSchema,
+} from '../../../types/resource-metadata.schemas';
 
+import { HTTP_METHODS } from '../../../types/resource.types';
 import { AdminResourcesService } from './resources.service';
+
+// HTTP methods that support a request body
+const METHODS_WITH_BODY: Set<string> = new Set([HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH]);
 
 // Zod schemas for validation
 const createResourceSchema = z.object({
@@ -41,11 +49,88 @@ const updateResourceSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+const httpMethodEnum = z.enum([HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH, HTTP_METHODS.DELETE]);
+
 const assignHttpMethodSchema = z.object({
-  method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
+  method: httpMethodEnum,
   payloadMetadata: z.string().optional(),
   responseMetadata: z.string().optional(),
 });
+
+/**
+ * Parse and validate payloadMetadata JSON string against the schema.
+ * Enforces method-specific rules:
+ * - method field must match the assigned HTTP method
+ * - GET/DELETE/HEAD/OPTIONS cannot have requestBody
+ */
+function validatePayloadMetadataForMethod(json: string, method: string): z.ZodSafeParseResult<unknown> {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    return { success: false, error: new z.ZodError([{ code: 'custom', message: 'payloadMetadata is not valid JSON', path: ['payloadMetadata'] }]) };
+  }
+
+  const result = payloadMetadataSchema.safeParse(parsed);
+  if (!result.success) return result;
+
+  const data = result.data;
+
+  if (data.method !== method) {
+    return {
+      success: false,
+      error: new z.ZodError([{
+        code: 'custom',
+        message: `payloadMetadata.method must be '${method}', got '${data.method}'`,
+        path: ['payloadMetadata', 'method'],
+      }]),
+    };
+  }
+
+  if (!METHODS_WITH_BODY.has(method) && data.requestBody) {
+    return {
+      success: false,
+      error: new z.ZodError([{
+        code: 'custom',
+        message: `${method} does not support requestBody`,
+        path: ['payloadMetadata', 'requestBody'],
+      }]),
+    };
+  }
+
+  return result;
+}
+
+/**
+ * Parse and validate responseMetadata JSON string against the schema.
+ * Enforces that method field matches the assigned HTTP method.
+ */
+function validateResponseMetadataForMethod(json: string, method: string): z.ZodSafeParseResult<unknown> {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    return { success: false, error: new z.ZodError([{ code: 'custom', message: 'responseMetadata is not valid JSON', path: ['responseMetadata'] }]) };
+  }
+
+  const result = responseMetadataSchema.safeParse(parsed);
+  if (!result.success) return result;
+
+  const data = result.data;
+
+  if (data.method !== method) {
+    return {
+      success: false,
+      error: new z.ZodError([{
+        code: 'custom',
+        message: `responseMetadata.method must be '${method}', got '${data.method}'`,
+        path: ['responseMetadata', 'method'],
+      }]),
+    };
+  }
+
+  return result;
+}
 
 const paramMappingSchema = z.object({
   responseField: z.string().min(1),
@@ -207,6 +292,34 @@ export class AdminResourcesController {
         message: 'Validation error',
         errors: messages,
       });
+    }
+
+    const { method, payloadMetadata, responseMetadata } = result.data;
+
+    // Validate payloadMetadata structure and method-specific rules
+    if (payloadMetadata) {
+      const payloadResult = validatePayloadMetadataForMethod(payloadMetadata, method);
+      if (!payloadResult.success) {
+        const messages = payloadResult.error.issues.map((i) => i.message);
+        throw new BadRequestException({
+          statusCode: 400,
+          message: 'Invalid payloadMetadata',
+          errors: messages,
+        });
+      }
+    }
+
+    // Validate responseMetadata structure and method match
+    if (responseMetadata) {
+      const responseResult = validateResponseMetadataForMethod(responseMetadata, method);
+      if (!responseResult.success) {
+        const messages = responseResult.error.issues.map((i) => i.message);
+        throw new BadRequestException({
+          statusCode: 400,
+          message: 'Invalid responseMetadata',
+          errors: messages,
+        });
+      }
     }
 
     const resource = await this.resourcesService.findByCode(code);

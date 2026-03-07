@@ -14,7 +14,7 @@
 export type PostActionStep =
   | { type: 'confirm'; message: string; variant?: 'danger' | 'warning' }
   | { type: 'execute' }
-  | { type: 'navigate'; path: string }
+  | { type: 'navigate'; target?: '_self' | '_blank'; url?: string }
   | { type: 'refresh' };
 
 /** UI configuration for a single HATEOAS link within an action */

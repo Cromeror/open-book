@@ -37,4 +37,34 @@ export class ResourcesService {
       relations: { httpMethods: { httpMethod: true } },
     });
   }
+
+  /**
+   * Find a resource by UUID (only if active)
+   */
+  async findById(id: string): Promise<Resource | null> {
+    return this.resourceRepository.findOne({
+      where: { id, isActive: true, deletedAt: undefined },
+      relations: { httpMethods: { httpMethod: true } },
+      select: {
+        id: true,
+        code: true,
+        name: true,
+        description: true,
+        templateUrl: true,
+        isActive: true,
+        httpMethods: {
+          id: true,
+          resourceId: true,
+          payloadMetadata: true,
+          responseMetadata: true,
+          isActive: true,
+          httpMethod: {
+            id: true,
+            method: true,
+            description: true,
+          },
+        },
+      },
+    });
+  }
 }

@@ -1,70 +1,108 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
 import type { FormUiConfig } from '@/lib/types/modules';
+import type { HttpMethod, PayloadMetadata } from '@/types/business';
+import { HTTP_METHODS } from '@/types/business';
+import { payloadMetadataToForm } from '@/lib/validations/payload-metadata';
 import { DynamicField } from './fields';
 
-interface GenericFormProps {
+type ConfigFormProps = {
   config: FormUiConfig;
   endpoint: string;
-  title: string;
   mode: 'create' | 'edit';
   id?: string;
   onSuccess: () => void;
   onCancel: () => void;
+};
+
+type MetadataFormProps = {
+  payloadMetadata: PayloadMetadata;
+  endpoint: string;
+  method: HttpMethod;
+};
+
+type GenericFormProps = ConfigFormProps | MetadataFormProps;
+
+function hasConfig(props: GenericFormProps): props is ConfigFormProps {
+  return 'config' in props;
 }
 
 /**
- * Generic form component that renders fields based on action settings
+ * Generic form component that renders fields based on:
+ * - FormUiConfig (admin-defined UI config), or
+ * - PayloadMetadata (OpenAPI-like schema from resource HTTP method)
  */
-export function GenericForm({
-  config,
-  endpoint,
-  title,
-  mode,
-  id,
-  onSuccess,
-  onCancel,
-}: GenericFormProps) {
+export function GenericForm(props: GenericFormProps) {
+  const { endpoint } = props;
+  const isConfigMode = hasConfig(props);
+
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [initialLoading, setInitialLoading] = useState(mode === 'edit');
+  const [success, setSuccess] = useState(false);
+
+  const isEditMode = isConfigMode
+    ? props.mode === 'edit'
+    : props.method === HTTP_METHODS.PATCH || props.method === HTTP_METHODS.PUT;
+
+  const [initialLoading, setInitialLoading] = useState(isEditMode);
+
+  const metadataForm = useMemo(() => {
+    if (isConfigMode) return null;
+    return payloadMetadataToForm(props.payloadMetadata);
+  }, [isConfigMode ? null : props.payloadMetadata]);
+
+  const fields = isConfigMode ? props.config.fields : (metadataForm?.fields ?? []);
 
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    resolver: metadataForm ? zodResolver(metadataForm.schema) : undefined,
+  });
 
-  // Load existing data when editing
+  // Stable ref for reset to avoid re-triggering the fetch effect
+  const resetRef = useRef(reset);
+  resetRef.current = reset;
+
+  // For PATCH/PUT: load existing data via GET to the same endpoint (REST convention).
+  // If the GET fails, continue with an empty form — do not block editing.
   useEffect(() => {
-    if (mode === 'edit' && id) {
-      setInitialLoading(true);
-      fetch(endpoint, { credentials: 'include' })
-        .then((res) => {
-          if (!res.ok) throw new Error('Error al cargar datos');
-          return res.json();
-        })
-        .then((data) => {
-          reset(data);
-        })
-        .catch((err) => {
-          setServerError(err.message);
-        })
-        .finally(() => {
-          setInitialLoading(false);
-        });
-    }
-  }, [mode, id, endpoint, reset]);
+    if (!isEditMode) return;
+
+    let cancelled = false;
+    setInitialLoading(true);
+
+    fetch(endpoint, { credentials: 'include' })
+      .then((res) => {
+        if (!res.ok) throw new Error('Error al cargar datos');
+        return res.json();
+      })
+      .then((data) => {
+        if (!cancelled) resetRef.current(data);
+      })
+      .catch(() => {
+        // GET failed — continue with empty form
+      })
+      .finally(() => {
+        if (!cancelled) setInitialLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [isEditMode, endpoint]);
 
   const onSubmit = async (data: Record<string, unknown>) => {
     setLoading(true);
     setServerError(null);
 
     try {
-      const method = mode === 'create' ? 'POST' : 'PUT';
+      const method = isConfigMode
+        ? props.mode === 'create' ? 'POST' : 'PUT'
+        : props.method;
 
       const response = await fetch(endpoint, {
         method,
@@ -78,7 +116,11 @@ export function GenericForm({
         throw new Error(errorData.message || 'Error al guardar');
       }
 
-      onSuccess();
+      if (isConfigMode) {
+        props.onSuccess();
+      } else {
+        setSuccess(true);
+      }
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
@@ -116,11 +158,16 @@ export function GenericForm({
     );
   }
 
+  if (success) {
+    return (
+      <div className="rounded-md bg-green-50 border border-green-200 p-6">
+        <p className="text-sm text-green-800">Operacion realizada con exito.</p>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">
-        {mode === 'create' ? `Crear ${title}` : `Editar ${title}`}
-      </h2>
 
       {serverError && (
         <div className="rounded-md bg-red-50 p-4">
@@ -128,30 +175,40 @@ export function GenericForm({
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {config.fields.map((field) => (
-          <DynamicField
-            key={field.name}
-            field={field}
-            register={register}
-            errors={errors}
-            disabled={loading}
-          />
-        ))}
-      </div>
+      {fields.length === 0 ? (
+        <div className="rounded-md bg-yellow-50 border border-yellow-200 p-4">
+          <p className="text-sm text-yellow-800">
+            No se encontraron campos para este formulario.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          {fields.map((field) => (
+            <DynamicField
+              key={field.name}
+              field={field}
+              register={register}
+              errors={errors}
+              disabled={loading}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="flex gap-4 justify-end pt-4 border-t">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={loading}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Cancelar
-        </button>
+        {isConfigMode && (
+          <button
+            type="button"
+            onClick={props.onCancel}
+            disabled={loading}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancelar
+          </button>
+        )}
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || fields.length === 0}
           className="flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-md shadow-sm hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (

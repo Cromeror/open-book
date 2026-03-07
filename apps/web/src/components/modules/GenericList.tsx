@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import type {
   ListUiConfig,
   HateoasDataItem,
+  HateoasLinkValue,
   LinkUiConfig,
   PostActionStep,
 } from '@/lib/types/modules';
 import { formatValue } from '@/lib/formatters';
+import { encodeLinkToken } from '@/lib/link-token';
 import { Icon } from '@/components/layout/Icon';
 
 interface GenericListProps {
@@ -25,14 +27,6 @@ const variantStyles: Record<string, string> = {
   warning: 'text-gray-400 hover:text-yellow-600',
   success: 'text-gray-400 hover:text-green-600',
 };
-
-/** Resolve :param placeholders in a path template using item data */
-function resolvePath(template: string, item: HateoasDataItem): string {
-  return template.replace(/:(\w+)/g, (_, key) => {
-    const val = item[key];
-    return val != null ? String(val) : '';
-  });
-}
 
 export function GenericList({
   config,
@@ -90,14 +84,14 @@ export function GenericList({
 
   /** Run steps after confirm (or from the start if no confirm) */
   const runSteps = useCallback(
-    async (steps: PostActionStep[], href: string, method: string, item: HateoasDataItem) => {
+    async (steps: PostActionStep[], link: HateoasLinkValue, item: HateoasDataItem) => {
       for (const step of steps) {
         switch (step.type) {
           case 'confirm':
-            // Should not appear here — handled before calling runSteps
             break;
           case 'execute': {
-            const res = await fetch(href, { method, credentials: 'include' });
+            // TODO: este linkmethod quiza hay que mapearlo
+            const res = await fetch(link.href, { method: link.method, credentials: 'include' });
             if (!res.ok) {
               setError('Error al ejecutar la accion');
               return;
@@ -105,8 +99,12 @@ export function GenericList({
             break;
           }
           case 'navigate': {
-            const resolved = resolvePath(step.path, item);
-            router.push(`/m/${moduleCode}/${resolved}`);
+            const url = step.url ?? `/m/${moduleCode}/${encodeLinkToken(link)}`;
+            if (step.target === '_blank') {
+              window.open(url, '_blank');
+            } else {
+              router.push(url);
+            }
             return;
           }
           case 'refresh': {
@@ -120,13 +118,12 @@ export function GenericList({
   );
 
   const onAction = useCallback(
-    (rel: string, href: string, method: string, item: HateoasDataItem) => {
+    (rel: string, link: HateoasLinkValue, item: HateoasDataItem) => {
       const ui = linkConfig?.[rel];
       const steps = ui?.postAction;
 
       if (!steps || steps.length === 0) return;
 
-      // Find confirm step — if present, show dialog first then run remaining
       const confirmIdx = steps.findIndex((s) => s.type === 'confirm');
       if (confirmIdx >= 0) {
         const confirmStep = steps[confirmIdx] as PostActionStep & { type: 'confirm' };
@@ -136,14 +133,13 @@ export function GenericList({
           variant: confirmStep.variant,
           onConfirm: () => {
             setConfirmState(null);
-            runSteps(remaining, href, method, item);
+            runSteps(remaining, link, item);
           },
         });
         return;
       }
 
-      // No confirm — run all steps
-      runSteps(steps, href, method, item);
+      runSteps(steps, link, item);
     },
     [linkConfig, runSteps],
   );
@@ -307,7 +303,7 @@ export function GenericList({
                             <button
                               key={rel}
                               type="button"
-                              onClick={() => onAction(rel, link.href, link.method, row)}
+                              onClick={() => onAction(rel, link, row)}
                               className={`p-1.5 rounded-md transition-colors ${variantStyles[variant] ?? variantStyles.default}`}
                               title={ui?.label ?? rel}
                             >

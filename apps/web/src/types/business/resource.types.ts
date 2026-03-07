@@ -5,10 +5,20 @@
  * Pure business types - no ORM decorators, no transport concerns.
  */
 
+import type { PayloadMetadata, ResponseMetadata } from './resource-metadata.types';
+
 /**
  * HTTP methods supported for capabilities
  */
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+export const HTTP_METHODS = {
+  GET: 'GET',
+  POST: 'POST',
+  PUT: 'PUT',
+  PATCH: 'PATCH',
+  DELETE: 'DELETE',
+} as const satisfies Record<string, HttpMethod>;
 
 /**
  * Parameter mapping for HATEOAS link resolution
@@ -110,6 +120,37 @@ export interface Resource {
   createdAt: string;
   /** Last update timestamp */
   updatedAt: string;
+}
+
+/**
+ * Slim resource returned by the public GET /api/resources/:id endpoint.
+ * Excludes audit fields and exposes the nested httpMethod relation directly.
+ */
+export interface ResourcePublic {
+  id: string;
+  code: string;
+  name: string;
+  description?: string | null;
+  templateUrl: string;
+  isActive: boolean;
+  httpMethods: ResourceHttpMethodPublic[];
+}
+
+/**
+ * Resource-HTTP method association as returned by the public endpoint.
+ * The HTTP method details are nested in `httpMethod`.
+ */
+export interface ResourceHttpMethodPublic {
+  id: string;
+  resourceId: string;
+  payloadMetadata: PayloadMetadata | null;
+  responseMetadata: ResponseMetadata | null;
+  isActive: boolean;
+  httpMethod: {
+    id: string;
+    method: HttpMethod;
+    description?: string;
+  };
 }
 
 /**
