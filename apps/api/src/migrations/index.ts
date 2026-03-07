@@ -3,29 +3,4 @@
  *
  * Export all migrations here to ensure they are included in the build
  */
-export { InitialSetup1736131200000 } from './1736131200000-InitialSetup';
-export { CreateUsersTable1736131300000 } from './1736131300000-CreateUsersTable';
-export { RemoveUserRoleAddSuperAdmin1736160000000 } from './1736160000000-RemoveUserRoleAddSuperAdmin';
-export { CreatePermissionsTables1736161000000 } from './1736161000000-CreatePermissionsTables';
-export { SeedInitialModules1736162000000 } from './1736162000000-SeedInitialModules';
-export { CreateAuthTables1736163000000 } from './1736163000000-CreateAuthTables';
-export { SeedTestUsers1736164000000 } from './1736164000000-SeedTestUsers';
-export { AddModuleMetadataColumns1736165000000 } from './1736165000000-AddModuleMetadataColumns';
-export { SeedModuleMetadata1736166000000 } from './1736166000000-SeedModuleMetadata';
-export { CreateGoalsTable1736267000000 } from './1736267000000-CreateGoalsTable';
-export { CreateGroupsAndPropertiesTables1736368000000 } from './1736368000000-CreateGroupsAndPropertiesTables';
-export { AddModuleTagsColumn1736369000000 } from './1736369000000-AddModuleTagsColumn';
-export { CreateCondominiumManagersTable1736370000000 } from './1736370000000-CreateCondominiumManagersTable';
-export { CreateUserStatesTable1737500000000 } from './1737500000000-CreateUserStatesTable';
-export { CreateResourcesTable1737600000000 } from './1737600000000-CreateResourcesTable';
-export { CreateCapabilityPresetsTable1737650000000 } from './1737650000000-CreateCapabilityPresetsTable';
-export { CreateHttpMethodsTable1739404800000 } from './1739404800000-CreateHttpMethodsTable';
-export { CreateResourceHttpMethodsTable1739404900000 } from './1739404900000-CreateResourceHttpMethodsTable';
-export { RenameBaseUrlToTemplateUrl1739405000000 } from './1739405000000-RenameBaseUrlToTemplateUrl';
-export { SimplifyPermissions1740000000000 } from './1740000000000-SimplifyPermissions';
-export { AddResourceHttpMethodLinks1740100000000 } from './1740100000000-AddResourceHttpMethodLinks';
-export { UpdateResourcesRemoveScopeAddDescription1740200000000 } from './1740200000000-UpdateResourcesRemoveScopeAddDescription';
-export { AddModuleResourcesAndRemoveType1740300000000 } from './1740300000000-AddModuleResourcesAndRemoveType';
-export { RemoveCondominiumUnitCount1740400000000 } from './1740400000000-RemoveCondominiumUnitCount';
-export { NormalizeActionsConfig1740500000000 } from './1740500000000-NormalizeActionsConfig';
-export { AddRelsToModulePermissions1740600000000 } from './1740600000000-AddRelsToModulePermissions';
+export { InitialSchema1736131200000 } from './1736131200000-InitialSchema';

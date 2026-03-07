@@ -5,8 +5,6 @@ import { Cache } from 'cache-manager';
 
 import { UsersService } from '../users/users.service';
 import { UserStateService } from '../user-state/user-state.service';
-import { CondominiumsService } from '../condominiums/condominiums.service';
-
 const CACHE_KEY_PREFIX = 'session-context';
 
 /**
@@ -20,8 +18,6 @@ const SESSION_CONTEXT_SCHEMA: ResolvedSessionContext = {
   userFirstName: '',
   userLastName: '',
   isSuperAdmin: false,
-  condominiumId: '',
-  condominiumName: '',
   userStateTheme: '',
   userStateLanguage: '',
   userStateSidebarCollapsed: false,
@@ -36,8 +32,6 @@ export interface ResolvedSessionContext {
   userFirstName: string;
   userLastName: string;
   isSuperAdmin: boolean;
-  condominiumId: string;
-  condominiumName: string;
   userStateTheme: string;
   userStateLanguage: string;
   userStateSidebarCollapsed: boolean;
@@ -60,7 +54,6 @@ export class SessionContextService {
   constructor(
     private readonly usersService: UsersService,
     private readonly userStateService: UserStateService,
-    private readonly condominiumsService: CondominiumsService,
     private readonly configService: ConfigService,
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
   ) {
@@ -147,33 +140,12 @@ export class SessionContextService {
     // Load user state (preferences)
     const userState = await this.userStateService.getOrCreate(userId);
 
-    // Load selected condominium if available
-    let condominiumId = '';
-    let condominiumName = '';
-
-    if (userState.selectedCondominiumId) {
-      try {
-        const condominium = await this.condominiumsService.findOne(
-          userState.selectedCondominiumId,
-          userId,
-        );
-        condominiumId = condominium.id;
-        condominiumName = condominium.name;
-      } catch {
-        this.logger.debug(
-          `Could not resolve condominium ${userState.selectedCondominiumId} for user ${userId}`,
-        );
-      }
-    }
-
     return {
       userId: user.id,
       userEmail: user.email,
       userFirstName: user.firstName,
       userLastName: user.lastName,
       isSuperAdmin: user.isSuperAdmin,
-      condominiumId,
-      condominiumName,
       userStateTheme: userState.theme,
       userStateLanguage: userState.language,
       userStateSidebarCollapsed: userState.sidebarCollapsed,
@@ -187,8 +159,6 @@ export class SessionContextService {
       userFirstName: '',
       userLastName: '',
       isSuperAdmin: false,
-      condominiumId: '',
-      condominiumName: '',
       userStateTheme: 'system',
       userStateLanguage: 'es',
       userStateSidebarCollapsed: false,

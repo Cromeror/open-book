@@ -8,9 +8,6 @@ import { AuthLog } from '../../entities/auth-log.entity';
 import { RefreshToken } from '../../entities/refresh-token.entity';
 import { UsersModule } from '../users/users.module';
 import { PermissionsModule } from '../permissions/permissions.module';
-import { CondominiumsModule } from '../admin/condominiums/condominiums.module';
-import { AdminPropertyResidentsModule } from '../admin/property-residents/admin-property-residents.module';
-
 import { AuthLogService } from './auth-log.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -27,14 +24,12 @@ import { TokenService } from './token.service';
  * - Refresh token rotation
  * - Logout (single and all devices)
  * - Authentication audit logging
- * - User modules, permissions, and condominiums via /api/auth/me
+ * - User modules and permissions via /api/auth/me
  */
 @Module({
   imports: [
     UsersModule,
     PermissionsModule,
-    CondominiumsModule, // For CondominiumManagersService
-    AdminPropertyResidentsModule, // For resident condominium lookup
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: jwtConfig.secret,

@@ -5,11 +5,6 @@ import { typeOrmConfigFactory } from '../config';
 import { AdminModule } from '../modules/admin';
 import { AuthModule } from '../modules/auth';
 import { UsersModule } from '../modules/users';
-import { GoalsModule } from '../modules/goals';
-import { GroupsModule } from '../modules/groups';
-import { PropertiesModule } from '../modules/properties';
-import { PropertyResidentsModule } from '../modules/property-residents';
-import { CondominiumsModule } from '../modules/condominiums';
 import { ResourcesModule } from '../modules/resources/resources.module';
 import { GrpcModule } from '../grpc/grpc.module';
 import { AppCacheModule } from '../modules/cache/cache.module';
@@ -29,11 +24,6 @@ import { AppService } from './app.service';
     AdminModule,
     UsersModule,
     AuthModule,
-    GoalsModule,
-    GroupsModule,
-    PropertiesModule,
-    PropertyResidentsModule,
-    CondominiumsModule,
     ResourcesModule,
     GrpcModule,
   ],

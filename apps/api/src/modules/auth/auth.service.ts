@@ -5,8 +5,6 @@ import { UserResponse } from '../../types/user';
 import { comparePassword } from '../../utils/password';
 import { UsersService } from '../users/users.service';
 import { PermissionsService } from '../permissions/permissions.service';
-import { CondominiumManagersService } from '../admin/condominiums/condominium-managers.service';
-import { AdminPropertyResidentsService } from '../admin/property-residents/admin-property-residents.service';
 import type { ModuleWithActionsResponse } from '../../types/module-actions.types';
 
 import { AuthLogService } from './auth-log.service';
@@ -30,25 +28,8 @@ export interface RefreshResponse {
   refreshToken: string;
 }
 
-export const CONDOMINIUM_ROLE = {
-  MANAGER: 'manager',
-  RESIDENT: 'resident',
-} as const;
-
-export type CondominiumRole = typeof CONDOMINIUM_ROLE[keyof typeof CONDOMINIUM_ROLE];
-
 /**
- * Condominium info for auth response
- */
-export interface AuthCondominiumInfo {
-  id: string;
-  name: string;
-  isPrimary: boolean;
-  role: CondominiumRole;
-}
-
-/**
- * Auth me response with user info, modules, and condominiums
+ * Auth me response with user info and modules
  * Used by frontend to verify authentication and load permissions
  */
 export interface AuthMeResponse {
@@ -60,7 +41,6 @@ export interface AuthMeResponse {
     isSuperAdmin: boolean;
   };
   modules: ModuleWithActionsResponse[];
-  condominiums: AuthCondominiumInfo[];
 }
 
 /**
@@ -73,20 +53,16 @@ export class AuthService {
     private readonly tokenService: TokenService,
     private readonly authLogService: AuthLogService,
     private readonly permissionsService: PermissionsService,
-    private readonly condominiumManagersService: CondominiumManagersService,
-    private readonly propertyResidentsService: AdminPropertyResidentsService,
   ) {}
 
   /**
-   * Get current authenticated user info with modules, condominiums, and segregated actions
+   * Get current authenticated user info with modules and segregated actions
    *
    * Returns user data along with modules the user has access to.
    * Each module includes only the actions the user has permission for.
-   * Action code = Permission code (e.g., 'read', 'create', 'update', 'delete')
-   * Also includes condominiums where the user is assigned as manager.
    *
    * @param user - Authenticated user from JWT validation
-   * @returns User data with modules, condominiums, and their allowed actions
+   * @returns User data with modules and their allowed actions
    */
   async getMe(user: User): Promise<AuthMeResponse> {
     // Map user to response format
@@ -103,37 +79,9 @@ export class AuthService {
     // Regular users receive only modules they have access to with only allowed actions
     const modules = await this.permissionsService.getModulesWithActionsForUser(user.id);
 
-    // Get condominiums where user is an active manager
-    const [managerAssignments, residentCondominiums] = await Promise.all([
-      this.condominiumManagersService.findByUser(user.id, { isActive: true }),
-      this.propertyResidentsService.findCondominiumsByUser(user.id),
-    ]);
-
-    // Merge both sources, deduplicating by id. Managers get isPrimary from their assignment;
-    // resident-only condominiums default to isPrimary = false.
-    const condominiumMap = new Map<string, AuthCondominiumInfo>();
-
-    for (const m of managerAssignments) {
-      condominiumMap.set(m.condominium.id, {
-        id: m.condominium.id,
-        name: m.condominium.name,
-        isPrimary: m.isPrimary,
-        role: CONDOMINIUM_ROLE.MANAGER,
-      });
-    }
-
-    for (const c of residentCondominiums) {
-      if (!condominiumMap.has(c.id)) {
-        condominiumMap.set(c.id, { id: c.id, name: c.name, isPrimary: false, role: CONDOMINIUM_ROLE.RESIDENT });
-      }
-    }
-
-    const condominiums: AuthCondominiumInfo[] = Array.from(condominiumMap.values());
-
     return {
       user: userResponse,
       modules,
-      condominiums,
     };
   }
 

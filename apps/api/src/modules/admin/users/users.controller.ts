@@ -21,7 +21,6 @@ import { SuperAdminGuard } from '../../permissions/guards/superadmin.guard';
 
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../../auth/guards';
-import { CondominiumManagersService } from '../condominiums/condominium-managers.service';
 
 // Zod schemas for validation
 const createUserSchema = z.object({
@@ -47,7 +46,6 @@ const updateUserSchema = z.object({
  * Endpoints:
  * - GET /api/admin/users - List all users with pagination
  * - GET /api/admin/users/:id - Get a specific user by ID
- * - GET /api/admin/users/:id/condominiums - Get condominiums where user is a manager
  * - POST /api/admin/users - Create a new user
  * - PATCH /api/admin/users/:id - Update a user
  * - DELETE /api/admin/users/:id - Delete (soft) a user
@@ -57,7 +55,6 @@ const updateUserSchema = z.object({
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
-    private readonly condominiumManagersService: CondominiumManagersService,
   ) {}
 
   /**
@@ -109,33 +106,6 @@ export class UsersController {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
     return user;
-  }
-
-  /**
-   * Get condominiums where user is a manager
-   *
-   * GET /api/admin/users/:id/condominiums
-   *
-   * Query params:
-   * - isActive: Filter by active status (true/false)
-   *
-   * @returns List of condominium assignments (200)
-   * @throws NotFoundException if user not found (404)
-   */
-  @Get(':id/condominiums')
-  async getUserCondominiums(
-    @Param('id', ParseUUIDPipe) userId: string,
-    @Query('isActive') isActive?: string,
-  ) {
-    const user = await this.usersService.findByIdForAdmin(userId);
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
-    }
-
-    return this.condominiumManagersService.findByUser(userId, {
-      isActive:
-        isActive === 'true' ? true : isActive === 'false' ? false : undefined,
-    });
   }
 
   /**

@@ -1,10 +1,7 @@
 import { Module } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
 import { UsersModule } from './users';
-import { CondominiumsModule } from './condominiums';
 import { AdminModulesModule } from './modules';
-import { AdminPropertyResidentsModule } from './property-residents';
-import { AdminPropertiesModule } from './properties';
 import { AdminResourcesModule } from './resources';
 import { CapabilityPresetsModule } from './capability-presets/capability-presets.module';
 
@@ -41,10 +38,7 @@ import { CapabilityPresetsModule } from './capability-presets/capability-presets
 @Module({
   imports: [
     UsersModule,
-    CondominiumsModule,
     AdminModulesModule,
-    AdminPropertyResidentsModule,
-    AdminPropertiesModule,
     AdminResourcesModule,
     CapabilityPresetsModule,
     // Router configuration for /admin prefix
@@ -53,10 +47,7 @@ import { CapabilityPresetsModule } from './capability-presets/capability-presets
         path: 'admin',
         children: [
           { path: 'users', module: UsersModule },
-          { path: 'condominiums', module: CondominiumsModule },
           { path: 'modules', module: AdminModulesModule },
-          { path: 'property-residents', module: AdminPropertyResidentsModule },
-          { path: 'properties', module: AdminPropertiesModule },
           { path: 'resources', module: AdminResourcesModule },
           { path: 'capability-presets', module: CapabilityPresetsModule },
         ],

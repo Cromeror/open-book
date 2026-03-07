@@ -53,8 +53,8 @@ export function createGrpcOptions(): GrpcOptions {
       url: `${grpcConfig.GRPC_HOST}:${grpcConfig.GRPC_PORT}`,
 
       // Proto files configuration
-      package: ['openbook.common', 'openbook.condominiums', 'openbook.userstate', 'openbook.capabilitypresets', 'openbook.sessioncontext'],
-      protoPath: [PROTO_FILES.common, PROTO_FILES.condominiums, PROTO_FILES.userState, PROTO_FILES.capabilityPresets, PROTO_FILES.sessionContext],
+      package: ['openbook.common', 'openbook.userstate', 'openbook.capabilitypresets', 'openbook.sessioncontext'],
+      protoPath: [PROTO_FILES.common, PROTO_FILES.userState, PROTO_FILES.capabilityPresets, PROTO_FILES.sessionContext],
 
       // Loader options for proto-loader
       loader: {

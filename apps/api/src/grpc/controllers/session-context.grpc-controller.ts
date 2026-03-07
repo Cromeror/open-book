@@ -40,8 +40,6 @@ export class SessionContextGrpcController {
       userFirstName: context.userFirstName,
       userLastName: context.userLastName,
       isSuperAdmin: context.isSuperAdmin,
-      condominiumId: context.condominiumId,
-      condominiumName: context.condominiumName,
       userStateTheme: context.userStateTheme,
       userStateLanguage: context.userStateLanguage,
       userStateSidebarCollapsed: context.userStateSidebarCollapsed,

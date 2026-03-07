@@ -77,26 +77,6 @@ export class UserStateGrpcController {
   }
 
   /**
-   * Set selected condominium
-   */
-  @GrpcMethod('UserStateService', 'SetSelectedCondominium')
-  async setSelectedCondominium(
-    request: { condominium_id: string },
-    _metadata: Metadata,
-    @GrpcCurrentUser() user: RequestUser,
-  ) {
-    const condominiumId =
-      request.condominium_id === '' ? null : request.condominium_id;
-
-    const state = await this.userStateService.setSelectedCondominium(
-      user.id,
-      condominiumId,
-    );
-
-    return this.toProtoResponse(state);
-  }
-
-  /**
    * Convert service response to proto format
    */
   private toProtoResponse(state: Awaited<ReturnType<typeof this.userStateService.getOrCreate>>) {

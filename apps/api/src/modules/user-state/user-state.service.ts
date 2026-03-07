@@ -1,12 +1,10 @@
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 
 import { UserState } from '../../entities/user-state.entity';
-import { CondominiumsService } from '../condominiums/condominiums.service';
-
 /**
  * Response DTO for UserState
  */
@@ -42,16 +40,13 @@ export class UserStateService {
   constructor(
     @InjectRepository(UserState)
     private readonly userStateRepository: Repository<UserState>,
-    private readonly condominiumsService: CondominiumsService,
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
   ) {}
 
   /**
    * Get user state, creating it if it doesn't exist
    *
-   * When creating a new state:
-   * - Sets selectedCondominiumId to user's primary condominium
-   * - Uses default values for other fields
+   * When creating a new state, uses default values for all fields
    */
   async getOrCreate(userId: string): Promise<UserStateResponse> {
     let state = await this.userStateRepository.findOne({
@@ -105,42 +100,11 @@ export class UserStateService {
   }
 
   /**
-   * Set selected condominium
-   *
-   * Shortcut method for the most common operation.
-   * Validates that the user has access to the condominium.
-   */
-  async setSelectedCondominium(
-    userId: string,
-    condominiumId: string | null,
-  ): Promise<UserStateResponse> {
-    // Validate access if setting a condominium
-    if (condominiumId) {
-      const hasAccess = await this.condominiumsService.userHasAccess(
-        userId,
-        condominiumId,
-      );
-      if (!hasAccess) {
-        throw new NotFoundException(
-          'Condominio no encontrado o sin acceso',
-        );
-      }
-    }
-
-    return this.update(userId, { selectedCondominiumId: condominiumId });
-  }
-
-  /**
    * Create default state for a user
    */
   private async createDefaultState(userId: string): Promise<UserState> {
-    // Get user's primary condominium
-    const primaryCondominium =
-      await this.condominiumsService.getPrimaryForUser(userId);
-
     const state = this.userStateRepository.create({
       userId,
-      selectedCondominiumId: primaryCondominium?.id,
       theme: 'system',
       sidebarCollapsed: false,
       language: 'es',

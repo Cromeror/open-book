@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 
 import { UsersModule } from '../users/users.module';
 import { UserStateModule } from '../user-state/user-state.module';
-import { CondominiumsModule } from '../condominiums/condominiums.module';
 import { SessionContextService } from './session-context.service';
 
 /**
@@ -18,7 +17,6 @@ import { SessionContextService } from './session-context.service';
     ConfigModule,
     UsersModule,
     UserStateModule,
-    CondominiumsModule,
   ],
   providers: [SessionContextService],
   exports: [SessionContextService],

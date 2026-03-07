@@ -3,15 +3,12 @@ import { JwtModule } from '@nestjs/jwt';
 
 import { jwtConfig } from '../config/env';
 import { AuthModule } from '../modules/auth/auth.module';
-import { CondominiumsModule } from '../modules/condominiums/condominiums.module';
-import { CondominiumsModule as AdminCondominiumsModule } from '../modules/admin/condominiums/condominiums.module';
 import { PermissionsModule } from '../modules/permissions/permissions.module';
 import { UserStateModule } from '../modules/user-state/user-state.module';
 import { ResourcesModule } from '../modules/resources/resources.module';
 import { CapabilityPresetsModule } from '../modules/admin/capability-presets/capability-presets.module';
 import { SessionContextModule } from '../modules/session-context/session-context.module';
 
-import { CondominiumsGrpcController } from './controllers/condominiums.grpc-controller';
 import { UserStateGrpcController } from './controllers/user-state.grpc-controller';
 import { ResourcesGrpcController } from './controllers/resources.grpc-controller';
 import { CapabilityPresetsGrpcController } from './controllers/capability-presets.grpc-controller';
@@ -40,7 +37,6 @@ import { GrpcExceptionFilter } from './filters/grpc-exception.filter';
  *
  * Module Dependencies:
  * - AuthModule: Provides JwtStrategy, TokenService, UsersService
- * - CondominiumsModule: Provides CondominiumsService (business logic)
  * - PermissionsModule: Provides PermissionsService (RBAC)
  * - JwtModule: Provides JwtService for token verification
  */
@@ -48,8 +44,6 @@ import { GrpcExceptionFilter } from './filters/grpc-exception.filter';
   imports: [
     // Import HTTP modules to reuse their services
     AuthModule, // For JwtStrategy, TokenService, UsersService
-    CondominiumsModule, // For user CondominiumsService
-    AdminCondominiumsModule, // For admin CondominiumsService + ManagersService
     PermissionsModule, // For PermissionsService
     UserStateModule, // For UserStateService
     ResourcesModule, // For ResourcesService
@@ -66,7 +60,6 @@ import { GrpcExceptionFilter } from './filters/grpc-exception.filter';
 
   // gRPC controllers (implement proto service definitions)
   controllers: [
-    CondominiumsGrpcController,
     UserStateGrpcController,
     ResourcesGrpcController,
     CapabilityPresetsGrpcController,
