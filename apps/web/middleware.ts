@@ -8,6 +8,7 @@ const PUBLIC_ROUTES = [
   '/login',
   '/registro',
   '/recuperar-contrasena',
+  '/embed',
   '/_next',
   '/api/hello',
   '/favicon.ico',

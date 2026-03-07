@@ -6,6 +6,7 @@
     "dev": "nx run-many -t serve,dev",
     "dev:api": "nx serve api",
     "dev:web": "nx dev web",
+    "dev:demo": "npm run dev --prefix apps/demo",
     "build": "nx run-many -t build",
     "build:api": "nx build api",
     "build:web": "nx build web",
