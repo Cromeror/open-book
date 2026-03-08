@@ -4,9 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ResourceFormData } from '@/lib/validations/resource.schema';
 import { createResourceWithMethods } from '@/lib/resource.actions';
+import type { Integration } from '@/types/business/integration.types';
 import { ResourceForm } from '@/components/organisms/resources/ResourceForm';
 
-export function PageOnlyClient() {
+interface Props {
+  integrations?: Integration[];
+}
+
+export function PageOnlyClient({ integrations = [] }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +48,7 @@ export function PageOnlyClient() {
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         loading={loading}
+        integrations={integrations}
       />
     </div>
   );

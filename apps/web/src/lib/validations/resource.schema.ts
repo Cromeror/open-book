@@ -53,7 +53,8 @@ export const resourceFormSchema = z.object({
     .string()
     .min(1, 'Template URL is required')
     .max(255, 'Template URL must be at most 255 characters')
-    .regex(/^\/api\//, 'Template URL must start with /api/'),
+    .regex(/^\//, 'Template URL must start with /'),
+  integrationId: z.string().uuid().optional().nullable(),
   httpMethods: z.array(resourceHttpMethodSchema).min(1, 'At least one HTTP method is required'),
 });
 

@@ -1,8 +1,9 @@
-import { Entity, Column, Index, OneToMany } from 'typeorm';
+import { Entity, Column, Index, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 
 import { BaseEntity } from './base.entity';
 import { ResourceHttpMethod } from './resource-http-method.entity';
 import { ModuleResource } from './module-resource.entity';
+import { Integration } from './integration.entity';
 
 /**
  * Resource entity for API gateway configuration
@@ -71,6 +72,22 @@ export class Resource extends BaseEntity {
     default: true,
   })
   isActive!: boolean;
+
+  /**
+   * Optional integration this resource is backed by.
+   * When set, templateUrl is relative to the integration's baseUrl.
+   * When null, the resource uses the local API base.
+   */
+  @Column({
+    name: 'integration_id',
+    type: 'uuid',
+    nullable: true,
+  })
+  integrationId?: string | null;
+
+  @ManyToOne(() => Integration, { nullable: true })
+  @JoinColumn({ name: 'integration_id' })
+  integration?: Integration | null;
 
   /**
    * HTTP methods associated with this resource

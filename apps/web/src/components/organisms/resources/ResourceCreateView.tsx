@@ -15,6 +15,7 @@ import {
   generateDefaultHttpMethods,
   extractResponsePropertyKeys,
 } from './utils';
+import type { Integration } from '@/types/business/integration.types';
 import type { ResourceFormProps } from './ResourceForm';
 import { StepRawUrl } from './StepRawUrl';
 import { StepMethodConfig } from './StepMethodConfig';
@@ -35,7 +36,8 @@ export function ResourceCreateView({
   onSubmit,
   onCancel,
   loading = false,
-}: Pick<ResourceFormProps, 'onSubmit' | 'onCancel' | 'loading'>) {
+  integrations = [],
+}: Pick<ResourceFormProps, 'onSubmit' | 'onCancel' | 'loading'> & { integrations?: Integration[] }) {
   const [currentStep, setCurrentStep] = useState(0);
 
   const {
@@ -47,12 +49,13 @@ export function ResourceCreateView({
   } = useForm<WizardFormData>({
     resolver: zodResolver(wizardFormSchema),
     defaultValues: {
-      rawUrl: '/api/',
+      rawUrl: '',
       methodConfigs: DEFAULT_METHOD_CONFIGS,
       segments: [],
       code: '',
       name: '',
       description: '',
+      integrationId: null,
     },
   });
 
@@ -62,10 +65,11 @@ export function ResourceCreateView({
   const code = watch('code');
   const name = watch('name');
   const description = watch('description');
+  const integrationId = watch('integrationId');
 
   // Auto-parse URL into segments as user types
   useEffect(() => {
-    if (!rawUrl || rawUrl === '/api/' || rawUrl === '/api') {
+    if (!rawUrl || rawUrl.trim() === '') {
       setValue('segments', []);
       return;
     }
@@ -114,11 +118,12 @@ export function ResourceCreateView({
       name,
       description: description || null,
       templateUrl,
+      integrationId: integrationId || null,
       httpMethods,
     };
 
     onSubmit(formData);
-  }, [trigger, methodConfigs, code, name, description, templateUrl, onSubmit]);
+  }, [trigger, methodConfigs, code, name, description, templateUrl, integrationId, onSubmit]);
 
   // Step 2 handlers
   const handleMethodToggle = useCallback(
@@ -195,7 +200,7 @@ export function ResourceCreateView({
 
       {/* Steps */}
       {currentStep === 0 && (
-        <StepRawUrl register={register} errors={errors} loading={loading} />
+        <StepRawUrl register={register} errors={errors} loading={loading} integrations={integrations} />
       )}
 
       {currentStep === 1 && (

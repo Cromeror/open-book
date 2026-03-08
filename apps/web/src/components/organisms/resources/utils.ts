@@ -61,9 +61,7 @@ function guessParameterKey(precedingSegment: string | null): string | null {
 export function parseUrlIntoSegments(rawUrl: string): UrlSegment[] {
   const parts = rawUrl.split('/').filter(Boolean);
 
-  // Skip the 'api' prefix — it's always static
-  const startIndex = parts[0] === 'api' ? 1 : 0;
-  const editableParts = parts.slice(startIndex);
+  const editableParts = parts;
 
   return editableParts.map((part, i) => {
     const placeholderKey = extractPlaceholderKey(part);
@@ -90,7 +88,7 @@ export function buildTemplateUrl(segments: UrlSegment[]): string {
     return seg.originalValue;
   });
 
-  return '/api/' + parts.join('/');
+  return '/' + parts.join('/');
 }
 
 /**

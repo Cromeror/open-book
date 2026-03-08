@@ -46,6 +46,7 @@ export class AdminResourcesService {
 
     const queryBuilder = this.resourceRepository
       .createQueryBuilder('r')
+      .leftJoinAndSelect('r.integration', 'integration')
       .leftJoinAndSelect('r.httpMethods', 'rhm')
       .leftJoinAndSelect('rhm.httpMethod', 'hm')
       .leftJoinAndSelect('rhm.outboundLinks', 'links')
@@ -111,7 +112,7 @@ export class AdminResourcesService {
   async findByCode(code: string): Promise<Resource | null> {
     return this.resourceRepository.findOne({
       where: { code },
-      relations: ['httpMethods', 'httpMethods.httpMethod', 'httpMethods.outboundLinks'],
+      relations: ['integration', 'httpMethods', 'httpMethods.httpMethod', 'httpMethods.outboundLinks'],
     });
   }
 
@@ -121,7 +122,7 @@ export class AdminResourcesService {
   async findById(id: string): Promise<Resource | null> {
     return this.resourceRepository.findOne({
       where: { id },
-      relations: ['httpMethods', 'httpMethods.httpMethod', 'httpMethods.outboundLinks'],
+      relations: ['integration', 'httpMethods', 'httpMethods.httpMethod', 'httpMethods.outboundLinks'],
     });
   }
 
@@ -134,6 +135,7 @@ export class AdminResourcesService {
       name: dto.name,
       description: dto.description ?? null,
       templateUrl: dto.templateUrl,
+      integrationId: dto.integrationId ?? null,
       isActive: true,
     });
 
@@ -156,6 +158,7 @@ export class AdminResourcesService {
     if (dto.description !== undefined) resource.description = dto.description;
     if (dto.templateUrl !== undefined) resource.templateUrl = dto.templateUrl;
     if (dto.isActive !== undefined) resource.isActive = dto.isActive;
+    if (dto.integrationId !== undefined) resource.integrationId = dto.integrationId;
 
     return this.resourceRepository.save(resource);
   }

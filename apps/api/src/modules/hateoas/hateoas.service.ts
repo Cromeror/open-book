@@ -5,9 +5,10 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 
 import { ResourceHttpMethod } from '../../entities/resource-http-method.entity';
-import { ResourceHttpMethodLink, ParamMapping } from '../../entities/resource-http-method-link.entity';
+import { ParamMapping } from '../../entities/resource-http-method-link.entity';
 import { ModuleResource } from '../../entities/module-resource.entity';
 import { resolveTemplateUrl, SESSION_PLACEHOLDER_RE } from '../../utils';
+import { env } from '../../config/env';
 
 const CACHE_TTL_MS = 60_000; // 1 minute
 
@@ -23,6 +24,7 @@ export interface LinkConfig {
   targetResourceId: string;
   targetTemplateUrl: string;
   targetHttpMethod: string;
+  targetIntegrationBaseUrl: string | null;
   paramMappings: ParamMapping[];
 }
 
@@ -62,6 +64,7 @@ export class HateoasService {
       .leftJoinAndSelect('rhm.outboundLinks', 'links')
       .leftJoinAndSelect('links.targetHttpMethod', 'targetRhm')
       .leftJoinAndSelect('targetRhm.resource', 'targetResource')
+      .leftJoinAndSelect('targetResource.integration', 'targetIntegration')
       .leftJoinAndSelect('targetRhm.httpMethod', 'targetHm')
       .where('r.code = :resourceCode', { resourceCode })
       .andWhere('hm.method = :httpMethod', { httpMethod })
@@ -75,13 +78,18 @@ export class HateoasService {
 
     const configs: LinkConfig[] = rhm.outboundLinks
       .filter((link) => link.isActive)
-      .map((link) => ({
-        rel: link.rel,
-        targetResourceId: link.targetHttpMethod.resource.id,
-        targetTemplateUrl: link.targetHttpMethod.resource.templateUrl,
-        targetHttpMethod: link.targetHttpMethod.httpMethod.method,
-        paramMappings: link.paramMappings,
-      }));
+      .map((link) => {
+        const targetResource = link.targetHttpMethod.resource;
+        const integrationBaseUrl = targetResource.integration?.baseUrl ?? null;
+        return {
+          rel: link.rel,
+          targetResourceId: targetResource.id,
+          targetTemplateUrl: targetResource.templateUrl,
+          targetHttpMethod: link.targetHttpMethod.httpMethod.method,
+          targetIntegrationBaseUrl: integrationBaseUrl,
+          paramMappings: link.paramMappings,
+        };
+      });
 
     await this.cache.set(cacheKey, configs, CACHE_TTL_MS);
     return configs;
@@ -125,7 +133,11 @@ export class HateoasService {
       }
 
       const withSession = resolveTemplateUrl(config.targetTemplateUrl, sessionContext ?? {}, SESSION_PLACEHOLDER_RE);
-      const href = resolveTemplateUrl(withSession, { ...routeParams, ...itemContext });
+      const resolvedPath = resolveTemplateUrl(withSession, { ...routeParams, ...itemContext });
+
+      // Build absolute URL: use integration baseUrl for external resources, API_BASE_URL for local
+      const baseUrl = config.targetIntegrationBaseUrl ?? env.API_BASE_URL ?? '';
+      const href = baseUrl.replace(/\/+$/, '') + resolvedPath;
 
       links[config.rel] = { href, method: config.targetHttpMethod, resourceId: config.targetResourceId };
     }

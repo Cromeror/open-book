@@ -2,6 +2,7 @@ import { Link2 } from 'lucide-react';
 import { Section } from '@/components/molecules';
 import type { UseFormRegister, FieldErrors } from 'react-hook-form';
 import type { WizardFormData } from './resource-create.schema';
+import type { Integration } from '@/types/business/integration.types';
 
 const inputClasses =
   'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100';
@@ -11,11 +12,37 @@ export interface StepRawUrlProps {
   register: UseFormRegister<WizardFormData>;
   errors: FieldErrors<WizardFormData>;
   loading: boolean;
+  integrations?: Integration[];
 }
 
-export function StepRawUrl({ register, errors, loading }: StepRawUrlProps) {
+export function StepRawUrl({ register, errors, loading, integrations = [] }: StepRawUrlProps) {
   return (
     <>
+      {integrations.length > 0 && (
+        <Section title="Integracion">
+          <div>
+            <label className={labelClasses}>
+              Integracion externa
+            </label>
+            <select
+              {...register('integrationId')}
+              disabled={loading}
+              className={inputClasses}
+            >
+              <option value="">Sin integracion (API local)</option>
+              {integrations.map((integration) => (
+                <option key={integration.id} value={integration.id}>
+                  {integration.name} — {integration.baseUrl}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-gray-500">
+              Si selecciona una integracion, la URL del recurso sera relativa a la URL base de la integracion.
+            </p>
+          </div>
+        </Section>
+      )}
+
       <Section title="URL Base" titlePrefix={<Link2 className="h-4 w-4 text-blue-500" />}>
         <div className="space-y-3">
           <p className="text-sm text-gray-600">

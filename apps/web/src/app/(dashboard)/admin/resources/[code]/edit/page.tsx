@@ -6,6 +6,7 @@ import { publicEnv } from '@/config/env';
 import { ContentLayout } from '@/components/layout';
 import { PageTitle } from '@/components/molecules';
 import type { Resource, ResourceHttpMethod, ResourceHttpMethodLink, HttpMethod } from '@/types/business';
+import type { Integration } from '@/types/business/integration.types';
 import { ResourceEditForm } from './resource-edit-form';
 
 /**
@@ -35,6 +36,8 @@ function mapApiResource(raw: any): Resource {
     name: raw.name,
     description: raw.description ?? null,
     templateUrl: raw.templateUrl,
+    integrationId: raw.integrationId ?? null,
+    integration: raw.integration ?? null,
     isActive: raw.isActive,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
@@ -84,6 +87,20 @@ async function getAllResources(token: string): Promise<Resource[]> {
   }
 }
 
+async function getIntegrations(token: string): Promise<Integration[]> {
+  try {
+    const response = await fetch(`${publicEnv.NEXT_PUBLIC_API_URL}/admin/integrations?isActive=true`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    });
+    if (!response.ok) return [];
+    const body = await response.json();
+    return body.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
 interface Props {
   params: Promise<{ code: string }>;
 }
@@ -102,9 +119,10 @@ export default async function EditResourcePage({ params }: Props) {
     redirect('/login');
   }
 
-  const [resource, allResources] = await Promise.all([
+  const [resource, allResources, integrations] = await Promise.all([
     getResource(code, token),
     getAllResources(token),
+    getIntegrations(token),
   ]);
 
   if (!resource) {
@@ -137,7 +155,7 @@ export default async function EditResourcePage({ params }: Props) {
           }
         />
 
-        <ResourceEditForm resource={resource} allResources={allResources} />
+        <ResourceEditForm resource={resource} allResources={allResources} integrations={integrations} />
       </div>
     </ContentLayout>
   );

@@ -18,6 +18,7 @@ const envSchema = z.object({
     .enum(['development', 'production', 'test'])
     .default('development'),
   PORT: z.coerce.number().positive().default(3000),
+  API_BASE_URL: z.string().url().optional(),
 
   // Database
   DATABASE_HOST: z.string().min(1, 'DATABASE_HOST is required'),
@@ -86,6 +87,7 @@ function getEnv(): EnvConfig {
     return {
       NODE_ENV: 'test',
       PORT: 3000,
+      API_BASE_URL: process.env.API_BASE_URL,
       DATABASE_HOST: process.env.DATABASE_HOST || 'localhost',
       DATABASE_PORT: parseInt(process.env.DATABASE_PORT || '5433', 10),
       DATABASE_NAME: process.env.DATABASE_NAME || 'captudata_test',

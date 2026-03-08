@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Resource } from '@/types/business';
+import type { Integration } from '@/types/business/integration.types';
 import type { ResourceFormData } from '@/lib/validations/resource.schema';
 import { updateResourceWithMethods } from '@/lib/resource.actions';
 import { ResourceForm } from '@/components/organisms/resources/ResourceForm';
@@ -10,9 +11,10 @@ import { ResourceForm } from '@/components/organisms/resources/ResourceForm';
 interface Props {
   resource: Resource;
   allResources: Resource[];
+  integrations?: Integration[];
 }
 
-export function ResourceEditForm({ resource, allResources }: Props) {
+export function ResourceEditForm({ resource, allResources, integrations = [] }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +56,7 @@ export function ResourceEditForm({ resource, allResources }: Props) {
       <ResourceForm
         resource={resource}
         allResources={allResources}
+        integrations={integrations}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         loading={loading}

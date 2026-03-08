@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Resource } from '../../../entities/resource.entity';
+import { Integration } from '../../../entities/integration.entity';
 import { HttpMethod } from '../../../entities/http-method.entity';
 import { ResourceHttpMethod } from '../../../entities/resource-http-method.entity';
 import { ResourceHttpMethodLink } from '../../../entities/resource-http-method-link.entity';
@@ -18,7 +19,7 @@ import { AdminResourcesService } from './resources.service';
  * - Admin endpoints (GET /api/admin/resources)
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([Resource, HttpMethod, ResourceHttpMethod, ResourceHttpMethodLink])],
+  imports: [TypeOrmModule.forFeature([Resource, Integration, HttpMethod, ResourceHttpMethod, ResourceHttpMethodLink])],
   controllers: [AdminResourcesController],
   providers: [AdminResourcesService],
   exports: [AdminResourcesService],

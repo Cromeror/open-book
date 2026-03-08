@@ -64,6 +64,7 @@ export interface CreateResourceDto {
   name: string;
   description?: string | null;
   templateUrl: string;
+  integrationId?: string | null;
 }
 
 export interface UpdateResourceDto {
@@ -71,6 +72,7 @@ export interface UpdateResourceDto {
   description?: string | null;
   templateUrl?: string;
   isActive?: boolean;
+  integrationId?: string | null;
 }
 
 export interface AssignHttpMethodDto {

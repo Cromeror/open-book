@@ -35,7 +35,7 @@ export function StepSegmentDefinition({
           </p>
 
           <div className="flex items-center gap-2 rounded-md bg-gray-50 px-3 py-2 text-sm font-mono text-gray-500">
-            <span>/api/</span>
+            <span>/</span>
           </div>
 
           {segments.length > 0 ? (

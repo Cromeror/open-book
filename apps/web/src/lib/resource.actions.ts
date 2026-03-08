@@ -74,6 +74,7 @@ export async function createResourceWithMethods(
         name: formData.name,
         description: formData.description || null,
         templateUrl: formData.templateUrl,
+        integrationId: formData.integrationId || null,
       }),
     });
 
@@ -160,6 +161,7 @@ export async function updateResourceWithMethods(
         name: formData.name,
         description: formData.description ?? null,
         templateUrl: formData.templateUrl,
+        integrationId: formData.integrationId ?? null,
       }),
     });
 

@@ -111,6 +111,7 @@ export const step1Schema = z.object({
     .regex(/^[a-z][a-z0-9_-]*$/, 'Alfanumérico en minúsculas con guiones o guiones bajos'),
   name: z.string().min(1, 'El nombre es requerido').max(100, 'El nombre debe tener máximo 100 caracteres'),
   description: z.string().max(500, 'La descripción debe tener máximo 500 caracteres').optional().nullable(),
+  integrationId: z.string().uuid().optional().nullable(),
 });
 
 /**
@@ -154,7 +155,7 @@ export type MethodConfig = z.infer<typeof methodConfigSchema>;
  * Field names for each step (used with trigger() for per-step validation)
  */
 export const STEP_FIELDS: Record<number, (keyof WizardFormData)[]> = {
-  0: ['rawUrl', 'code', 'name', 'description'],
+  0: ['rawUrl', 'code', 'name', 'description', 'integrationId'],
   1: ['methodConfigs'],
   2: ['segments'],
 };

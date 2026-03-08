@@ -3,6 +3,7 @@ import { RouterModule } from '@nestjs/core';
 import { UsersModule } from './users';
 import { AdminModulesModule } from './modules';
 import { AdminResourcesModule } from './resources';
+import { AdminIntegrationsModule } from './integrations';
 import { CapabilityPresetsModule } from './capability-presets/capability-presets.module';
 
 /**
@@ -40,6 +41,7 @@ import { CapabilityPresetsModule } from './capability-presets/capability-presets
     UsersModule,
     AdminModulesModule,
     AdminResourcesModule,
+    AdminIntegrationsModule,
     CapabilityPresetsModule,
     // Router configuration for /admin prefix
     RouterModule.register([
@@ -49,6 +51,7 @@ import { CapabilityPresetsModule } from './capability-presets/capability-presets
           { path: 'users', module: UsersModule },
           { path: 'modules', module: AdminModulesModule },
           { path: 'resources', module: AdminResourcesModule },
+          { path: 'integrations', module: AdminIntegrationsModule },
           { path: 'capability-presets', module: CapabilityPresetsModule },
         ],
       },

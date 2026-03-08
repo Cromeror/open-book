@@ -20,6 +20,7 @@ import { PARAMETER_KEYS } from './url-segment.types';
 import type { UrlSegment } from './url-segment.types';
 import type { ResourceFormProps } from './ResourceForm';
 import type { Resource, ResourceHttpMethodLink } from '@/types/business';
+import type { Integration } from '@/types/business/integration.types';
 
 const inputClasses =
   'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100';
@@ -29,11 +30,14 @@ interface ResourceEditViewProps extends Omit<ResourceFormProps, 'resource'> {
   resource: Resource;
   /** All resources for HATEOAS link target dropdowns */
   allResources?: Resource[];
+  /** Available integrations */
+  integrations?: Integration[];
 }
 
 export function ResourceEditView({
   resource,
   allResources = [],
+  integrations = [],
   onSubmit,
   onCancel,
   loading = false,
@@ -83,6 +87,7 @@ export function ResourceEditView({
       name: resource.name,
       description: resource.description ?? '',
       templateUrl: resource.templateUrl,
+      integrationId: resource.integrationId ?? null,
       httpMethods: resource.httpMethods,
     },
   });
@@ -165,6 +170,7 @@ export function ResourceEditView({
       name: formData.name,
       description: formData.description || null,
       templateUrl,
+      integrationId: formData.integrationId || null,
       httpMethods,
     };
     onSubmit(submitData);
@@ -235,6 +241,29 @@ export function ResourceEditView({
           />
           {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description.message}</p>}
         </div>
+
+        {integrations.length > 0 && (
+          <div className="mt-3">
+            <label className={labelClasses}>
+              Integración externa
+            </label>
+            <select
+              {...register('integrationId')}
+              disabled={loading}
+              className={inputClasses}
+            >
+              <option value="">Sin integración (API local)</option>
+              {integrations.map((integration) => (
+                <option key={integration.id} value={integration.id}>
+                  {integration.name} — {integration.baseUrl}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-gray-500">
+              Si selecciona una integración, la URL del recurso será relativa a la URL base de la integración.
+            </p>
+          </div>
+        )}
       </Section>
 
       <StepMethodConfig

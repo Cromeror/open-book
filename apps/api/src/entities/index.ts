@@ -15,6 +15,7 @@ export { UserPoolMember } from './user-pool-member.entity';
 export { PoolPermission } from './pool-permission.entity';
 export { UserState } from './user-state.entity';
 export { Resource } from './resource.entity';
+export { Integration, AuthType, ConnectionType } from './integration.entity';
 export { HttpMethod } from './http-method.entity';
 export { ResourceHttpMethod } from './resource-http-method.entity';
 export { ResourceHttpMethodLink } from './resource-http-method-link.entity';

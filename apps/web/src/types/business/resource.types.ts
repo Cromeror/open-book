@@ -112,6 +112,15 @@ export interface Resource {
   description?: string | null;
   /** URL template for this resource */
   templateUrl: string;
+  /** Optional integration backing this resource */
+  integrationId?: string | null;
+  /** Integration details (when loaded) */
+  integration?: {
+    id: string;
+    code: string;
+    name: string;
+    baseUrl: string;
+  } | null;
   /** HTTP methods associated with this resource */
   httpMethods: ResourceHttpMethod[];
   /** Whether resource is active */

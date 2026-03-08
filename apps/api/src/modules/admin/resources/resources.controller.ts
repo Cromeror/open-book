@@ -40,6 +40,7 @@ const createResourceSchema = z.object({
   name: z.string().min(1, 'name is required').max(100),
   description: z.string().max(500).optional().nullable(),
   templateUrl: z.string().min(1, 'templateUrl is required').max(255),
+  integrationId: z.string().uuid('integrationId must be a UUID').optional().nullable(),
 });
 
 const updateResourceSchema = z.object({
@@ -47,6 +48,7 @@ const updateResourceSchema = z.object({
   description: z.string().max(500).optional().nullable(),
   templateUrl: z.string().min(1).max(255).optional(),
   isActive: z.boolean().optional(),
+  integrationId: z.string().uuid('integrationId must be a UUID').optional().nullable(),
 });
 
 const httpMethodEnum = z.enum([HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH, HTTP_METHODS.DELETE]);

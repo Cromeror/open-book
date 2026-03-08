@@ -48,6 +48,9 @@ export type { Permission, PermissionModule } from './permission.types';
 // Session Context
 export type { SessionContext, SessionContextFieldDescriptor } from './session-context.types';
 
+// Integrations
+export type { Integration, AuthType, ConnectionType } from './integration.types';
+
 // Modules
 export type {
   PostActionStep,

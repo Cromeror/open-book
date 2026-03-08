@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { env } from '../../config/env';
 import { User } from '../../entities/user.entity';
 import {
   Module,
@@ -301,6 +302,7 @@ export class PermissionsService {
     const rows = await this.moduleResourceRepo
       .createQueryBuilder('mr')
       .innerJoinAndSelect('mr.resource', 'r')
+      .leftJoinAndSelect('r.integration', 'integration')
       .innerJoinAndSelect('r.httpMethods', 'rhm')
       .innerJoinAndSelect('rhm.httpMethod', 'hm')
       .where('mr.moduleId IN (:...moduleIds)', { moduleIds })
@@ -309,11 +311,15 @@ export class PermissionsService {
 
     const map = new Map<string, ModuleResourceResponse[]>();
     for (const mr of rows) {
-      const resolvedUrl = resolveTemplateUrl(mr.resource.templateUrl, sessionCtx, SESSION_PLACEHOLDER_RE);
+      const resolvedPath = resolveTemplateUrl(mr.resource.templateUrl, sessionCtx, SESSION_PLACEHOLDER_RE);
 
       // Skip resources with unresolved placeholders (e.g. {id}, {goalId}).
       // These are detail/action resources that the frontend will discover via HATEOAS _links.
-      if (UNRESOLVED_PLACEHOLDER_RE.test(resolvedUrl)) continue;
+      if (UNRESOLVED_PLACEHOLDER_RE.test(resolvedPath)) continue;
+
+      // Build absolute URL: use integration baseUrl for external resources, API_BASE_URL for local
+      const baseUrl = (mr.resource.integration?.baseUrl ?? env.API_BASE_URL ?? '').replace(/\/+$/, '');
+      const resolvedUrl = baseUrl + resolvedPath;
 
       if (!map.has(mr.moduleId)) map.set(mr.moduleId, []);
       map.get(mr.moduleId)!.push({
