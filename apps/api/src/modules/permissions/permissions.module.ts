@@ -10,8 +10,15 @@ import {
   UserPool,
   UserPoolMember,
   PoolPermission,
+  UserResourceAccess,
+  PoolResourceAccess,
+  Resource,
+  ResourceHttpMethod,
 } from '../../entities';
 import { User } from '../../entities/user.entity';
+import { ExternalUser } from '../../entities/external-user.entity';
+import { ExternalPoolMember } from '../../entities/external-pool-member.entity';
+import { Organization } from '../../entities/organization.entity';
 import { PermissionsService } from './permissions.service';
 import { PermissionsCacheService } from './permissions-cache.service';
 import { AdminPermissionsService } from './admin-permissions.service';
@@ -45,7 +52,14 @@ import { SessionContextModule } from '../session-context/session-context.module'
       UserPool,
       UserPoolMember,
       PoolPermission,
+      UserResourceAccess,
+      PoolResourceAccess,
       User,
+      ExternalUser,
+      ExternalPoolMember,
+      Organization,
+      Resource,
+      ResourceHttpMethod,
     ]),
   ],
   controllers: [AdminPermissionsController, PoolsController],

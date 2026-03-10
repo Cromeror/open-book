@@ -29,6 +29,8 @@ const integrationFormSchema = z.object({
   baseUrl: z.string().url('Debe ser una URL valida').max(500),
   authType: z.enum(['none', 'bearer', 'basic', 'api_key', 'devise_token_auth']),
   connectionType: z.enum(['passthrough', 'oauth', 'api_key_stored']),
+  managesUsers: z.boolean(),
+  internalPermissions: z.boolean(),
 });
 
 type IntegrationFormValues = z.infer<typeof integrationFormSchema>;
@@ -62,11 +64,14 @@ export function IntegrationForm({
       baseUrl: '',
       authType: 'none',
       connectionType: 'passthrough',
+      managesUsers: false,
+      internalPermissions: false,
       ...defaultValues,
     },
   });
 
   const authType = watch('authType');
+  const managesUsers = watch('managesUsers');
 
   const authConfigHint: Record<string, string> = {
     none: '',
@@ -194,6 +199,38 @@ export function IntegrationForm({
             {authConfigHint[authType]}
           </p>
         )}
+      </div>
+
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 className="mb-4 text-sm font-semibold text-gray-900 uppercase tracking-wider">
+          Gestion de Usuarios
+        </h3>
+
+        <div className="space-y-4">
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              {...register('managesUsers')}
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <span className="text-sm text-gray-700">
+              La integracion externa administra usuarios
+            </span>
+          </label>
+
+          {managesUsers && (
+            <label className="flex items-center gap-3 ml-7">
+              <input
+                type="checkbox"
+                {...register('internalPermissions')}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">
+                Gestionar permisos de usuarios internamente
+              </span>
+            </label>
+          )}
+        </div>
       </div>
 
       <div className="flex justify-end gap-3">

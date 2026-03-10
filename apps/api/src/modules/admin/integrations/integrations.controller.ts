@@ -35,6 +35,8 @@ const createIntegrationSchema = z.object({
   authType: z.enum(AUTH_TYPES),
   authConfig: z.record(z.string(), z.unknown()).optional().nullable(),
   connectionType: z.enum(CONNECTION_TYPES).default('passthrough'),
+  managesUsers: z.boolean().default(false),
+  internalPermissions: z.boolean().default(false),
 });
 
 const updateIntegrationSchema = z.object({
@@ -44,6 +46,8 @@ const updateIntegrationSchema = z.object({
   authType: z.enum(AUTH_TYPES).optional(),
   authConfig: z.record(z.string(), z.unknown()).optional().nullable(),
   connectionType: z.enum(CONNECTION_TYPES).optional(),
+  managesUsers: z.boolean().optional(),
+  internalPermissions: z.boolean().optional(),
   isActive: z.boolean().optional(),
 });
 

@@ -38,6 +38,7 @@ function mapApiResource(raw: any): Resource {
     templateUrl: raw.templateUrl,
     integrationId: raw.integrationId ?? null,
     integration: raw.integration ?? null,
+    requiresExternalAuth: raw.requiresExternalAuth ?? false,
     isActive: raw.isActive,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,

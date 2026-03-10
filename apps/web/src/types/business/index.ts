@@ -51,6 +51,9 @@ export type { SessionContext, SessionContextFieldDescriptor } from './session-co
 // Integrations
 export type { Integration, AuthType, ConnectionType } from './integration.types';
 
+// Organizations
+export type { Organization, ExternalUser } from './organization.types';
+
 // Modules
 export type {
   PostActionStep,

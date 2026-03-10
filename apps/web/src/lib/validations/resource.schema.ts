@@ -55,6 +55,7 @@ export const resourceFormSchema = z.object({
     .max(255, 'Template URL must be at most 255 characters')
     .regex(/^\//, 'Template URL must start with /'),
   integrationId: z.string().uuid().optional().nullable(),
+  requiresExternalAuth: z.boolean().optional(),
   httpMethods: z.array(resourceHttpMethodSchema).min(1, 'At least one HTTP method is required'),
 });
 

@@ -46,36 +46,31 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    title: 'Gestión de Usuarios',
+    title: 'Captudata',
     items: [
-      { label: 'Usuarios', path: '/admin/users', icon: <Users className="h-4 w-4" /> },
-      { label: 'Roles', path: '/admin/pools', icon: <Shield className="h-4 w-4" /> },
-      { label: 'Permisos', path: '/admin/permissions', icon: <KeyRound className="h-4 w-4" /> },
-    ],
-  },
-  {
-    title: 'Gestion De Condominios',
-    items: [
-      { label: 'Condominios', path: '/admin/condominiums', icon: <Building2 className="h-4 w-4" /> },
-      { label: 'Propiedades (Casas, aptos)', path: '/admin/properties', icon: <Building2 className="h-4 w-4" /> },
+      { label: 'Organizaciones', path: '/admin/organizations', icon: <Building2 className="h-4 w-4" /> },
+      { label: 'Roles', path: '/admin/captudata/roles', icon: <Shield className="h-4 w-4" /> },
     ],
   },
   {
     title: 'Configuración del Sistema',
     items: [
+      { label: 'Usuarios administradores', path: '/admin/users', icon: <Users className="h-4 w-4" /> },
+      // { label: 'Roles', path: '/admin/pools', icon: <Shield className="h-4 w-4" /> },
+      { label: 'Permisos', path: '/admin/permissions', icon: <KeyRound className="h-4 w-4" /> },
       { label: 'Módulos', path: '/admin/modules', icon: <Blocks className="h-4 w-4" /> },
       { label: 'Recursos', path: '/admin/resources', icon: <Link2 className="h-4 w-4" /> },
-      { label: 'Parámetros', path: '/admin/parameters', icon: <SlidersHorizontal className="h-4 w-4" /> },
+      // { label: 'Parámetros', path: '/admin/parameters', icon: <SlidersHorizontal className="h-4 w-4" /> },
       { label: 'Integraciones', path: '/admin/integrations', icon: <Plug className="h-4 w-4" /> },
     ],
   },
-  {
-    title: 'Monitoreo',
-    items: [
-      { label: 'Auditoría y Reportes', path: '/admin/audit-reports', icon: <FileBarChart className="h-4 w-4" /> },
-      { label: 'Notificaciones', path: '/admin/notifications', icon: <Bell className="h-4 w-4" /> },
-    ],
-  },
+  // {
+  //   title: 'Monitoreo',
+  //   items: [
+  //     { label: 'Auditoría y Reportes', path: '/admin/audit-reports', icon: <FileBarChart className="h-4 w-4" /> },
+  //     { label: 'Notificaciones', path: '/admin/notifications', icon: <Bell className="h-4 w-4" /> },
+  //   ],
+  // },
 ];
 
 /**
@@ -147,10 +142,9 @@ export function SuperSidebar({ isOpen, onClose }: SuperSidebarProps) {
                         className={`
                           flex items-center gap-3 px-3 py-1 rounded-lg text-sm
                           transition-colors duration-150
-                          ${
-                            isActive(item.path)
-                              ? 'bg-amber-500/10 text-amber-400 font-medium'
-                              : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                          ${isActive(item.path)
+                            ? 'bg-amber-500/10 text-amber-400 font-medium'
+                            : 'text-slate-400 hover:bg-slate-800 hover:text-white'
                           }
                         `}
                       >

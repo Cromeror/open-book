@@ -69,6 +69,20 @@ export class Integration extends BaseEntity {
   connectionType!: ConnectionType;
 
   @Column({
+    name: 'manages_users',
+    type: 'boolean',
+    default: false,
+  })
+  managesUsers!: boolean;
+
+  @Column({
+    name: 'internal_permissions',
+    type: 'boolean',
+    default: false,
+  })
+  internalPermissions!: boolean;
+
+  @Column({
     name: 'is_active',
     type: 'boolean',
     default: true,

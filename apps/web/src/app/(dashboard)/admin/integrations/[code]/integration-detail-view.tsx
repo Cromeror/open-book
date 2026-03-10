@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { Pencil } from 'lucide-react';
 import type { Integration } from '@/types/business/integration.types';
 
 const AUTH_TYPE_LABELS: Record<string, string> = {
@@ -30,15 +32,24 @@ export function IntegrationDetailView({ integration }: Props) {
             {integration.code}
           </code>
         </div>
-        <span
-          className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
-            integration.isActive
-              ? 'bg-emerald-100 text-emerald-700'
-              : 'bg-gray-100 text-gray-700'
-          }`}
-        >
-          {integration.isActive ? 'Activa' : 'Inactiva'}
-        </span>
+        <div className="flex items-center gap-3">
+          <span
+            className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
+              integration.isActive
+                ? 'bg-emerald-100 text-emerald-700'
+                : 'bg-gray-100 text-gray-700'
+            }`}
+          >
+            {integration.isActive ? 'Activa' : 'Inactiva'}
+          </span>
+          <Link
+            href={`/admin/integrations/${integration.code}/edit`}
+            className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            Editar
+          </Link>
+        </div>
       </div>
 
       {integration.description && (
@@ -86,6 +97,40 @@ export function IntegrationDetailView({ integration }: Props) {
             <p className="text-sm text-gray-400 italic">Sin configuracion adicional</p>
           )}
         </div>
+      </div>
+
+      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+        <h3 className="mb-3 text-sm font-semibold text-gray-900 uppercase tracking-wider">
+          Gestion de Usuarios
+        </h3>
+        <dl className="space-y-3">
+          <div className="flex items-center gap-2">
+            <dt className="text-xs text-gray-500">Usuarios administrados externamente</dt>
+            <dd>
+              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                integration.managesUsers
+                  ? 'bg-emerald-50 text-emerald-700'
+                  : 'bg-gray-100 text-gray-500'
+              }`}>
+                {integration.managesUsers ? 'Si' : 'No'}
+              </span>
+            </dd>
+          </div>
+          {integration.managesUsers && (
+            <div className="flex items-center gap-2">
+              <dt className="text-xs text-gray-500">Permisos gestionados internamente</dt>
+              <dd>
+                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                  integration.internalPermissions
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : 'bg-gray-100 text-gray-500'
+                }`}>
+                  {integration.internalPermissions ? 'Si' : 'No'}
+                </span>
+              </dd>
+            </div>
+          )}
+        </dl>
       </div>
 
       <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">

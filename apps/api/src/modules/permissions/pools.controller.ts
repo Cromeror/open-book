@@ -186,6 +186,61 @@ export class PoolsController {
   }
 
   /**
+   * POST /api/admin/pools/:id/external-members
+   * Add an external user to a pool
+   */
+  @Post(':id/external-members')
+  @HttpCode(HttpStatus.CREATED)
+  async addExternalMember(
+    @CurrentUser() superAdmin: User,
+    @Param('id') poolId: string,
+    @Body() body: unknown,
+  ) {
+    const schema = z.object({
+      externalUserId: z.string().min(1, 'externalUserId es requerido'),
+      organizationCode: z.string().min(1, 'organizationCode es requerido'),
+      name: z.string().optional(),
+      email: z.string().optional(),
+    });
+
+    let dto: z.infer<typeof schema>;
+    try {
+      dto = schema.parse(body);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const messages = error.issues.map((issue) => issue.message);
+        throw new BadRequestException({
+          statusCode: 400,
+          message: 'Error de validación',
+          errors: messages,
+        });
+      }
+      throw error;
+    }
+
+    return this.poolsService.addExternalMember(
+      superAdmin.id,
+      poolId,
+      dto.externalUserId,
+      dto.organizationCode,
+      { name: dto.name, email: dto.email },
+    );
+  }
+
+  /**
+   * DELETE /api/admin/pools/:id/external-members/:externalUserId
+   * Remove an external user from a pool
+   */
+  @Delete(':id/external-members/:externalUserId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeExternalMember(
+    @Param('id') poolId: string,
+    @Param('externalUserId') externalUserId: string,
+  ) {
+    await this.poolsService.removeExternalMember(poolId, externalUserId);
+  }
+
+  /**
    * DELETE /api/admin/pools/:id/permissions/:permissionId
    * Revoke a permission from a pool
    */
@@ -196,5 +251,63 @@ export class PoolsController {
     @Param('permissionId') permissionId: string,
   ) {
     await this.poolsService.revokePermission(poolId, permissionId);
+  }
+
+  /**
+   * POST /api/admin/pools/:id/resource-access
+   * Grant resource access to a pool
+   */
+  @Post(':id/resource-access')
+  @HttpCode(HttpStatus.CREATED)
+  async grantResourceAccess(
+    @CurrentUser() superAdmin: User,
+    @Param('id') poolId: string,
+    @Body() body: unknown,
+  ) {
+    const schema = z.object({
+      resourceId: z.string().uuid('resourceId debe ser un UUID valido'),
+      resourceHttpMethodId: z.string().uuid().nullable().optional(),
+      responseFilter: z.object({
+        field: z.string().min(1),
+        type: z.enum(['include', 'exclude']),
+        values: z.array(z.string()),
+      }).nullable().optional(),
+    });
+
+    let dto: z.infer<typeof schema>;
+    try {
+      dto = schema.parse(body);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const messages = error.issues.map((issue) => issue.message);
+        throw new BadRequestException({
+          statusCode: 400,
+          message: 'Error de validación',
+          errors: messages,
+        });
+      }
+      throw error;
+    }
+
+    return this.poolsService.grantResourceAccess(
+      superAdmin.id,
+      poolId,
+      dto.resourceId,
+      dto.resourceHttpMethodId ?? null,
+      dto.responseFilter ?? null,
+    );
+  }
+
+  /**
+   * DELETE /api/admin/pools/:id/resource-access/:accessId
+   * Revoke resource access from a pool
+   */
+  @Delete(':id/resource-access/:accessId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async revokeResourceAccess(
+    @Param('id') poolId: string,
+    @Param('accessId') accessId: string,
+  ) {
+    await this.poolsService.revokeResourceAccess(poolId, accessId);
   }
 }

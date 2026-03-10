@@ -97,6 +97,13 @@ export type { PoolFormData } from './pool-form';
 export { PoolDetail } from './pool-detail';
 export type { PoolDetailProps, PoolMemberInfo, PoolPermissionInfo } from './pool-detail';
 
+// Captudata Role components
+export { CapudataRoleList } from './captudata-role-list';
+export type { CapudataRole, CapudataRoleListProps } from './captudata-role-list';
+
+export { CapudataRoleDetail } from './captudata-role-detail';
+export type { CapudataRoleDetailProps, CapudataRoleMemberInfo, CapudataResourceAccessInfo } from './captudata-role-detail';
+
 // User components
 export { UserList } from './UserList';
 export type { User, UserPaginationInfo, UserListProps } from './UserList';

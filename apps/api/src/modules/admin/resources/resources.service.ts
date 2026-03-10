@@ -136,6 +136,7 @@ export class AdminResourcesService {
       description: dto.description ?? null,
       templateUrl: dto.templateUrl,
       integrationId: dto.integrationId ?? null,
+      requiresExternalAuth: dto.requiresExternalAuth ?? false,
       isActive: true,
     });
 
@@ -159,6 +160,7 @@ export class AdminResourcesService {
     if (dto.templateUrl !== undefined) resource.templateUrl = dto.templateUrl;
     if (dto.isActive !== undefined) resource.isActive = dto.isActive;
     if (dto.integrationId !== undefined) resource.integrationId = dto.integrationId;
+    if (dto.requiresExternalAuth !== undefined) resource.requiresExternalAuth = dto.requiresExternalAuth;
 
     return this.resourceRepository.save(resource);
   }

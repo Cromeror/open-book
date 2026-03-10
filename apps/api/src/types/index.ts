@@ -10,3 +10,5 @@ export {
 } from './audit';
 
 export { UserResponse, CreateUserData } from './user';
+
+export type { ResponseFilter } from './resource-access.types';

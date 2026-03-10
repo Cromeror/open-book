@@ -56,6 +56,7 @@ export function ResourceCreateView({
       name: '',
       description: '',
       integrationId: null,
+      requiresExternalAuth: false,
     },
   });
 
@@ -66,6 +67,7 @@ export function ResourceCreateView({
   const name = watch('name');
   const description = watch('description');
   const integrationId = watch('integrationId');
+  const requiresExternalAuth = watch('requiresExternalAuth');
 
   // Auto-parse URL into segments as user types
   useEffect(() => {
@@ -119,11 +121,12 @@ export function ResourceCreateView({
       description: description || null,
       templateUrl,
       integrationId: integrationId || null,
+      requiresExternalAuth: integrationId ? requiresExternalAuth : undefined,
       httpMethods,
     };
 
     onSubmit(formData);
-  }, [trigger, methodConfigs, code, name, description, templateUrl, integrationId, onSubmit]);
+  }, [trigger, methodConfigs, code, name, description, templateUrl, integrationId, requiresExternalAuth, onSubmit]);
 
   // Step 2 handlers
   const handleMethodToggle = useCallback(
@@ -200,7 +203,7 @@ export function ResourceCreateView({
 
       {/* Steps */}
       {currentStep === 0 && (
-        <StepRawUrl register={register} errors={errors} loading={loading} integrations={integrations} />
+        <StepRawUrl register={register} watch={watch} errors={errors} loading={loading} integrations={integrations} />
       )}
 
       {currentStep === 1 && (

@@ -12,6 +12,8 @@ export interface CreateIntegrationDto {
   authType: string;
   authConfig?: Record<string, unknown> | null;
   connectionType: string;
+  managesUsers?: boolean;
+  internalPermissions?: boolean;
 }
 
 export interface UpdateIntegrationDto {
@@ -21,6 +23,8 @@ export interface UpdateIntegrationDto {
   authType?: string;
   authConfig?: Record<string, unknown> | null;
   connectionType?: string;
+  managesUsers?: boolean;
+  internalPermissions?: boolean;
   isActive?: boolean;
 }
 
@@ -105,6 +109,8 @@ export class AdminIntegrationsService {
       authType: dto.authType as Integration['authType'],
       authConfig: dto.authConfig ?? null,
       connectionType: dto.connectionType as Integration['connectionType'],
+      managesUsers: dto.managesUsers ?? false,
+      internalPermissions: dto.internalPermissions ?? false,
       isActive: true,
     });
 
@@ -124,6 +130,8 @@ export class AdminIntegrationsService {
     if (dto.authType !== undefined) integration.authType = dto.authType as Integration['authType'];
     if (dto.authConfig !== undefined) integration.authConfig = dto.authConfig;
     if (dto.connectionType !== undefined) integration.connectionType = dto.connectionType as Integration['connectionType'];
+    if (dto.managesUsers !== undefined) integration.managesUsers = dto.managesUsers;
+    if (dto.internalPermissions !== undefined) integration.internalPermissions = dto.internalPermissions;
     if (dto.isActive !== undefined) integration.isActive = dto.isActive;
 
     return this.integrationRepository.save(integration);

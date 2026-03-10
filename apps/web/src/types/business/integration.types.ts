@@ -11,6 +11,8 @@ export interface Integration {
   authType: AuthType;
   authConfig?: Record<string, unknown> | null;
   connectionType: ConnectionType;
+  managesUsers: boolean;
+  internalPermissions: boolean;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

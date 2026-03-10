@@ -1,7 +1,9 @@
 import { Entity, Column, OneToMany } from 'typeorm';
 import { BaseEntity } from '../entities/base.entity';
 import { PoolPermission } from './pool-permission.entity';
+import { PoolResourceAccess } from './pool-resource-access.entity';
 import { UserPoolMember } from './user-pool-member.entity';
+import { ExternalPoolMember } from './external-pool-member.entity';
 
 /**
  * User pool entity
@@ -59,4 +61,16 @@ export class UserPool extends BaseEntity {
    */
   @OneToMany(() => PoolPermission, (pp) => pp.pool)
   permissions!: PoolPermission[];
+
+  /**
+   * Resource access grants for pool members
+   */
+  @OneToMany(() => PoolResourceAccess, (pra) => pra.pool)
+  resourceAccess!: PoolResourceAccess[];
+
+  /**
+   * External user memberships in this pool
+   */
+  @OneToMany(() => ExternalPoolMember, (member) => member.pool)
+  externalMembers!: ExternalPoolMember[];
 }

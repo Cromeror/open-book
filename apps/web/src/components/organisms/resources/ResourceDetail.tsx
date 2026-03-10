@@ -1,7 +1,7 @@
 'use client';
 
 import { Resource } from '@/types/business';
-import { CheckCircleIcon, XCircleIcon, EditIcon, TrashIcon, PowerIcon } from 'lucide-react';
+import { CheckCircleIcon, XCircleIcon, EditIcon, TrashIcon, PowerIcon, Link2, ShieldCheck } from 'lucide-react';
 import { UrlPreview } from './UrlPreview';
 
 export interface ResourceDetailProps {
@@ -126,6 +126,37 @@ export function ResourceDetail({
               <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">{resource.templateUrl}</code>
             </dd>
           </div>
+          <div className="col-span-2">
+            <dt className="font-medium text-gray-700">Integracion externa</dt>
+            <dd className="mt-1">
+              {resource.integration ? (
+                <div className="flex items-center gap-2">
+                  <Link2 className="h-3.5 w-3.5 text-purple-600" />
+                  <span className="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700">
+                    {resource.integration.name}
+                  </span>
+                  <code className="text-xs text-gray-500 font-mono">{resource.integration.baseUrl}</code>
+                </div>
+              ) : (
+                <span className="text-sm text-gray-400 italic">Sin integracion (API local)</span>
+              )}
+            </dd>
+          </div>
+          {resource.integration && (
+            <div className="col-span-2">
+              <dt className="font-medium text-gray-700">Restriccion por permisos</dt>
+              <dd className="mt-1">
+                {resource.requiresExternalAuth ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                    <ShieldCheck className="h-3 w-3" />
+                    Restringido por roles/permisos
+                  </span>
+                ) : (
+                  <span className="text-sm text-gray-400 italic">Sin restriccion adicional</span>
+                )}
+              </dd>
+            </div>
+          )}
         </dl>
       </div>
 

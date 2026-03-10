@@ -4,6 +4,8 @@ import { BaseEntity } from './base.entity';
 import { ResourceHttpMethod } from './resource-http-method.entity';
 import { ModuleResource } from './module-resource.entity';
 import { Integration } from './integration.entity';
+import { UserResourceAccess } from './user-resource-access.entity';
+import { PoolResourceAccess } from './pool-resource-access.entity';
 
 /**
  * Resource entity for API gateway configuration
@@ -74,6 +76,17 @@ export class Resource extends BaseEntity {
   isActive!: boolean;
 
   /**
+   * Whether this resource requires permission/role checks for external users.
+   * Only relevant when the resource is backed by an external integration.
+   */
+  @Column({
+    name: 'requires_external_auth',
+    type: 'boolean',
+    default: false,
+  })
+  requiresExternalAuth!: boolean;
+
+  /**
    * Optional integration this resource is backed by.
    * When set, templateUrl is relative to the integration's baseUrl.
    * When null, the resource uses the local API base.
@@ -100,4 +113,16 @@ export class Resource extends BaseEntity {
    */
   @OneToMany(() => ModuleResource, (mr) => mr.resource)
   modules!: ModuleResource[];
+
+  /**
+   * Direct user access grants for this resource
+   */
+  @OneToMany(() => UserResourceAccess, (ura) => ura.resource)
+  userAccess!: UserResourceAccess[];
+
+  /**
+   * Pool access grants for this resource
+   */
+  @OneToMany(() => PoolResourceAccess, (pra) => pra.resource)
+  poolAccess!: PoolResourceAccess[];
 }

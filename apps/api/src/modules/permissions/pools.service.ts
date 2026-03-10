@@ -13,7 +13,13 @@ import {
   UserPool,
   UserPoolMember,
   PoolPermission,
+  PoolResourceAccess,
+  Resource,
+  ResourceHttpMethod,
 } from '../../entities';
+import { ExternalUser } from '../../entities/external-user.entity';
+import { ExternalPoolMember } from '../../entities/external-pool-member.entity';
+import { Organization } from '../../entities/organization.entity';
 import { PermissionsCacheService } from './permissions-cache.service';
 import { CreatePoolDto } from './dto/create-pool.dto';
 import { GrantPoolPermissionDto } from './dto/grant-pool-permission.dto';
@@ -40,6 +46,18 @@ export class PoolsService {
     private moduleRepo: Repository<Module>,
     @InjectRepository(ModulePermission)
     private modulePermissionRepo: Repository<ModulePermission>,
+    @InjectRepository(ExternalUser)
+    private externalUserRepo: Repository<ExternalUser>,
+    @InjectRepository(ExternalPoolMember)
+    private externalMemberRepo: Repository<ExternalPoolMember>,
+    @InjectRepository(Organization)
+    private organizationRepo: Repository<Organization>,
+    @InjectRepository(PoolResourceAccess)
+    private poolResourceAccessRepo: Repository<PoolResourceAccess>,
+    @InjectRepository(Resource)
+    private resourceRepo: Repository<Resource>,
+    @InjectRepository(ResourceHttpMethod)
+    private resourceHttpMethodRepo: Repository<ResourceHttpMethod>,
     private cacheService: PermissionsCacheService,
   ) {}
 
@@ -77,7 +95,13 @@ export class PoolsService {
   async findOne(poolId: string): Promise<UserPool> {
     const pool = await this.poolRepo.findOne({
       where: { id: poolId },
-      relations: ['members', 'members.user', 'permissions', 'permissions.modulePermission'],
+      relations: [
+        'members', 'members.user',
+        'externalMembers', 'externalMembers.externalUser',
+        'permissions', 'permissions.modulePermission',
+        'resourceAccess', 'resourceAccess.resource', 'resourceAccess.resourceHttpMethod',
+        'resourceAccess.resourceHttpMethod.httpMethod',
+      ],
     });
 
     if (!pool) {
@@ -258,6 +282,100 @@ export class PoolsService {
   }
 
   /**
+   * Add an external user to a pool.
+   * Resolves the organization to find the integration, then finds or creates
+   * the ExternalUser record before creating the membership.
+   */
+  async addExternalMember(
+    superAdminId: string,
+    poolId: string,
+    externalUserId: string,
+    organizationCode: string,
+    userInfo?: { name?: string; email?: string },
+  ): Promise<ExternalPoolMember> {
+    // Verify pool exists
+    await this.findOne(poolId);
+
+    // Resolve organization → integration
+    const org = await this.organizationRepo.findOne({
+      where: { code: organizationCode, isActive: true },
+      relations: ['integration'],
+    });
+
+    if (!org) {
+      throw new NotFoundException(`Organizacion "${organizationCode}" no encontrada`);
+    }
+
+    if (!org.integrationId) {
+      throw new NotFoundException(`Organizacion "${organizationCode}" no tiene integracion configurada`);
+    }
+
+    // Find or create ExternalUser
+    let extUser = await this.externalUserRepo.findOne({
+      where: { externalId: externalUserId, integrationId: org.integrationId },
+    });
+
+    if (!extUser) {
+      extUser = this.externalUserRepo.create({
+        externalId: externalUserId,
+        integrationId: org.integrationId,
+        name: userInfo?.name || null,
+        email: userInfo?.email || null,
+        isActive: true,
+      });
+      await this.externalUserRepo.save(extUser);
+      this.logger.log(`External user created: ${externalUserId} (integration: ${org.integrationId})`);
+    } else if (userInfo?.name || userInfo?.email) {
+      let updated = false;
+      if (userInfo.name && extUser.name !== userInfo.name) { extUser.name = userInfo.name; updated = true; }
+      if (userInfo.email && extUser.email !== userInfo.email) { extUser.email = userInfo.email; updated = true; }
+      if (updated) await this.externalUserRepo.save(extUser);
+    }
+
+    // Check for existing membership
+    const existing = await this.externalMemberRepo.findOne({
+      where: { externalUserId: extUser.id, poolId },
+    });
+
+    if (existing) {
+      throw new ConflictException('Usuario externo ya es miembro del pool');
+    }
+
+    const member = this.externalMemberRepo.create({
+      externalUserId: extUser.id,
+      poolId,
+      addedBy: superAdminId,
+      addedAt: new Date(),
+    });
+
+    await this.externalMemberRepo.save(member);
+
+    this.logger.log(`External member added to pool ${poolId}: ${extUser.externalId} (${extUser.id})`);
+
+    return member;
+  }
+
+  /**
+   * Remove an external user from a pool
+   */
+  async removeExternalMember(
+    poolId: string,
+    externalUserId: string,
+  ): Promise<void> {
+    const member = await this.externalMemberRepo.findOne({
+      where: { poolId, externalUserId },
+    });
+
+    if (!member) {
+      throw new NotFoundException('Usuario externo no es miembro del pool');
+    }
+
+    await this.externalMemberRepo.remove(member);
+
+    this.logger.log(`External member removed from pool ${poolId}: ${externalUserId}`);
+  }
+
+  /**
    * Get pools a user belongs to
    */
   async getUserPools(userId: string): Promise<UserPool[]> {
@@ -277,5 +395,80 @@ export class PoolsService {
       where: { poolId },
       relations: ['modulePermission', 'modulePermission.module'],
     });
+  }
+
+  /**
+   * Grant resource access to a pool.
+   * When resourceHttpMethodId is null, access is granted to ALL methods (wildcard).
+   */
+  async grantResourceAccess(
+    superAdminId: string,
+    poolId: string,
+    resourceId: string,
+    resourceHttpMethodId?: string | null,
+    responseFilter?: { field: string; type: 'include' | 'exclude'; values: string[] } | null,
+  ): Promise<PoolResourceAccess> {
+    await this.findOne(poolId);
+
+    const resource = await this.resourceRepo.findOne({ where: { id: resourceId } });
+    if (!resource) {
+      throw new NotFoundException('Recurso no encontrado');
+    }
+
+    if (resourceHttpMethodId) {
+      const rhm = await this.resourceHttpMethodRepo.findOne({
+        where: { id: resourceHttpMethodId, resourceId },
+      });
+      if (!rhm) {
+        throw new NotFoundException('Metodo HTTP no encontrado para este recurso');
+      }
+    }
+
+    // Check for duplicate
+    const existing = await this.poolResourceAccessRepo.findOne({
+      where: {
+        poolId,
+        resourceId,
+        resourceHttpMethodId: resourceHttpMethodId ?? undefined,
+      },
+    });
+
+    if (existing) {
+      throw new ConflictException('El pool ya tiene este acceso al recurso');
+    }
+
+    const access = this.poolResourceAccessRepo.create({
+      poolId,
+      resourceId,
+      resourceHttpMethodId: resourceHttpMethodId ?? null,
+      grantedBy: superAdminId,
+      grantedAt: new Date(),
+      responseFilter: responseFilter ?? null,
+    });
+
+    await this.poolResourceAccessRepo.save(access);
+
+    this.logger.log(
+      `Resource access granted to pool ${poolId}: ${resource.code} ${resourceHttpMethodId || 'ALL'}`,
+    );
+
+    return access;
+  }
+
+  /**
+   * Revoke resource access from a pool
+   */
+  async revokeResourceAccess(poolId: string, accessId: string): Promise<void> {
+    const access = await this.poolResourceAccessRepo.findOne({
+      where: { id: accessId, poolId },
+    });
+
+    if (!access) {
+      throw new NotFoundException('Acceso a recurso no encontrado');
+    }
+
+    await this.poolResourceAccessRepo.remove(access);
+
+    this.logger.log(`Resource access revoked from pool ${poolId}: ${accessId}`);
   }
 }

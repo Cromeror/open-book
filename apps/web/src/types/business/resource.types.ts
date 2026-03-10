@@ -121,6 +121,8 @@ export interface Resource {
     name: string;
     baseUrl: string;
   } | null;
+  /** Whether this resource requires permission checks for external users */
+  requiresExternalAuth?: boolean;
   /** HTTP methods associated with this resource */
   httpMethods: ResourceHttpMethod[];
   /** Whether resource is active */

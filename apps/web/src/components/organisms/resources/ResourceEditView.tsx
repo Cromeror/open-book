@@ -79,6 +79,7 @@ export function ResourceEditView({
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<ResourceFormData>({
     resolver: zodResolver(resourceFormSchema),
@@ -87,7 +88,8 @@ export function ResourceEditView({
       name: resource.name,
       description: resource.description ?? '',
       templateUrl: resource.templateUrl,
-      integrationId: resource.integrationId ?? null,
+      integrationId: resource.integrationId ?? '',
+      requiresExternalAuth: resource.requiresExternalAuth ?? false,
       httpMethods: resource.httpMethods,
     },
   });
@@ -171,6 +173,7 @@ export function ResourceEditView({
       description: formData.description || null,
       templateUrl,
       integrationId: formData.integrationId || null,
+      requiresExternalAuth: formData.integrationId ? formData.requiresExternalAuth : undefined,
       httpMethods,
     };
     onSubmit(submitData);
@@ -261,6 +264,25 @@ export function ResourceEditView({
             </select>
             <p className="mt-1 text-xs text-gray-500">
               Si selecciona una integración, la URL del recurso será relativa a la URL base de la integración.
+            </p>
+          </div>
+        )}
+
+        {watch('integrationId') && (
+          <div className="mt-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                {...register('requiresExternalAuth')}
+                disabled={loading}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">
+                Restringir este recurso por roles/permisos
+              </span>
+            </label>
+            <p className="mt-1 ml-6 text-xs text-gray-500">
+              Si se activa, el acceso a este recurso sera controlado por el sistema de permisos de OpenBook para usuarios del sistema externo.
             </p>
           </div>
         )}

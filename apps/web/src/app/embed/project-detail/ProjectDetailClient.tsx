@@ -73,7 +73,7 @@ export default function ProjectDetailClient() {
       setLoading(true);
       setError('');
 
-      const headers = {
+      const headers: Record<string, string> = {
         'access-token': authHeaders['access-token'] || '',
         client: authHeaders.client || '',
         uid: authHeaders.uid || '',
@@ -81,11 +81,19 @@ export default function ProjectDetailClient() {
         'token-type': 'Bearer',
       };
 
+      // Headers for the /ext/ proxy (internal permission check)
+      const extHeaders: Record<string, string> = {
+        ...headers,
+        'x-external-user-id': String(user.id ?? authHeaders.uid ?? ''),
+      };
+
       try {
+        console.log(apiUrl);
+        
         const [projectRes, cfTypesRes, cfDefsRes] = await Promise.all([
           fetch(`${apiUrl}/clients/${user.client_id}/projects/${projectId}/`, { headers }),
           fetch(`${apiUrl}/custom_fields/cf_types`, { headers }),
-          fetch(`${apiUrl}/clients/${user.client_id}/definitions_by_class?target_class=projects`, { headers }),
+          fetch(`http://localhost:3001/api/ext/clients/${user.client_id}/definitions_by_class?target_class=projects`, { headers: extHeaders }),
         ]);
 
         const [projectData, cfTypesData, cfDefsData] = await Promise.all([

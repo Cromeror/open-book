@@ -8,6 +8,8 @@ export interface CreateIntegrationDto {
   authType: string;
   authConfig?: Record<string, unknown> | null;
   connectionType?: string;
+  managesUsers?: boolean;
+  internalPermissions?: boolean;
 }
 
 export interface UpdateIntegrationDto {
@@ -17,6 +19,8 @@ export interface UpdateIntegrationDto {
   authType?: string;
   authConfig?: Record<string, unknown> | null;
   connectionType?: string;
+  managesUsers?: boolean;
+  internalPermissions?: boolean;
   isActive?: boolean;
 }
 

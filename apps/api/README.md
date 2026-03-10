@@ -389,6 +389,94 @@ The frontend TypeScript definitions live in `apps/web/src/types/business/module.
 
 ---
 
+## External User Permissions
+
+The system supports a parallel permission model for external users (users from external integrations like Captudata). External users are identified by a generic string ID from the external system and can be granted the same permission levels as internal users.
+
+### Data Model
+
+```
+                         ┌─────────────────┐
+                         │  integrations   │
+                         └────────┬────────┘
+                                  │
+                         ┌────────▼────────┐
+                         │ external_users  │
+                         │                 │
+                         │ external_id     │ ← ID from the external system
+                         │ integration_id  │ ← scoped to one integration
+                         │ name, email     │ ← optional, for admin reference
+                         └──┬──────┬───┬───┘
+                            │      │   │
+              ┌─────────────┘      │   └──────────────┐
+              ▼                    ▼                   ▼
+┌─────────────────────┐  ┌────────────────┐  ┌────────────────────────┐
+│ external_user_      │  │ external_pool_ │  │ external_user_         │
+│ permissions         │  │ members        │  │ resource_access        │
+│                     │  │                │  │                        │
+│ module_permission → │  │ pool_id ──────►│  │ resource_id            │
+│ module_permissions  │  │ user_pools     │  │ resource_http_method_id│
+│                     │  └───────┬────────┘  │ response_filter (JSONB)│
+│ expires_at, isActive│          │           │ expires_at, isActive   │
+└─────────────────────┘          ▼           └────────────────────────┘
+                        ┌────────────────┐
+                        │   user_pools   │ ← SAME pools as internal users
+                        │                │
+                        ├────────────────┤
+                        │ pool_permissions│ ← inherited by external members
+                        ├────────────────┤
+                        │ pool_resource_ │ ← inherited by external members
+                        │ access         │
+                        └────────────────┘
+```
+
+### Key Design Decisions
+
+- **Shared pools**: External users are added to the same `user_pools` as internal users via `external_pool_members`. They inherit `pool_permissions` and `pool_resource_access` — no duplicate pool tables.
+- **`external_users` table**: Instead of scattering `external_user_id` (varchar) across multiple tables, a central `external_users` record maps `(external_id, integration_id)` to a UUID. All other tables FK to `external_users.id`.
+- **No SuperAdmin concept**: All external permissions are explicit — there is no implicit full-access role.
+- **Response filters**: Both direct (`external_user_resource_access`) and pool-level (`pool_resource_access`) grants support a JSONB `response_filter` to restrict visible items (include/exclude by field value).
+
+### Three Permission Levels
+
+| Level | Description | Direct table | Pool table |
+|-------|-------------|--------------|------------|
+| **Module access** | Has at least one permission for a module | `external_user_permissions` | `pool_permissions` |
+| **Granular action** | Specific `module:action` (e.g. `goals:read`) | `external_user_permissions` | `pool_permissions` |
+| **Resource access** | Specific resource + HTTP method (with optional filter) | `external_user_resource_access` | `pool_resource_access` |
+
+### ExternalAuthGuard Flow
+
+The `ExternalAuthGuard` runs on all `/ext/*` proxy routes and follows this decision chain:
+
+1. Match request path to a resource → no match? **allow** (proxy service will 404)
+2. `resource.requiresExternalAuth = false` → **allow**
+3. `resource.integration` is null → **allow**
+4. `integration.managesUsers = false` → **allow**
+5. `integration.internalPermissions = false` → **allow**
+6. Read `x-external-user-id` header → **403** if missing
+7. Check resource-level access via `ExternalPermissionsService` → **allow** if granted (attach `responseFilter`)
+8. Fall back to module-level access → **allow** if granted
+9. **Deny** (403)
+
+### Guard & Proxy Pipeline
+
+```
+Request to /ext/*
+    │
+    ▼
+ExternalAuthGuard            ← matches resource, checks permissions, sets req.resourceMatch
+    │
+    ▼
+ExternalProxyController      ← delegates to ExternalProxyService
+    │
+    ▼
+ExternalProxyService         ← reads req.resourceMatch, authenticates, forwards,
+                               applies req.responseFilter to response
+```
+
+---
+
 ## Related Documentation
 
 - [Architecture Overview](../../docs/ARCHITECTURE.md)

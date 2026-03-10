@@ -4,6 +4,7 @@ import { UsersModule } from './users';
 import { AdminModulesModule } from './modules';
 import { AdminResourcesModule } from './resources';
 import { AdminIntegrationsModule } from './integrations';
+import { AdminOrganizationsModule } from './organizations';
 import { CapabilityPresetsModule } from './capability-presets/capability-presets.module';
 
 /**
@@ -42,6 +43,7 @@ import { CapabilityPresetsModule } from './capability-presets/capability-presets
     AdminModulesModule,
     AdminResourcesModule,
     AdminIntegrationsModule,
+    AdminOrganizationsModule,
     CapabilityPresetsModule,
     // Router configuration for /admin prefix
     RouterModule.register([
@@ -52,6 +54,7 @@ import { CapabilityPresetsModule } from './capability-presets/capability-presets
           { path: 'modules', module: AdminModulesModule },
           { path: 'resources', module: AdminResourcesModule },
           { path: 'integrations', module: AdminIntegrationsModule },
+          { path: 'organizations', module: AdminOrganizationsModule },
           { path: 'capability-presets', module: CapabilityPresetsModule },
         ],
       },

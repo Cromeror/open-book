@@ -1,6 +1,6 @@
 import { Link2 } from 'lucide-react';
 import { Section } from '@/components/molecules';
-import type { UseFormRegister, FieldErrors } from 'react-hook-form';
+import type { UseFormRegister, FieldErrors, UseFormWatch } from 'react-hook-form';
 import type { WizardFormData } from './resource-create.schema';
 import type { Integration } from '@/types/business/integration.types';
 
@@ -10,12 +10,16 @@ const labelClasses = 'block text-xs font-medium text-gray-700';
 
 export interface StepRawUrlProps {
   register: UseFormRegister<WizardFormData>;
+  watch: UseFormWatch<WizardFormData>;
   errors: FieldErrors<WizardFormData>;
   loading: boolean;
   integrations?: Integration[];
 }
 
-export function StepRawUrl({ register, errors, loading, integrations = [] }: StepRawUrlProps) {
+export function StepRawUrl({ register, watch, errors, loading, integrations = [] }: StepRawUrlProps) {
+  const integrationId = watch('integrationId');
+  const hasIntegration = !!integrationId;
+
   return (
     <>
       {integrations.length > 0 && (
@@ -40,6 +44,25 @@ export function StepRawUrl({ register, errors, loading, integrations = [] }: Ste
               Si selecciona una integracion, la URL del recurso sera relativa a la URL base de la integracion.
             </p>
           </div>
+
+          {hasIntegration && (
+            <div className="mt-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  {...register('requiresExternalAuth')}
+                  disabled={loading}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">
+                  Restringir este recurso por roles/permisos
+                </span>
+              </label>
+              <p className="mt-1 ml-6 text-xs text-gray-500">
+                Si se activa, el acceso a este recurso sera controlado por el sistema de permisos de OpenBook para usuarios del sistema externo.
+              </p>
+            </div>
+          )}
         </Section>
       )}
 

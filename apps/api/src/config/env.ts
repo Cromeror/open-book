@@ -19,6 +19,7 @@ const envSchema = z.object({
     .default('development'),
   PORT: z.coerce.number().positive().default(3000),
   API_BASE_URL: z.string().url().optional(),
+  ENCRYPTION_KEY: z.string().length(64, 'ENCRYPTION_KEY must be 64 hex chars (32 bytes)').optional(),
 
   // Database
   DATABASE_HOST: z.string().min(1, 'DATABASE_HOST is required'),
@@ -88,6 +89,7 @@ function getEnv(): EnvConfig {
       NODE_ENV: 'test',
       PORT: 3000,
       API_BASE_URL: process.env.API_BASE_URL,
+      ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
       DATABASE_HOST: process.env.DATABASE_HOST || 'localhost',
       DATABASE_PORT: parseInt(process.env.DATABASE_PORT || '5433', 10),
       DATABASE_NAME: process.env.DATABASE_NAME || 'captudata_test',

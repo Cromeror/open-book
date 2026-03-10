@@ -75,6 +75,7 @@ export async function createResourceWithMethods(
         description: formData.description || null,
         templateUrl: formData.templateUrl,
         integrationId: formData.integrationId || null,
+        requiresExternalAuth: formData.requiresExternalAuth,
       }),
     });
 
@@ -162,6 +163,7 @@ export async function updateResourceWithMethods(
         description: formData.description ?? null,
         templateUrl: formData.templateUrl,
         integrationId: formData.integrationId ?? null,
+        requiresExternalAuth: formData.requiresExternalAuth,
       }),
     });
 
