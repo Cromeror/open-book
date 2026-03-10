@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { publicEnv } from '@/config/env';
 
 /**
  * System setting type
@@ -51,7 +52,7 @@ const MOCK_SETTINGS: SettingsByCategory[] = [
       {
         id: '1',
         key: 'app_name',
-        value: 'OpenBook',
+        value: publicEnv.NEXT_PUBLIC_APP_NAME,
         valueType: 'string',
         category: 'general',
         label: 'Nombre de la aplicacion',
@@ -59,7 +60,7 @@ const MOCK_SETTINGS: SettingsByCategory[] = [
         isSensitive: false,
         isActive: true,
         order: 1,
-        defaultValue: 'OpenBook',
+        defaultValue: publicEnv.NEXT_PUBLIC_APP_NAME,
       },
       {
         id: '2',

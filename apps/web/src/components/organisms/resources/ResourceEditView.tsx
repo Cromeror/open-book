@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Info } from 'lucide-react';
+import { publicEnv } from '@/config/env';
 import { Button } from '@/components/atoms';
 import { Section } from '@/components/molecules';
 import { resourceFormSchema, type ResourceFormData } from '@/lib/validations/resource.schema';
@@ -282,7 +283,7 @@ export function ResourceEditView({
               </span>
             </label>
             <p className="mt-1 ml-6 text-xs text-gray-500">
-              Si se activa, el acceso a este recurso sera controlado por el sistema de permisos de OpenBook para usuarios del sistema externo.
+              Si se activa, el acceso a este recurso sera controlado por el sistema de permisos de {publicEnv.NEXT_PUBLIC_APP_NAME} para usuarios del sistema externo.
             </p>
           </div>
         )}

@@ -1,9 +1,10 @@
 import Link from 'next/link';
 
 import { getServerPermissions } from '@/lib/permissions.server';
+import { publicEnv } from '@/config/env';
 
 export const metadata = {
-  title: 'Acceso Denegado - OpenBook',
+  title: `Acceso Denegado - ${publicEnv.NEXT_PUBLIC_APP_NAME}`,
   description: 'No tienes permiso para acceder a esta página',
 };
 

@@ -1,3 +1,4 @@
+import { publicEnv } from '@/config/env';
 import { SystemSetting } from './settings-list';
 
 /**
@@ -8,7 +9,7 @@ export const GENERAL_SETTINGS: SystemSetting[] = [
   {
     id: '1',
     key: 'app_name',
-    value: 'OpenBook',
+    value: publicEnv.NEXT_PUBLIC_APP_NAME,
     valueType: 'string',
     category: 'general',
     label: 'Nombre de la aplicacion',
@@ -16,7 +17,7 @@ export const GENERAL_SETTINGS: SystemSetting[] = [
     isSensitive: false,
     isActive: true,
     order: 1,
-    defaultValue: 'OpenBook',
+    defaultValue: publicEnv.NEXT_PUBLIC_APP_NAME,
   },
   {
     id: '2',

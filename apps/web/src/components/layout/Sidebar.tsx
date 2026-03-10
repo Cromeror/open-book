@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Shield, X } from 'lucide-react';
 
+import { publicEnv } from '@/config/env';
 import type { NavItem } from '@/lib/types/modules';
 import { CondominiumSelector } from '@/components/molecules';
 import type { Condominium } from '@/components/molecules';
@@ -74,7 +75,7 @@ export function Sidebar({
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">OB</span>
             </div>
-            <span className="font-semibold text-gray-900">OpenBook</span>
+            <span className="font-semibold text-gray-900">{publicEnv.NEXT_PUBLIC_APP_NAME}</span>
           </Link>
           <button
             onClick={onClose}

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Building2, Shield, Users, BarChart3 } from 'lucide-react';
+import { publicEnv } from '@/config/env';
 
 export default function HomePage() {
   return (
@@ -9,7 +10,7 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
             <Building2 className="h-8 w-8 text-blue-600" />
-            <span className="text-xl font-bold text-gray-900">OpenBook</span>
+            <span className="text-xl font-bold text-gray-900">{publicEnv.NEXT_PUBLIC_APP_NAME}</span>
           </div>
           <nav className="flex items-center gap-4">
             <Link
@@ -36,7 +37,7 @@ export default function HomePage() {
             <span className="text-blue-600">copropiedades</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600">
-            OpenBook facilita la administración financiera de tu conjunto residencial
+            {publicEnv.NEXT_PUBLIC_APP_NAME} facilita la administración financiera de tu conjunto residencial
             con total transparencia. Controla recaudos, aportes y gastos de manera
             clara y accesible para todos los residentes.
           </p>
@@ -134,7 +135,7 @@ export default function HomePage() {
               Comienza a gestionar tu copropiedad hoy
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-lg text-blue-100">
-              Únete a los conjuntos residenciales que ya confían en OpenBook
+              Únete a los conjuntos residenciales que ya confían en {publicEnv.NEXT_PUBLIC_APP_NAME}
               para su gestión financiera transparente.
             </p>
             <div className="mt-8">
@@ -156,7 +157,7 @@ export default function HomePage() {
             <div className="flex items-center gap-2">
               <Building2 className="h-6 w-6 text-gray-400" />
               <span className="text-sm text-gray-500">
-                OpenBook - Gestión transparente de copropiedades
+                {publicEnv.NEXT_PUBLIC_APP_NAME} - Gestión transparente de copropiedades
               </span>
             </div>
             <div className="flex gap-6">

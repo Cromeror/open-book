@@ -1,4 +1,5 @@
 import { Link2 } from 'lucide-react';
+import { publicEnv } from '@/config/env';
 import { Section } from '@/components/molecules';
 import type { UseFormRegister, FieldErrors, UseFormWatch } from 'react-hook-form';
 import type { WizardFormData } from './resource-create.schema';
@@ -59,7 +60,7 @@ export function StepRawUrl({ register, watch, errors, loading, integrations = []
                 </span>
               </label>
               <p className="mt-1 ml-6 text-xs text-gray-500">
-                Si se activa, el acceso a este recurso sera controlado por el sistema de permisos de OpenBook para usuarios del sistema externo.
+                Si se activa, el acceso a este recurso sera controlado por el sistema de permisos de {publicEnv.NEXT_PUBLIC_APP_NAME} para usuarios del sistema externo.
               </p>
             </div>
           )}

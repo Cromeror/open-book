@@ -1,4 +1,5 @@
 import { getServerPermissions } from '@/lib/permissions.server';
+import { publicEnv } from '@/config/env';
 
 export default async function DashboardPage() {
   const permissions = await getServerPermissions();
@@ -10,7 +11,7 @@ export default async function DashboardPage() {
           Bienvenido, {permissions.user?.firstName}
         </h1>
         <p className="text-gray-600">
-          Este es tu panel de control de OpenBook
+          Este es tu panel de control de {publicEnv.NEXT_PUBLIC_APP_NAME}
         </p>
       </div>
 

@@ -77,7 +77,7 @@ export function ResourceList({
       <div className="border-b border-gray-200 p-4">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Recursos HATEOAS</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Recursos del sistema</h2>
             <p className="text-xs text-gray-500 mt-1">
               {filteredResources.length} de {resources.length} recursos
             </p>

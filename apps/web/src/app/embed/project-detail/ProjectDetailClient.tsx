@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Building2, Calendar, DollarSign, Users, TrendingUp, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { fetchProjectData } from './actions';
 
 interface AuthHeaders {
   'access-token': string;
@@ -15,7 +16,7 @@ interface EmbedMessage {
   type: 'embed:init' | 'embed:apply';
   payload: {
     authHeaders: AuthHeaders;
-    user: { client_id: number; [key: string]: unknown };
+    user: { client_id: number;[key: string]: unknown };
     projectId: string;
     apiUrl: string;
   };
@@ -73,44 +74,16 @@ export default function ProjectDetailClient() {
       setLoading(true);
       setError('');
 
-      const headers: Record<string, string> = {
-        'access-token': authHeaders['access-token'] || '',
-        client: authHeaders.client || '',
-        uid: authHeaders.uid || '',
-        expiry: authHeaders.expiry || '',
-        'token-type': 'Bearer',
-      };
-
-      // Headers for the /ext/ proxy (internal permission check)
-      const extHeaders: Record<string, string> = {
-        ...headers,
-        'x-external-user-id': String(user.id ?? authHeaders.uid ?? ''),
-      };
-
       try {
-        console.log(apiUrl);
-        
-        const [projectRes, cfTypesRes, cfDefsRes] = await Promise.all([
-          fetch(`${apiUrl}/clients/${user.client_id}/projects/${projectId}/`, { headers }),
-          fetch(`${apiUrl}/custom_fields/cf_types`, { headers }),
-          fetch(`http://localhost:3001/api/ext/clients/${user.client_id}/definitions_by_class?target_class=projects`, { headers: extHeaders }),
-        ]);
+        const result = await fetchProjectData({ authHeaders, user, projectId, apiUrl });
 
-        const [projectData, cfTypesData, cfDefsData] = await Promise.all([
-          projectRes.json(),
-          cfTypesRes.json(),
-          cfDefsRes.json(),
-        ]);
-
-        if (!projectRes.ok) {
-          throw new Error(
-            projectData.errors?.join(', ') || projectData.error || 'Error al consultar proyecto'
-          );
+        if (!result.success) {
+          throw new Error(result.error);
         }
 
-        setProject(projectData);
-        setCfTypes(Array.isArray(cfTypesData) ? cfTypesData : []);
-        setCfDefinitions(Array.isArray(cfDefsData) ? cfDefsData : []);
+        setProject(result.project);
+        setCfTypes(result.cfTypes);
+        setCfDefinitions(result.cfDefinitions);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error en la petición');
       } finally {
@@ -148,7 +121,7 @@ export default function ProjectDetailClient() {
         <div className="text-center">
           <Loader2 className="mx-auto h-8 w-8 animate-spin text-gray-400" />
           <p className="mt-2 text-sm text-gray-500">
-            Esperando conexión con la aplicación padre...
+            Cargando...
           </p>
         </div>
       </div>
@@ -193,32 +166,32 @@ export default function ProjectDetailClient() {
         </div>
       )}
 
-      {/* Custom Fields */}
-      {project.cf_values && project.cf_values.length > 0 && (
+      {/* Custom Fields — only show definitions the user has access to */}
+      {cfDefinitions.length > 0 && (
         <div className="mb-6 rounded-lg bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-gray-900">
             Campos Personalizados
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {project.cf_values.map((cfValue) => {
-              const definition = cfDefinitions.find(
-                (d) => d.id === cfValue.cf_definition_id
+            {cfDefinitions.map((definition) => {
+              const cfValue = project.cf_values?.find(
+                (v) => v.cf_definition_id === definition.id
               );
-              const cfType = definition
-                ? cfTypes.find((t) => t.id === definition.cf_type_id)
-                : null;
+              const cfType = cfTypes.find((t) => t.id === definition.cf_type_id);
 
               return (
                 <div
-                  key={cfValue.id}
+                  key={definition.id}
                   className="rounded-md border border-gray-200 p-4"
                 >
                   <p className="text-sm font-medium text-gray-500">
-                    {definition?.name || cfValue.definition_name}
+                    {definition.name}
                   </p>
                   <p className="mt-1 text-lg font-semibold text-gray-900">
-                    {cfValue.humanize_value || cfValue.value || '-'}
-                    {cfValue.unit && (
+                    {cfValue
+                      ? (cfValue.humanize_value || cfValue.value || '-')
+                      : '-'}
+                    {cfValue?.unit && (
                       <span className="ml-1 text-sm font-normal text-gray-500">
                         {cfValue.unit}
                       </span>
@@ -235,18 +208,6 @@ export default function ProjectDetailClient() {
           </div>
         </div>
       )}
-
-      {/* Raw data */}
-      <div className="rounded-lg bg-white p-6 shadow-sm">
-        <details>
-          <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
-            Ver datos completos del proyecto
-          </summary>
-          <pre className="mt-3 max-h-96 overflow-auto rounded-md bg-gray-100 p-4 text-xs">
-            {JSON.stringify(project, null, 2)}
-          </pre>
-        </details>
-      </div>
     </div>
   );
 }

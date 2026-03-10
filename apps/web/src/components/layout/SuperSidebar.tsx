@@ -18,6 +18,7 @@ import {
   Link2,
 } from 'lucide-react';
 
+import { publicEnv } from '@/config/env';
 import { LogoutButton } from './LogoutButton';
 
 interface SuperSidebarProps {
@@ -113,7 +114,7 @@ export function SuperSidebar({ isOpen, onClose }: SuperSidebarProps) {
               <Settings className="h-5 w-5 text-slate-900" />
             </div>
             <div className="flex flex-col">
-              <span className="font-semibold text-white text-sm">OpenBook</span>
+              <span className="font-semibold text-white text-sm">{publicEnv.NEXT_PUBLIC_APP_NAME}</span>
               <span className="text-xs text-amber-400">SuperAdmin</span>
             </div>
           </Link>

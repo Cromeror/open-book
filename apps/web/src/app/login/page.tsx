@@ -3,10 +3,11 @@ import { Suspense } from 'react';
 
 import { LoginForm } from '@/components/auth/LoginForm';
 import { getServerPermissions } from '@/lib/permissions.server';
+import { publicEnv } from '@/config/env';
 
 export const metadata = {
-  title: 'Iniciar Sesión - OpenBook',
-  description: 'Inicia sesión en tu cuenta de OpenBook',
+  title: `Iniciar Sesión - ${publicEnv.NEXT_PUBLIC_APP_NAME}`,
+  description: `Inicia sesión en tu cuenta de ${publicEnv.NEXT_PUBLIC_APP_NAME}`,
 };
 
 interface LoginPageProps {
@@ -30,7 +31,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-8">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">OpenBook</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{publicEnv.NEXT_PUBLIC_APP_NAME}</h1>
           <p className="mt-2 text-gray-600">
             Gestión transparente de copropiedades
           </p>
