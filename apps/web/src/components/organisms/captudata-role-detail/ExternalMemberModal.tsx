@@ -9,6 +9,8 @@ export interface ExternalMemberSelection {
   externalUserId: string;
   externalUserLabel: string;
   externalUserEmail?: string;
+  clientId?: string;
+  clientName?: string;
 }
 
 export interface ExternalMemberModalProps {
@@ -143,13 +145,16 @@ export function ExternalMemberModal({
     if (!selectedOrgCode || !selectedUserId) return;
 
     const user = externalUsers.find((u) => String(u.id) === selectedUserId);
+    const org = organizations.find((o) => o.code === selectedOrgCode);
     onConfirm({
       organizationCode: selectedOrgCode,
       externalUserId: selectedUserId,
       externalUserLabel: user ? getUserLabel(user) : selectedUserId,
       externalUserEmail: user?.email || undefined,
+      clientId: org?.externalId ? String(org.externalId) : undefined,
+      clientName: org?.name || undefined,
     });
-  }, [selectedOrgCode, selectedUserId, externalUsers, onConfirm]);
+  }, [selectedOrgCode, selectedUserId, externalUsers, organizations, onConfirm]);
 
   const isLoading = loading || loadingOrgs || loadingUsers;
 

@@ -291,7 +291,7 @@ export class PoolsService {
     poolId: string,
     externalUserId: string,
     organizationCode: string,
-    userInfo?: { name?: string; email?: string },
+    userInfo?: { name?: string; email?: string; clientId?: string; clientName?: string },
   ): Promise<ExternalPoolMember> {
     // Verify pool exists
     await this.findOne(poolId);
@@ -321,14 +321,20 @@ export class PoolsService {
         integrationId: org.integrationId,
         name: userInfo?.name || null,
         email: userInfo?.email || null,
+        organizationCode,
+        clientId: userInfo?.clientId || null,
+        clientName: userInfo?.clientName || null,
         isActive: true,
       });
       await this.externalUserRepo.save(extUser);
       this.logger.log(`External user created: ${externalUserId} (integration: ${org.integrationId})`);
-    } else if (userInfo?.name || userInfo?.email) {
+    } else {
       let updated = false;
-      if (userInfo.name && extUser.name !== userInfo.name) { extUser.name = userInfo.name; updated = true; }
-      if (userInfo.email && extUser.email !== userInfo.email) { extUser.email = userInfo.email; updated = true; }
+      if (userInfo?.name && extUser.name !== userInfo.name) { extUser.name = userInfo.name; updated = true; }
+      if (userInfo?.email && extUser.email !== userInfo.email) { extUser.email = userInfo.email; updated = true; }
+      if (organizationCode && extUser.organizationCode !== organizationCode) { extUser.organizationCode = organizationCode; updated = true; }
+      if (userInfo?.clientId && extUser.clientId !== userInfo.clientId) { extUser.clientId = userInfo.clientId; updated = true; }
+      if (userInfo?.clientName && extUser.clientName !== userInfo.clientName) { extUser.clientName = userInfo.clientName; updated = true; }
       if (updated) await this.externalUserRepo.save(extUser);
     }
 

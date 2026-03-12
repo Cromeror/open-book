@@ -1,37 +1,37 @@
-# Database Setup
+# Configuración de Base de Datos
 
-This document describes how to set up PostgreSQL for OpenBook development.
+Este documento describe cómo configurar PostgreSQL para el desarrollo de G.D.O.M.
 
-## Quick Start with Docker
+## Inicio Rápido con Docker
 
-The easiest way to get PostgreSQL running is with Docker Compose:
+La forma más sencilla de ejecutar PostgreSQL es con Docker Compose:
 
 ```bash
-# Start PostgreSQL
+# Iniciar PostgreSQL
 docker-compose up -d postgres
 
-# Check status
+# Verificar estado
 docker-compose ps
 
-# View logs
+# Ver logs
 docker-compose logs -f postgres
 
-# Stop
+# Detener
 docker-compose down
 ```
 
-## Database Configuration
+## Configuración de la Base de Datos
 
-### Environment Variables
+### Variables de Entorno
 
-Copy the example env file and configure your database:
+Copie el archivo de entorno de ejemplo y configure su base de datos:
 
 ```bash
 cd apps/api
 cp .env.example .env
 ```
 
-Edit `.env` with your database credentials:
+Edite `.env` con sus credenciales de base de datos:
 
 ```env
 DATABASE_HOST=localhost
@@ -44,15 +44,15 @@ DATABASE_POOL_SIZE=10
 DATABASE_SSL=false
 ```
 
-### Connection String Format
+### Formato de la Cadena de Conexión
 
 ```
-postgresql://[user]:[password]@[host]:[port]/[database]
+postgresql://[usuario]:[contraseña]@[host]:[puerto]/[base_de_datos]
 ```
 
-## Manual PostgreSQL Setup
+## Instalación Manual de PostgreSQL
 
-If you prefer to install PostgreSQL locally:
+Si prefiere instalar PostgreSQL localmente:
 
 ### macOS (Homebrew)
 
@@ -73,64 +73,64 @@ sudo -u postgres createdb openbook
 
 ### Windows
 
-Download and install from [postgresql.org](https://www.postgresql.org/download/windows/)
+Descargue e instale desde [postgresql.org](https://www.postgresql.org/download/windows/)
 
-## Creating the Database
+## Creación de la Base de Datos
 
 ```bash
-# Connect to PostgreSQL
+# Conectarse a PostgreSQL
 psql -U postgres
 
-# Create database
+# Crear base de datos
 CREATE DATABASE openbook;
 
-# Create user (optional)
+# Crear usuario (opcional)
 CREATE USER openbook_user WITH PASSWORD 'your_password';
 GRANT ALL PRIVILEGES ON DATABASE openbook TO openbook_user;
 
-# Exit
+# Salir
 \q
 ```
 
-## Test Database
+## Base de Datos de Pruebas
 
-A separate test database is available on port 5433:
+Hay una base de datos de pruebas disponible en el puerto 5433:
 
 ```bash
-# Start test database
+# Iniciar base de datos de pruebas
 docker-compose up -d postgres-test
 
-# Connect to test database
+# Conectarse a la base de datos de pruebas
 psql -h localhost -p 5433 -U postgres -d openbook_test
 ```
 
-The test database uses tmpfs for storage (data is lost on restart), making tests faster.
+La base de datos de pruebas usa tmpfs como almacenamiento (los datos se pierden al reiniciar), lo que hace las pruebas más rápidas.
 
-## Useful Commands
+## Comandos Útiles
 
 ```bash
-# Connect to database
+# Conectarse a la base de datos
 psql -h localhost -p 5432 -U postgres -d openbook
 
-# List databases
+# Listar bases de datos
 \l
 
-# List tables
+# Listar tablas
 \dt
 
-# Describe table
-\d table_name
+# Describir tabla
+\d nombre_tabla
 
-# Execute SQL file
+# Ejecutar archivo SQL
 psql -h localhost -U postgres -d openbook -f script.sql
 ```
 
-## Production Considerations
+## Consideraciones para Producción
 
-For production deployments:
+Para despliegues en producción:
 
-1. **Enable SSL**: Set `DATABASE_SSL=true`
-2. **Use strong passwords**: Generate secure passwords
-3. **Limit connections**: Configure `DATABASE_POOL_SIZE` appropriately
-4. **Regular backups**: Set up automated backup procedures
-5. **Monitor performance**: Use pg_stat_statements extension
+1. **Habilitar SSL**: Configure `DATABASE_SSL=true`
+2. **Usar contraseñas seguras**: Genere contraseñas robustas
+3. **Limitar conexiones**: Configure `DATABASE_POOL_SIZE` apropiadamente
+4. **Respaldos regulares**: Configure procedimientos de respaldo automatizados
+5. **Monitorear rendimiento**: Use la extensión pg_stat_statements

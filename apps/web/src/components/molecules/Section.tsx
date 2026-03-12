@@ -4,7 +4,7 @@ import SectionHeader from './SectionHeader';
 export interface SectionProps {
     children?: ReactNode;
     customHeader?: ReactNode;
-    title?: string
+    title?: ReactNode
     titlePrefix?: ReactNode
 }
 

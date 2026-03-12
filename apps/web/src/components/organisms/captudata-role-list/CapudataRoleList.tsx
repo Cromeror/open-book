@@ -9,7 +9,7 @@ export interface CapudataRole {
   isActive: boolean;
   createdAt: string;
   members?: { id: string; userId: string; addedAt?: string; user?: { id: string; name: string; email: string } }[];
-  externalMembers?: { id: string; externalUserId: string; addedAt?: string; externalUser?: { id: string; externalId: string; name?: string | null; email?: string | null } }[];
+  externalMembers?: { id: string; externalUserId: string; addedAt?: string; externalUser?: { id: string; externalId: string; name?: string | null; email?: string | null; clientName?: string | null } }[];
   resourceAccess?: { id: string; resourceId: string; resource?: { id: string; code: string; name: string } }[];
 }
 

@@ -14,3 +14,4 @@ export { AddRequiresExternalAuth1741306200000 } from './1741306200000-AddRequire
 export { AddIntegrationUserManagement1741306300000 } from './1741306300000-AddIntegrationUserManagement';
 export { AddResourceAccess1741306400000 } from './1741306400000-AddResourceAccess';
 export { AddExternalPermissions1741306500000 } from './1741306500000-AddExternalPermissions';
+export { AddOrganizationInfoToExternalUsers1741306600000 } from './1741306600000-AddOrganizationInfoToExternalUsers';

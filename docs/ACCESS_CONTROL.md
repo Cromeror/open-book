@@ -1,4 +1,4 @@
-# Resumen Ejecutivo: Sistema de Permisos OpenBook
+# Resumen Ejecutivo: Sistema de Permisos G.D.O.M.
 
 ## Modelo de Permisos (3 niveles de granularidad)
 
@@ -56,3 +56,24 @@ SuperAdmin          -> Acceso total, bypass de todos los guards
 - **Soft delete**: Los permisos se desactivan, no se eliminan (trazabilidad)
 - **Cache con invalidacion**: Performance optimizado en verificacion de permisos
 - **Integracion HATEOAS**: Los links de accion en la UI se filtran automaticamente segun permisos del usuario — el frontend no necesita logica adicional
+
+---
+
+## Deuda Tecnica: Paridad con Control de Acceso Externo
+
+El sistema externo (`EXTERNAL_ACCESS_CONTROL.md`) implementa un nivel de granularidad que el sistema interno aun no tiene: **acceso a nivel de recurso**. Para alcanzar paridad entre ambos sistemas, se requiere:
+
+| Capacidad | Externo | Interno | Estado |
+|-----------|---------|---------|--------|
+| Permisos a nivel de modulo:accion | `external_user_permissions` | `user_permissions` | Implementado |
+| Permisos por pool (modulo:accion) | `pool_permissions` (heredado) | `pool_permissions` (heredado) | Implementado |
+| Acceso a nivel de recurso (directo) | `external_user_resource_access` | — | Pendiente |
+| Acceso a nivel de recurso (por pool) | `pool_resource_access` | — | Pendiente |
+| Response filter sobre respuestas | Aplicado via `ExternalProxyService` | — | Pendiente |
+| API de gestion para permisos de modulo externos | — | N/A | Pendiente |
+
+### Que falta implementar
+
+1. **Acceso a recurso para usuarios internos**: Entidad equivalente a `external_user_resource_access` pero para `User`, que permita otorgar acceso granular a recursos especificos con metodo HTTP y response filter.
+2. **API para `external_user_permissions`**: La entidad existe y el guard la verifica como fallback (paso 8), pero no hay endpoint ni UI para gestionar estos permisos.
+3. **Permisos de modulo externos via pool**: Los pools otorgan `pool_permissions` pero el `ExternalPermissionsService` no los consulta para verificar acceso a modulos — solo verifica `external_user_permissions` directos.

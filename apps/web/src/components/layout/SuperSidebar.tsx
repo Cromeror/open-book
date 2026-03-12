@@ -47,18 +47,18 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    title: 'Captudata',
+    title: publicEnv.NEXT_PUBLIC_APP_NAME,
     items: [
       { label: 'Organizaciones', path: '/admin/organizations', icon: <Building2 className="h-4 w-4" /> },
-      { label: 'Roles', path: '/admin/captudata/roles', icon: <Shield className="h-4 w-4" /> },
     ],
   },
   {
     title: 'Configuración del Sistema',
     items: [
       { label: 'Usuarios administradores', path: '/admin/users', icon: <Users className="h-4 w-4" /> },
+      { label: 'Roles de usuarios', path: '/admin/roles', icon: <Shield className="h-4 w-4" /> },
       // { label: 'Roles', path: '/admin/pools', icon: <Shield className="h-4 w-4" /> },
-      { label: 'Permisos', path: '/admin/permissions', icon: <KeyRound className="h-4 w-4" /> },
+      // { label: 'Permisos', path: '/admin/permissions', icon: <KeyRound className="h-4 w-4" /> },
       { label: 'Módulos', path: '/admin/modules', icon: <Blocks className="h-4 w-4" /> },
       { label: 'Recursos', path: '/admin/resources', icon: <Link2 className="h-4 w-4" /> },
       // { label: 'Parámetros', path: '/admin/parameters', icon: <SlidersHorizontal className="h-4 w-4" /> },

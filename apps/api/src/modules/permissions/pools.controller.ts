@@ -201,6 +201,8 @@ export class PoolsController {
       organizationCode: z.string().min(1, 'organizationCode es requerido'),
       name: z.string().optional(),
       email: z.string().optional(),
+      clientId: z.string().optional(),
+      clientName: z.string().optional(),
     });
 
     let dto: z.infer<typeof schema>;
@@ -223,7 +225,7 @@ export class PoolsController {
       poolId,
       dto.externalUserId,
       dto.organizationCode,
-      { name: dto.name, email: dto.email },
+      { name: dto.name, email: dto.email, clientId: dto.clientId, clientName: dto.clientName },
     );
   }
 

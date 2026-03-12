@@ -2,7 +2,7 @@
 
 ## Overview
 
-OpenBook implements HATEOAS (Hypermedia as the Engine of Application State) using a **unified capability model**. Resources are configured by superadmins in the API, and the web proxy consumes this configuration via gRPC to inject dynamic links into API responses.
+G.D.O.M. implements HATEOAS (Hypermedia as the Engine of Application State) using a **unified capability model**. Resources are configured by superadmins in the API, and the web proxy consumes this configuration via gRPC to inject dynamic links into API responses.
 
 ## Architecture
 

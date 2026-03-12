@@ -1,18 +1,18 @@
 # CaptuData Integration
 
-This document describes how OpenBook integrates with **CaptuData**, an external project management system. CaptuData uses [devise_token_auth](https://github.com/lynndylanhurley/devise_token_auth) for authentication.
+This document describes how G.D.O.M. integrates with **CaptuData**, an external project management system. CaptuData uses [devise_token_auth](https://github.com/lynndylanhurley/devise_token_auth) for authentication.
 
 ## Architecture
 
 ```
 Frontend (Next.js)
     ↓  HTTP (via Next.js API proxy routes)
-OpenBook API (NestJS)
+G.D.O.M. API (NestJS)
     ↓  HTTP (devise_token_auth)
 CaptuData API (https://api-staging.captudata.com)
 ```
 
-OpenBook acts as an **integration layer**: it stores organization credentials encrypted in its own database, authenticates with CaptuData server-side, and serves the data to the frontend. The frontend never sees credentials or directly contacts CaptuData.
+G.D.O.M. acts as an **integration layer**: it stores organization credentials encrypted in its own database, authenticates with CaptuData server-side, and serves the data to the frontend. The frontend never sees credentials or directly contacts CaptuData.
 
 ---
 
@@ -36,7 +36,7 @@ Each organization maps to a **client** in CaptuData:
 
 | Field | Description |
 |-------|-------------|
-| `code` | Unique identifier in OpenBook (e.g., `bid`, `minfra`) |
+| `code` | Unique identifier in G.D.O.M. (e.g., `bid`, `minfra`) |
 | `name` | Display name |
 | `externalId` | The **client ID** in CaptuData (used in API URLs like `/clients/{clientId}/users`) |
 | `integrationId` | FK to the `captudata` integration |

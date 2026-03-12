@@ -101,6 +101,7 @@ export function CapudataRolesManager() {
       userId: m.externalUserId,
       externalId: m.externalUser?.externalId,
       addedAt: m.addedAt || '',
+      clientName: m.externalUser?.clientName || undefined,
       user: m.externalUser ? {
         id: m.externalUser.id,
         name: m.externalUser.name || m.externalUser.externalId,
@@ -323,6 +324,8 @@ export function CapudataRolesManager() {
             organizationCode: selection.organizationCode,
             name: selection.externalUserLabel,
             email: selection.externalUserEmail,
+            clientId: selection.clientId,
+            clientName: selection.clientName,
           }),
         });
 

@@ -68,6 +68,39 @@ export class ExternalUser extends BaseEntity {
   email?: string | null;
 
   /**
+   * Organization code this user belongs to
+   */
+  @Column({
+    name: 'organization_code',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
+  organizationCode?: string | null;
+
+  /**
+   * Client ID in the external system (e.g. Captudata client_id)
+   */
+  @Column({
+    name: 'client_id',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  clientId?: string | null;
+
+  /**
+   * Client name in the external system
+   */
+  @Column({
+    name: 'client_name',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  clientName?: string | null;
+
+  /**
    * Whether this external user is active
    */
   @Column({

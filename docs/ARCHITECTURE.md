@@ -1,10 +1,6 @@
-# OpenBook Architecture
+# Arquitectura de G.D.O.M.
 
-This document describes the type architecture and data flow patterns used in OpenBook.
-
-## Overview
-
-OpenBook uses a layered architecture where **API and Web applications maintain their own type definitions**. There is no shared types library - each application owns its types independently.
+**G.D.O.M.** utiliza una arquitectura por capas donde **las aplicaciones API y Web mantienen sus propias definiciones de tipos**. No existe una librería de tipos compartida — cada aplicación es dueña de sus tipos de forma independiente.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -12,17 +8,40 @@ OpenBook uses a layered architecture where **API and Web applications maintain t
 │                                                                             │
 │  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────┐  │
 │  │   entities/*.ts      │  │   types/*.ts         │  │ grpc/proto/*.proto│  │
-│  │   (TypeORM)          │  │   (API Types)        │  │ (gRPC Contracts) │  │
+│  │   (TypeORM)          │  │   (Tipos API)        │  │ (Contratos gRPC) │  │
 │  │                      │  │                      │  │                  │  │
-│  │ @Entity, @Column     │  │ ModuleWithActions    │  │ Service defs     │  │
-│  │ Database models      │  │ ActionSettings       │  │ Message formats  │  │
+│  │ @Entity, @Column     │  │ ModuleWithActions    │  │ Def. servicios   │  │
+│  │ Modelos de BD        │  │ ResourceMetadata     │  │ Formato mensajes │  │
 │  └──────────────────────┘  └──────────────────────┘  └──────────────────┘  │
 │                                                                             │
 │  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │                       modules/**/dto/ (Validation)                    │  │
+│  │                       modules/**/dto/ (Validación)                   │  │
 │  │                                                                       │  │
-│  │  Zod schemas (createUserSchema)  │  Response DTOs (UserResponse)     │  │
-│  │  Constants (MODULE_TYPES)        │  Mapper functions (toResponse)    │  │
+│  │  Esquemas Zod (createUserSchema)  │  DTOs de respuesta (UserResponse)│  │
+│  │  Constantes (MODULE_TYPES)        │  Funciones mapper (toResponse)   │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │                        modules/ (Módulos Core)                       │  │
+│  │                                                                       │  │
+│  │  auth/           │ Autenticación (JWT, refresh tokens, auth logs)    │  │
+│  │  permissions/    │ Permisos granulares (usuarios, pools, recursos)   │  │
+│  │  resources/      │ Registro de recursos expuestos (catálogo)         │  │
+│  │  hateoas/        │ Enriquecimiento HATEOAS (interceptor + servicio) │  │
+│  │  users/          │ Gestión de usuarios                               │  │
+│  │  external-proxy/ │ Proxy a sistemas externos (6 estrategias auth)   │  │
+│  │  admin/          │ Administración (resources, modules, pools, orgs) │  │
+│  │  session-context/│ Contexto de sesión del request                    │  │
+│  │  user-state/     │ Estado del usuario                                │  │
+│  │  cache/          │ Caché en memoria global (@nestjs/cache-manager)  │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │                    Infraestructura transversal                       │  │
+│  │                                                                       │  │
+│  │  subscribers/    │ Auditoría e inmutabilidad (TypeORM events)        │  │
+│  │  config/         │ Configuración (env, database, gRPC con mTLS)     │  │
+│  │  migrations/     │ Migraciones de base de datos                      │  │
 │  └──────────────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────────────┘
 
@@ -31,74 +50,137 @@ OpenBook uses a layered architecture where **API and Web applications maintain t
 │                                                                             │
 │  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────┐  │
 │  │ types/business/      │  │ types/api.types.ts   │  │ lib/grpc/types.ts│  │
-│  │ (Business Domain)    │  │ (HTTP Transport)     │  │ (gRPC Transport) │  │
+│  │ (Dominio Negocio)    │  │ (Transporte HTTP)    │  │ (Transporte gRPC)│  │
 │  │                      │  │                      │  │                  │  │
 │  │ User, Resource       │  │ PaginatedResponse<T> │  │ @internal        │  │
 │  │ CapabilityPreset     │  │ ApiError             │  │ GrpcXxxResponse  │  │
-│  │ ModuleWithActions    │  │ QueryParams          │  │ Proto messages   │  │
+│  │ ModuleWithActions    │  │ QueryParams          │  │ Mensajes Proto   │  │
 │  └──────────────────────┘  └──────────────────────┘  └──────────────────┘  │
 │                                                                             │
 │  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │                    lib/grpc/services/ (Service Layer)                 │  │
+│  │                    lib/grpc/services/ (Capa de Servicio)             │  │
 │  │                                                                       │  │
-│  │  Maps GrpcXxxResponse → Business types  │  Handles transport details │  │
+│  │  Mapea GrpcXxxResponse → Tipos de negocio  │  Maneja transporte     │  │
 │  └──────────────────────────────────────────────────────────────────────┘  │
 │                                                                             │
 │  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │                        components/ (UI Layer)                         │  │
+│  │                        components/ (Capa UI)                         │  │
 │  │                                                                       │  │
-│  │  Uses types from @/types/business  │  Never uses transport types     │  │
+│  │  Usa tipos de @/types/business  │  Nunca usa tipos de transporte    │  │
 │  └──────────────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Design Principles
+## Principios de Diseño
 
-### 1. No Shared Types Library
+### 1. Sin Librería de Tipos Compartida
 
-API and Web applications maintain their own types independently:
+Las aplicaciones API y Web mantienen sus tipos de forma independiente:
 
-- **API**: Owns entities (TypeORM), DTOs (Zod), and API-specific types
-- **Web**: Owns business types, transport types, and UI-specific types
+- **API**: Es dueña de entidades (TypeORM), DTOs (Zod) y tipos específicos de la API
+- **Web**: Es dueña de tipos de negocio, tipos de transporte y tipos específicos de la UI
 
-This avoids tight coupling and allows each application to evolve independently.
+Esto evita el acoplamiento fuerte y permite que cada aplicación evolucione independientemente.
 
-### 2. Separation of Concerns
+### 2. Separación de Responsabilidades
 
-| Layer | Location | Purpose |
-|-------|----------|---------|
-| Business Types | `web/types/business/` | Pure domain concepts |
-| Transport Types | `web/types/api.types.ts`, `web/lib/grpc/types.ts` | Wire formats |
-| Entities | `api/entities/` | Database models |
-| DTOs | `api/modules/**/dto/` | Input validation & output shaping |
+| Capa | Ubicación | Propósito |
+|------|-----------|-----------|
+| Tipos de Negocio | `web/types/business/` | Conceptos puros de dominio |
+| Tipos de Transporte | `web/types/api.types.ts`, `web/lib/grpc/types.ts` | Formatos de comunicación |
+| Entidades | `api/entities/` | Modelos de base de datos |
+| DTOs | `api/modules/**/dto/` | Validación de entrada y formato de salida |
 
-### 3. Transport Types are Internal
+### 3. Los Tipos de Transporte son Internos
 
-gRPC types are marked `@internal` and should never leak into components:
+Los tipos gRPC se marcan como `@internal` y nunca deben filtrarse a los componentes:
 
 ```typescript
 // lib/grpc/types.ts
-/** @internal - Do not use in components */
+/** @internal - No usar en componentes */
 export interface GrpcResourceResponse {
   code: string;
-  // ...proto fields
+  // ...campos del proto
 }
 
 // lib/grpc/services/resources.service.ts
 import type { Resource } from '@/types/business';
 
 export function mapToResource(grpc: GrpcResourceResponse): Resource {
-  return { /* mapping */ };
+  return { /* mapeo */ };
 }
 ```
 
+### 4. Seguridad Zero Trust
+
+Toda la autenticación sigue el principio de **nunca confiar, siempre verificar**. La información de sesión vive exclusivamente en el servidor; el navegador nunca tiene acceso directo a tokens.
+
+| Aspecto | Implementación |
+|---------|----------------|
+| Access Token | Cookie `httpOnly`, `secure`, `sameSite: lax` — TTL 15 min |
+| Refresh Token | Cookie `httpOnly`, `secure`, `sameSite: lax` — TTL 7 días |
+| Almacenamiento en cliente | Ninguno. Sin `localStorage`, sin `sessionStorage` |
+| Contexto de sesión | Resuelto del lado del servidor vía gRPC, pasado al cliente como props de React (sin tokens) |
+| Comunicación interna | gRPC con mTLS — Next.js y NestJS se autentican mutuamente con certificados |
+
+**Por qué es sólido:**
+
+- **Resistente a XSS**: `httpOnly` impide que JavaScript lea los tokens
+- **Resistente a CSRF**: `sameSite: lax` asegura que las cookies solo viajan desde navegaciones del mismo origen
+- **Cero exposición de tokens**: El navegador recibe datos de usuario resueltos (nombre, preferencias), nunca JWTs
+- **Validación en cada petición**: El middleware valida contra el backend (`/auth/me`), sin confiar en estado previo
+- **Doble puerta en Server Actions**: Validación en Next.js + validación en el backend gRPC — defensa en profundidad
+- **Sin superficie API pública**: El backend no expone endpoints HTTP al navegador, solo gRPC interno
+
+Ver [Decisiones de Arquitectura](./ARCHITECTURE_DECISIONS.md) para el razonamiento completo y las alternativas evaluadas.
+
+### 5. Resguardo de Servicio en la Comunicación
+
+La plataforma emplea un modelo de comunicación híbrido diseñado para garantizar que la capa de presentación nunca se comunique directamente con el backend, manteniendo la lógica de negocio resguardada bajo un concepto de **"caja negra" altamente segura**.
+
+#### 5.1. Paradigmas de Comunicación
+
+* **gRPC (Remote Procedure Calls): Alto Rendimiento y Conectividad Externa** Es el estándar core para la comunicación servidor-a-servidor. Su arquitectura basada en HTTP/2 y Protocol Buffers (binario) lo hace **ideal para integraciones con sistemas externos de alto rendimiento** que superen las capacidades de los servicios REST convencionales.
+
+    * **Escalabilidad:** Si el backend de un cliente utiliza microservicios o ofrece conexiones gRPC veloces, **G.D.O.M.** se conecta a ellos sin convertirse en un cuello de botella, permitiendo baja latencia y streaming en tiempo real.
+
+    * **Eficiencia:** Reduce el tamaño del payload entre un **30% y 50%** y ofrece una serialización hasta **10 veces más rápida** en listas grandes.
+
+* **REST (Route Handlers de Next.js): Soporte Universal** Se utiliza para peticiones convencionales y soporte directo desde el navegador. Es la opción cuando la infraestructura externa no justifica la complejidad de gRPC o cuando se requiere facilidad de depuración con herramientas universales.
+
+#### 5.2. El Principio de Resguardo (Enmascaramiento)
+
+Un pilar innegociable de la arquitectura **G.D.O.M.** es que, independientemente del protocolo elegido (gRPC o REST), **el servicio consumido siempre se mantiene enmascarado.**
+
+* **Aislamiento:** Nunca se comunica directamente la capa de presentación con el backend; los detalles de la infraestructura y la lógica de dominio permanecen resguardados detrás de la fachada de la plataforma.
+
+* **Seguridad por Diseño:** Al no existir una superficie de API pública para la lógica de negocio en gRPC, se refuerza la integridad del sistema ante intentos de acceso externo.
+
+#### 5.3. Seguridad y Protección CSRF
+
+La estrategia de seguridad se adapta según el origen de la petición para optimizar el rendimiento sin comprometer la protección:
+
+* **Navegador (HTTPS) → API:** En este flujo, al tratarse de endpoints HTTP públicos accesibles desde el browser, **se requiere obligatoriamente protección CSRF explícita** para mitigar riesgos de seguridad.
+
+* **Servidor → gRPC → API:** Al ser una comunicación privada servidor-a-servidor (Server Components/Actions), **no necesita protección CSRF**, ya que no hay exposición directa al cliente web, lo que simplifica la arquitectura interna.
+
+#### 5.4. Matriz de Decisión Técnica
+
+| Criterio | REST (HTTP/JSON) | gRPC (Protobuf) |
+|----------|------------------|-----------------|
+| Integración Externa | Estándar; limitada por JSON | Ideal para alto rendimiento (> REST) |
+| Resguardo de Servicio | Enmascarado | Enmascarado (Caja Negra) |
+| Seguridad CSRF | Requerido (Browser → API) | No requerido (Servidor → Servidor) |
+| Volumen de Datos | Payloads pequeños | Grandes volúmenes / Listas >1000 |
+| Contratos | Documentación manual | Fuentes de verdad estrictas (`.proto`) |
+
 ---
 
-## API Layer (`apps/api/`)
+## Capa API (`apps/api/`)
 
-### Entities (`src/entities/`)
+### Entidades (`src/entities/`)
 
-TypeORM entities define database models with decorators:
+Las entidades TypeORM definen modelos de base de datos con decoradores:
 
 ```typescript
 // entities/user.entity.ts
@@ -132,7 +214,7 @@ export class UserEntity {
 
 ### DTOs (`src/modules/**/dto/`)
 
-DTOs are colocated with their modules following the **proximity principle**:
+Los DTOs se colocan junto a sus módulos siguiendo el **principio de proximidad**:
 
 ```
 modules/
@@ -147,19 +229,19 @@ modules/
 │       └── goal.response.ts
 └── permissions/
     └── dto/
-        ├── create-module.dto.ts    # Contains MODULE_TYPES constant
+        ├── create-module.dto.ts    # Contiene constante MODULE_TYPES
         └── update-module.dto.ts
 ```
 
-#### Input DTO Pattern (Zod)
+#### Patrón de DTO de Entrada (Zod)
 
 ```typescript
 // modules/goals/dto/create-goal.dto.ts
 import { z } from 'zod';
 
 export const createGoalSchema = z.object({
-  name: z.string().min(1, 'Name required').max(200),
-  targetAmount: z.number().positive('Must be positive'),
+  name: z.string().min(1, 'Nombre requerido').max(200),
+  targetAmount: z.number().positive('Debe ser positivo'),
   deadline: z.string().datetime(),
 });
 
@@ -170,7 +252,7 @@ export function validateCreateGoalDto(data: unknown): CreateGoalDto {
 }
 ```
 
-#### Output DTO Pattern (Response)
+#### Patrón de DTO de Salida (Respuesta)
 
 ```typescript
 // modules/goals/dto/goal.response.ts
@@ -181,7 +263,7 @@ export interface GoalResponse {
   name: string;
   targetAmount: number;
   currentAmount: number;
-  progress: number;  // Computed field
+  progress: number;  // Campo calculado
   status: string;
   createdAt: string;
 }
@@ -199,9 +281,9 @@ export function toGoalResponse(entity: GoalEntity): GoalResponse {
 }
 ```
 
-### Types (`src/types/`)
+### Tipos (`src/types/`)
 
-API-specific shared types:
+Tipos compartidos específicos de la API:
 
 ```typescript
 // types/module-actions.types.ts
@@ -222,11 +304,11 @@ export interface ModuleAction {
 
 ---
 
-## Web Layer (`apps/web/`)
+## Capa Web (`apps/web/`)
 
-### Business Types (`src/types/business/`)
+### Tipos de Negocio (`src/types/business/`)
 
-Pure domain types - no ORM, no transport concerns:
+Tipos puros de dominio — sin ORM, sin preocupaciones de transporte:
 
 ```typescript
 // types/business/user.types.ts
@@ -241,21 +323,21 @@ export interface User {
 export type PublicUser = Omit<User, 'isSuperAdmin'>;
 ```
 
-Structure:
+Estructura:
 ```
 types/business/
-├── index.ts                    # Main exports
-├── user.types.ts               # User domain
-├── resource.types.ts           # HATEOAS resources
-├── capability-preset.types.ts  # Preset configs
-├── permission.types.ts         # Permission system
-├── module.types.ts             # Module configs
-└── README.md                   # Guidelines
+├── index.ts                    # Exportaciones principales
+├── user.types.ts               # Dominio de usuario
+├── resource.types.ts           # Recursos HATEOAS
+├── capability-preset.types.ts  # Configuración de presets
+├── permission.types.ts         # Sistema de permisos
+├── module.types.ts             # Configuración de módulos
+└── README.md                   # Lineamientos
 ```
 
-### Transport Types (`src/types/api.types.ts`)
+### Tipos de Transporte (`src/types/api.types.ts`)
 
-HTTP response wrappers:
+Wrappers de respuesta HTTP:
 
 ```typescript
 // types/api.types.ts
@@ -284,16 +366,16 @@ export interface QueryParams {
 }
 ```
 
-### gRPC Types (`src/lib/grpc/types.ts`)
+### Tipos gRPC (`src/lib/grpc/types.ts`)
 
-Internal transport types from proto definitions:
+Tipos internos de transporte desde definiciones proto:
 
 ```typescript
 // lib/grpc/types.ts
 
 /**
- * @internal - Do not use directly in components
- * Use the mapped business types instead
+ * @internal - No usar directamente en componentes
+ * Usar los tipos de negocio mapeados en su lugar
  */
 export interface GrpcResourceResponse {
   code: string;
@@ -310,9 +392,9 @@ export interface GrpcCapability {
 }
 ```
 
-### Service Layer (`src/lib/grpc/services/`)
+### Capa de Servicio (`src/lib/grpc/services/`)
 
-Maps transport types to business types:
+Mapea tipos de transporte a tipos de negocio:
 
 ```typescript
 // lib/grpc/services/resources.service.ts
@@ -333,9 +415,9 @@ export function mapToResource(grpc: GrpcResourceResponse): Resource {
 }
 ```
 
-### Components
+### Componentes
 
-Use only business types:
+Usan solo tipos de negocio:
 
 ```typescript
 // components/resources/ResourceCard.tsx
@@ -347,98 +429,98 @@ interface ResourceCardProps {
 }
 
 export function ResourceCard({ resource, onEdit }: ResourceCardProps) {
-  // Component implementation
+  // Implementación del componente
 }
 ```
 
 ---
 
-## Data Flow
+## Flujo de Datos
 
-### API Request Flow
+### Flujo de Petición en la API
 
 ```
-Client Request
+Petición del Cliente
       │
       ▼
 ┌─────────────────┐
-│  Input DTO      │ ← Zod validates request body
-│  (validation)   │
+│  DTO de Entrada  │ ← Zod valida el cuerpo de la petición
+│  (validación)    │
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│  Service        │ ← Business logic
-│  Layer          │
+│  Capa de        │ ← Lógica de negocio
+│  Servicio       │
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│  TypeORM        │ ← Database operations
-│  Entity         │
+│  Entidad        │ ← Operaciones de base de datos
+│  TypeORM        │
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│  Output DTO     │ ← Maps entity → response
-│  (response)     │
+│  DTO de Salida  │ ← Mapea entidad → respuesta
+│  (respuesta)    │
 └────────┬────────┘
          │
          ▼
-  JSON/gRPC Response
+  Respuesta JSON/gRPC
 ```
 
-### Web Data Flow
+### Flujo de Datos en la Web
 
 ```
-gRPC/HTTP Response
+Respuesta gRPC/HTTP
         │
         ▼
 ┌─────────────────┐
-│  Transport      │ ← GrpcXxxResponse types
-│  Types          │
+│  Tipos de       │ ← Tipos GrpcXxxResponse
+│  Transporte     │
 └────────┬────────┘
          │
-         │ Service layer mapping
+         │ Mapeo en capa de servicio
          ▼
 ┌─────────────────┐
-│  Business       │ ← @/types/business types
-│  Types          │
+│  Tipos de       │ ← Tipos de @/types/business
+│  Negocio        │
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│  React          │ ← UI components
-│  Components     │
+│  Componentes    │ ← Componentes de UI
+│  React          │
 └─────────────────┘
 ```
 
 ---
 
-## Best Practices
+## Buenas Prácticas
 
-### DO
+### HACER
 
-- Use `@/types/business` for domain types in components
-- Create explicit mapper functions between layers
-- Mark transport types as `@internal`
-- Validate all input at API boundary with Zod
-- Add computed fields in output DTOs
-- Colocate DTOs with their modules
+- Usar `@/types/business` para tipos de dominio en componentes
+- Crear funciones mapper explícitas entre capas
+- Marcar tipos de transporte como `@internal`
+- Validar toda entrada en la frontera de la API con Zod
+- Agregar campos calculados en los DTOs de salida
+- Colocar los DTOs junto a sus módulos
 
-### DON'T
+### NO HACER
 
-- Share types between API and Web via a library
-- Use transport types (`GrpcXxx`) in components
-- Mix ORM decorators with business types
-- Expose internal IDs or implementation details
-- Skip validation on API input
-- Create generic shared utilities
+- Compartir tipos entre API y Web mediante una librería
+- Usar tipos de transporte (`GrpcXxx`) en componentes
+- Mezclar decoradores ORM con tipos de negocio
+- Exponer IDs internos o detalles de implementación
+- Omitir validación en la entrada de la API
+- Crear utilidades genéricas compartidas
 
 ---
 
-## Related Documentation
+## Documentación Relacionada
 
-- [API README](../apps/api/README.md)
-- [Business Types README](../apps/web/src/types/business/README.md)
-- [Project Overview](../SUMMARY.md)
+- [README de la API](../apps/api/README.md)
+- [README de Tipos de Negocio](../apps/web/src/types/business/README.md)
+- [Resumen del Proyecto](./SUMMARY.md)
