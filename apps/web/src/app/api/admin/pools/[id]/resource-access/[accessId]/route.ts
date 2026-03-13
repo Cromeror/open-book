@@ -14,6 +14,46 @@ interface RouteParams {
 }
 
 /**
+ * PATCH /api/admin/pools/:id/resource-access/:accessId
+ * Update resource access (response filter)
+ */
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  const token = await getToken();
+  const { id, accessId } = await params;
+
+  if (!token) {
+    return NextResponse.json(
+      { error: 'Unauthorized', message: 'No access token found' },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const body = await request.json();
+    const response = await fetch(
+      `${API_BASE_URL}/admin/pools/${id}/resource-access/${accessId}`,
+      {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      }
+    );
+
+    const data = await response.json();
+    return NextResponse.json(data, { status: response.status });
+  } catch (error) {
+    console.error('Proxy error:', error);
+    return NextResponse.json(
+      { error: 'Internal Server Error', message: 'Failed to proxy request' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * DELETE /api/admin/pools/:id/resource-access/:accessId
  * Revoke resource access from a pool
  */

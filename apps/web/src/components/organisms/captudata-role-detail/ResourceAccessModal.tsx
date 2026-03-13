@@ -10,7 +10,7 @@ interface ResourceInfo {
   requiresExternalAuth: boolean;
   httpMethods: {
     id: string;
-    httpMethod: { id: string; method: string };
+    method: string;
   }[];
 }
 
@@ -24,11 +24,24 @@ export interface ResourceAccessSelection {
   } | null;
 }
 
+export interface ResourceAccessInitialData {
+  accessId: string;
+  resourceId: string;
+  resourceHttpMethodId?: string | null;
+  responseFilter?: {
+    field: string;
+    type: 'include' | 'exclude';
+    values: string[];
+  } | null;
+}
+
 export interface ResourceAccessModalProps {
   isOpen: boolean;
   roleName?: string;
   loading?: boolean;
   existingAccess?: { resourceId: string; resourceHttpMethodId?: string | null }[];
+  /** When set, modal opens in edit mode with pre-filled values */
+  initialData?: ResourceAccessInitialData | null;
   onConfirm: (selection: ResourceAccessSelection) => void;
   onCancel: () => void;
 }
@@ -38,9 +51,11 @@ export function ResourceAccessModal({
   roleName,
   loading = false,
   existingAccess = [],
+  initialData = null,
   onConfirm,
   onCancel,
 }: ResourceAccessModalProps) {
+  const isEditMode = !!initialData;
   const [resources, setResources] = useState<ResourceInfo[]>([]);
   const [selectedResourceId, setSelectedResourceId] = useState('');
   const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null);
@@ -51,18 +66,34 @@ export function ResourceAccessModal({
   const [loadingResources, setLoadingResources] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Reset state when modal opens
+  // Reset or pre-fill state when modal opens
   useEffect(() => {
     if (isOpen) {
-      setSelectedResourceId('');
-      setSelectedMethodId(null);
-      setUseFilter(false);
-      setFilterField('');
-      setFilterType('include');
-      setFilterValues('');
+      if (initialData) {
+        setSelectedResourceId(initialData.resourceId);
+        setSelectedMethodId(initialData.resourceHttpMethodId ?? null);
+        if (initialData.responseFilter) {
+          setUseFilter(true);
+          setFilterField(initialData.responseFilter.field);
+          setFilterType(initialData.responseFilter.type);
+          setFilterValues(initialData.responseFilter.values.join(', '));
+        } else {
+          setUseFilter(false);
+          setFilterField('');
+          setFilterType('include');
+          setFilterValues('');
+        }
+      } else {
+        setSelectedResourceId('');
+        setSelectedMethodId(null);
+        setUseFilter(false);
+        setFilterField('');
+        setFilterType('include');
+        setFilterValues('');
+      }
       setError(null);
     }
-  }, [isOpen]);
+  }, [isOpen, initialData]);
 
   // Fetch resources when modal opens
   useEffect(() => {
@@ -101,15 +132,38 @@ export function ResourceAccessModal({
 
   const isAlreadyGranted = useCallback(
     (resourceId: string, methodId: string | null) => {
-      return existingSet.has(`${resourceId}:${methodId ?? 'ALL'}`);
+      // Direct match
+      if (existingSet.has(`${resourceId}:${methodId ?? 'ALL'}`)) return true;
+      // If wildcard (ALL) is granted, all specific methods are also granted
+      if (methodId !== null && existingSet.has(`${resourceId}:ALL`)) return true;
+      return false;
     },
     [existingSet],
   );
 
+  const isResourceFullyGranted = useCallback(
+    (resource: ResourceInfo) => {
+      if (isEditMode) return false;
+      const methods = resource.httpMethods.filter((rhm) => rhm.method);
+      if (methods.length === 0) return false;
+      if (isAlreadyGranted(resource.id, null)) return true;
+      return methods.every((rhm) => isAlreadyGranted(resource.id, rhm.id));
+    },
+    [isEditMode, isAlreadyGranted],
+  );
+
+  const allMethodsGranted = useMemo(
+    () => (selectedResource ? isResourceFullyGranted(selectedResource) : false),
+    [selectedResource, isResourceFullyGranted],
+  );
+
   const handleResourceChange = useCallback((resourceId: string) => {
     setSelectedResourceId(resourceId);
-    setSelectedMethodId(null);
-  }, []);
+    const resource = resources.find((r) => r.id === resourceId);
+    const methods = resource?.httpMethods.filter((rhm) => rhm.method) ?? [];
+    // Auto-select if only one method available
+    setSelectedMethodId(methods.length === 1 ? methods[0]!.id : null);
+  }, [resources]);
 
   const handleConfirm = useCallback(() => {
     if (!selectedResourceId) return;
@@ -135,7 +189,8 @@ export function ResourceAccessModal({
 
   const canConfirm =
     selectedResourceId &&
-    !isAlreadyGranted(selectedResourceId, selectedMethodId) &&
+    !allMethodsGranted &&
+    (isEditMode || !isAlreadyGranted(selectedResourceId, selectedMethodId)) &&
     !loading;
 
   const footer = (
@@ -154,7 +209,7 @@ export function ResourceAccessModal({
         disabled={!canConfirm}
         className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
       >
-        {loading ? 'Asignando...' : 'Asignar Acceso'}
+        {loading ? (isEditMode ? 'Guardando...' : 'Asignando...') : (isEditMode ? 'Guardar Cambios' : 'Asignar Acceso')}
       </button>
     </>
   );
@@ -163,7 +218,7 @@ export function ResourceAccessModal({
     <Modal
       isOpen={isOpen}
       onClose={onCancel}
-      title="Asignar Acceso a Recurso"
+      title={isEditMode ? 'Editar Acceso a Recurso' : 'Asignar Acceso a Recurso'}
       subtitle={roleName}
       size="2xl"
       preventClose={loading}
@@ -202,23 +257,34 @@ export function ResourceAccessModal({
               className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
             >
               <option value="">Seleccione un recurso...</option>
-              {resources.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name} ({r.code})
+              {resources.map((r) => {
+                const fullyGranted = isResourceFullyGranted(r);
+                return (
+                <option key={r.id} value={r.id} disabled={fullyGranted}>
+                  {r.name} ({r.code}){fullyGranted ? ' — Completamente asignado' : ''}
                 </option>
-              ))}
+                );
+              })}
             </select>
           )}
         </div>
 
+        {/* All methods already granted warning */}
+        {allMethodsGranted && (
+          <div className="rounded-md bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700">
+            Todos los metodos de este recurso ya estan asignados a este rol.
+          </div>
+        )}
+
         {/* Step 2: HTTP Method */}
-        {selectedResource && (
+        {selectedResource && !allMethodsGranted && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Metodo HTTP
             </label>
             <div className="space-y-1">
-              {/* Wildcard option */}
+              {/* Wildcard option - only show when resource has more than one method */}
+              {selectedResource.httpMethods.filter((rhm) => rhm.method).length > 1 && (
               <label
                 className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm cursor-pointer transition-colors ${
                   selectedMethodId === null
@@ -242,12 +308,13 @@ export function ResourceAccessModal({
                   <span className="ml-auto text-xs text-gray-400">Ya asignado</span>
                 )}
               </label>
+              )}
 
               {/* Specific methods */}
               {selectedResource.httpMethods
-                .filter((rhm) => rhm.httpMethod)
+                .filter((rhm) => rhm.method)
                 .map((rhm) => {
-                const alreadyGranted = isAlreadyGranted(selectedResourceId, rhm.id);
+                const alreadyGranted = !isEditMode && isAlreadyGranted(selectedResourceId, rhm.id);
                 return (
                   <label
                     key={rhm.id}
@@ -267,7 +334,7 @@ export function ResourceAccessModal({
                       disabled={alreadyGranted || loading}
                       className="text-blue-600"
                     />
-                    <code className="font-medium">{rhm.httpMethod.method}</code>
+                    <code className="font-medium">{rhm.method}</code>
                     {alreadyGranted && (
                       <span className="ml-auto text-xs text-gray-400">Ya asignado</span>
                     )}
@@ -279,7 +346,7 @@ export function ResourceAccessModal({
         )}
 
         {/* Step 3: Response filter (optional) */}
-        {selectedResource && (
+        {(selectedResource || isEditMode) && (
           <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
             <label className="flex items-center gap-2 text-sm">
               <input

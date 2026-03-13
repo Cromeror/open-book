@@ -50,6 +50,7 @@ export interface CapudataRoleDetailProps {
   onManageMembers: () => void;
   onRemoveMember: (userId: string) => void;
   onManageResourceAccess: () => void;
+  onEditResourceAccess: (access: CapudataResourceAccessInfo) => void;
   onRevokeResourceAccess: (accessId: string) => void;
 }
 
@@ -65,6 +66,7 @@ export function CapudataRoleDetail({
   onManageMembers,
   onRemoveMember,
   onManageResourceAccess,
+  onEditResourceAccess,
   onRevokeResourceAccess,
 }: CapudataRoleDetailProps) {
   // Group resource access by resource
@@ -163,14 +165,24 @@ export function CapudataRoleDetail({
                             : 'ALL'}
                         </code>
                         {access.responseFilter && (
-                          <span className="text-xs text-blue-500" title={`Filtro: ${access.responseFilter.type} ${access.responseFilter.field}`}>
+                          <span className="text-xs text-blue-500" title={`Filtro: ${access.responseFilter.type} ${access.responseFilter.field} = [${access.responseFilter.values.join(', ')}]`}>
                             (filtrado)
                           </span>
                         )}
                         <button
                           type="button"
+                          onClick={() => onEditResourceAccess(access)}
+                          className="ml-1 text-gray-400 hover:text-blue-600"
+                          title="Editar acceso"
+                        >
+                          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => onRevokeResourceAccess(access.id)}
-                          className="ml-1 text-red-500 hover:text-red-700"
+                          className="ml-0.5 text-gray-400 hover:text-red-600"
                           title="Revocar acceso"
                         >
                           <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

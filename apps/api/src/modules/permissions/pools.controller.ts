@@ -301,6 +301,48 @@ export class PoolsController {
   }
 
   /**
+   * PATCH /api/admin/pools/:id/resource-access/:accessId
+   * Update resource access (response filter) for a pool
+   */
+  @Patch(':id/resource-access/:accessId')
+  async updateResourceAccess(
+    @Param('id') poolId: string,
+    @Param('accessId') accessId: string,
+    @Body() body: unknown,
+  ) {
+    const schema = z.object({
+      resourceHttpMethodId: z.string().uuid().nullable().optional(),
+      responseFilter: z.object({
+        field: z.string().min(1),
+        type: z.enum(['include', 'exclude']),
+        values: z.array(z.string()),
+      }).nullable().optional(),
+    });
+
+    let dto: z.infer<typeof schema>;
+    try {
+      dto = schema.parse(body);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const messages = error.issues.map((issue) => issue.message);
+        throw new BadRequestException({
+          statusCode: 400,
+          message: 'Error de validación',
+          errors: messages,
+        });
+      }
+      throw error;
+    }
+
+    return this.poolsService.updateResourceAccess(
+      poolId,
+      accessId,
+      dto.responseFilter ?? null,
+      dto.resourceHttpMethodId,
+    );
+  }
+
+  /**
    * DELETE /api/admin/pools/:id/resource-access/:accessId
    * Revoke resource access from a pool
    */

@@ -477,4 +477,41 @@ export class PoolsService {
 
     this.logger.log(`Resource access revoked from pool ${poolId}: ${accessId}`);
   }
+
+  /**
+   * Update resource access response filter
+   */
+  async updateResourceAccess(
+    poolId: string,
+    accessId: string,
+    responseFilter?: { field: string; type: 'include' | 'exclude'; values: string[] } | null,
+    resourceHttpMethodId?: string | null,
+  ): Promise<PoolResourceAccess> {
+    const access = await this.poolResourceAccessRepo.findOne({
+      where: { id: accessId, poolId },
+      relations: ['resource', 'resourceHttpMethod', 'resourceHttpMethod.httpMethod'],
+    });
+
+    if (!access) {
+      throw new NotFoundException('Acceso a recurso no encontrado');
+    }
+
+    if (resourceHttpMethodId !== undefined) {
+      if (resourceHttpMethodId) {
+        const rhm = await this.resourceHttpMethodRepo.findOne({
+          where: { id: resourceHttpMethodId, resourceId: access.resourceId },
+        });
+        if (!rhm) {
+          throw new NotFoundException('Metodo HTTP no encontrado para este recurso');
+        }
+      }
+      access.resourceHttpMethodId = resourceHttpMethodId;
+    }
+
+    access.responseFilter = responseFilter ?? null;
+    const updated = await this.poolResourceAccessRepo.save(access);
+
+    this.logger.log(`Resource access updated for pool ${poolId}: ${accessId}`);
+    return updated;
+  }
 }
