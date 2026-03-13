@@ -71,6 +71,10 @@ export interface ModuleWithActionsResponse {
   description: string;
   /** Lucide icon name, e.g. 'Target' */
   icon: string;
+  /** Specialized frontend component name (e.g. 'UsersModule'). Null if generic. */
+  component?: string | null;
+  /** Configuration data (props) for the specialized component. Null if generic. */
+  componentConfig?: Record<string, unknown> | null;
   nav: {
     path: string;
     order: number;

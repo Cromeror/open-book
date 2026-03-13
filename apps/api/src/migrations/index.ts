@@ -15,3 +15,6 @@ export { AddIntegrationUserManagement1741306300000 } from './1741306300000-AddIn
 export { AddResourceAccess1741306400000 } from './1741306400000-AddResourceAccess';
 export { AddExternalPermissions1741306500000 } from './1741306500000-AddExternalPermissions';
 export { AddOrganizationInfoToExternalUsers1741306600000 } from './1741306600000-AddOrganizationInfoToExternalUsers';
+export { SeedUserPermissions1741306700000 } from './1741306700000-SeedUserPermissions';
+export { AddComponentConfig1741306800000 } from './1741306800000-AddComponentConfig';
+export { AssignMosaicWidgetToUsers1741306900000 } from './1741306900000-AssignMosaicWidgetToUsers';

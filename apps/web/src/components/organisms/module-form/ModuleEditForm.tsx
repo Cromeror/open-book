@@ -7,6 +7,8 @@ import { Section } from '@/components/molecules';
 import type { ModuleEditFormProps, ModuleFormData, ValidationError } from './types';
 import { validateModuleForm, normalizeCode, normalizeTags } from './validation';
 import { ActionsConfigEditor } from './ActionsConfigEditor';
+import { registeredComponentNames, resolveWidgetSchema } from '@/components/modules';
+import { JsonEditor } from '@/components/molecules';
 
 const inputClasses =
   'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100';
@@ -28,6 +30,7 @@ export function ModuleEditForm({
 }: ModuleEditFormProps) {
   const [formData, setFormData] = useState<ModuleFormData>(initialData);
   const [errors, setErrors] = useState<ValidationError[]>([]);
+  const [configErrors, setConfigErrors] = useState<string[]>([]);
   const [tagsInput, setTagsInput] = useState((initialData.tags || []).join(', '));
 
   useEffect(() => {
@@ -77,6 +80,25 @@ export function ModuleEditForm({
     }));
   }, []);
 
+  const handleComponentChange = useCallback((value: string | undefined) => {
+    setFormData((prev) => ({ ...prev, component: value, componentConfig: undefined }));
+    setConfigErrors([]);
+    setErrors((prev) => prev.filter((e) => e.field !== 'componentConfig'));
+  }, []);
+
+  const handleConfigChange = useCallback((parsed: Record<string, unknown>) => {
+    setFormData((prev) => ({ ...prev, componentConfig: parsed }));
+    const schema = resolveWidgetSchema(formData.component);
+    if (schema) {
+      const result = schema.safeParse(parsed);
+      if (!result.success) {
+        setConfigErrors(result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`));
+      } else {
+        setConfigErrors([]);
+      }
+    }
+  }, [formData.component]);
+
   const handleActionsChange = useCallback((actions: ModuleFormData['actionsConfig']) => {
     setFormData((prev) => ({ ...prev, actionsConfig: actions }));
   }, []);
@@ -86,6 +108,18 @@ export function ModuleEditForm({
     if (!validation.isValid) {
       setErrors(validation.errors);
       return;
+    }
+    // Validate componentConfig with the widget's Zod schema
+    if (formData.component) {
+      const schema = resolveWidgetSchema(formData.component);
+      if (schema) {
+        const result = schema.safeParse(formData.componentConfig ?? {});
+        if (!result.success) {
+          setConfigErrors(result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`));
+          setErrors([{ field: 'componentConfig', message: 'La configuracion del widget es invalida' }]);
+          return;
+        }
+      }
     }
     onSubmit(formData);
   }, [formData, onSubmit]);
@@ -178,6 +212,99 @@ export function ModuleEditForm({
           )}
         </div>
       </Section>
+
+      {/* Configuracion de Navegacion */}
+      <Section title="Navegacion" titlePrefix={<Info className="h-4 w-4 text-blue-500" />}>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelClasses}>Ruta de navegacion</label>
+            <input
+              type="text"
+              value={formData.navConfig?.path || ''}
+              onChange={(e) => handleNavPathChange(e.target.value)}
+              className={`${inputClasses} ${getFieldError('navConfig.path') ? 'border-red-500' : ''}`}
+              placeholder="ej: /m/users"
+              disabled={loading}
+            />
+            {getFieldError('navConfig.path') ? (
+              <p className="mt-1 text-xs text-red-500">{getFieldError('navConfig.path')}</p>
+            ) : (
+              <p className="mt-1 text-xs text-gray-500">Ruta en el frontend donde se renderiza el modulo</p>
+            )}
+          </div>
+          <div>
+            <label className={labelClasses}>Orden en navegacion</label>
+            <input
+              type="number"
+              value={formData.navConfig?.order ?? 0}
+              onChange={(e) => handleNavOrderChange(parseInt(e.target.value, 10) || 0)}
+              className={inputClasses}
+              min={0}
+              disabled={loading}
+            />
+            <p className="mt-1 text-xs text-gray-500">Posicion en el menu de navegacion</p>
+          </div>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelClasses}>Endpoint API</label>
+            <input
+              type="text"
+              value={formData.endpoint || ''}
+              onChange={(e) => handleFieldChange('endpoint', e.target.value)}
+              className={inputClasses}
+              placeholder="ej: /api/admin/users"
+              disabled={loading}
+            />
+          </div>
+          <div>
+            <label className={labelClasses}>Componente</label>
+            <select
+              value={formData.component || ''}
+              onChange={(e) => handleComponentChange(e.target.value || undefined)}
+              className={`${inputClasses} disabled:cursor-not-allowed disabled:text-gray-400 disabled:opacity-60`}
+              disabled={loading || registeredComponentNames.length === 0}
+            >
+              {registeredComponentNames.length === 0 ? (
+                <option value="">No hay widgets disponibles</option>
+              ) : (
+                <>
+                  <option value="">Ninguno (genérico)</option>
+                  {registeredComponentNames.map((name) => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
+                </>
+              )}
+            </select>
+          </div>
+        </div>
+      </Section>
+
+      {/* Widget Configuration */}
+      {formData.component && resolveWidgetSchema(formData.component) && (
+        <Section title="Configuracion del Widget" titlePrefix={<Info className="h-4 w-4 text-purple-500" />}>
+          <JsonEditor
+            value={formData.componentConfig ?? {}}
+            onChange={handleConfigChange}
+            disabled={loading}
+            rows={12}
+            placeholder='{ "items": [...], "columns": { "xs": 1, "sm": 2, "md": 3 } }'
+            helpText="Configuracion JSON del widget (validado con el schema del componente)"
+            invalidMessage="JSON invalido"
+          />
+          {configErrors.length > 0 && (
+            <div className="mt-2 rounded-md bg-red-50 border border-red-200 p-3">
+              <p className="text-xs font-medium text-red-700 mb-1">Errores de validacion del schema:</p>
+              <ul className="list-disc list-inside text-xs text-red-600 space-y-0.5">
+                {configErrors.map((err, i) => (
+                  <li key={i}>{err}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </Section>
+      )}
 
       {/* Recursos Asociados */}
       <Section title="Recursos Asociados" titlePrefix={<Info className="h-4 w-4 text-blue-500" />}>

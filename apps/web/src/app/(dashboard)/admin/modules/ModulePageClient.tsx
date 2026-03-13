@@ -22,6 +22,7 @@ interface Module {
   entity?: string;
   endpoint?: string;
   component?: string;
+  componentConfig?: Record<string, unknown>;
   navConfig?: { path: string; order: number };
   actionsConfig?: unknown[];
   order: number;
@@ -162,6 +163,7 @@ export function ModulePageClient({ initialModules }: Props) {
       entity: selectedModule.entity,
       endpoint: selectedModule.endpoint,
       component: selectedModule.component,
+      componentConfig: selectedModule.componentConfig,
       navConfig: selectedModule.navConfig,
       actionsConfig: selectedModule.actionsConfig as ModuleFormData['actionsConfig'],
       order: selectedModule.order,

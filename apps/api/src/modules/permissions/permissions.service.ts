@@ -189,6 +189,8 @@ export class PermissionsService {
       moduleName: string;
       moduleDescription: string | null;
       moduleIcon: string | null;
+      moduleComponent: string | null;
+      moduleComponentConfig: string | null;
       moduleNavConfig: string | null;
       moduleOrder: number;
       moduleActionsConfig: string | null;
@@ -209,6 +211,8 @@ export class PermissionsService {
         .addSelect('m.name', 'moduleName')
         .addSelect('m.description', 'moduleDescription')
         .addSelect('m.icon', 'moduleIcon')
+        .addSelect('m.component', 'moduleComponent')
+        .addSelect('m.component_config', 'moduleComponentConfig')
         .addSelect('m.nav_config', 'moduleNavConfig')
         .addSelect('m.order', 'moduleOrder')
         .addSelect('m.actions_config', 'moduleActionsConfig')
@@ -229,6 +233,8 @@ export class PermissionsService {
         .addSelect('m.name', 'moduleName')
         .addSelect('m.description', 'moduleDescription')
         .addSelect('m.icon', 'moduleIcon')
+        .addSelect('m.component', 'moduleComponent')
+        .addSelect('m.component_config', 'moduleComponentConfig')
         .addSelect('m.nav_config', 'moduleNavConfig')
         .addSelect('m.order', 'moduleOrder')
         .addSelect('m.actions_config', 'moduleActionsConfig')
@@ -278,6 +284,12 @@ export class PermissionsService {
         label: row.moduleName,
         description: row.moduleDescription || '',
         icon: row.moduleIcon || 'FileText',
+        component: row.moduleComponent || null,
+        componentConfig: row.moduleComponentConfig
+          ? (typeof row.moduleComponentConfig === 'string'
+              ? JSON.parse(row.moduleComponentConfig)
+              : row.moduleComponentConfig)
+          : null,
         nav: navConfig || { path: `/m/${row.moduleCode}`, order: row.moduleOrder },
         resources: this.buildResourcesWithActions(rawResources, allowedActions),
       });
@@ -472,6 +484,8 @@ export class PermissionsService {
         label: module.name,
         description: module.description || '',
         icon: module.icon || 'FileText',
+        component: module.component || null,
+        componentConfig: module.componentConfig || null,
         nav: module.navConfig || { path: `/m/${module.code}`, order: module.order },
         resources: this.buildResourcesWithActions(rawResources, allActions),
       };

@@ -50,6 +50,10 @@ export interface ModuleWithActionsResponse {
   label: string; // e.g. 'Objetivos de Recaudo'
   description: string;
   icon: string; // Lucide icon name, e.g. 'Target'
+  /** Specialized frontend component name (e.g. 'UsersModule'). Null if generic. */
+  component?: string | null;
+  /** Configuration data (props) for the specialized component. Null if generic. */
+  componentConfig?: Record<string, unknown> | null;
   nav: {
     path: string; // e.g. '/goals' or '/m/goals'
     order: number;

@@ -11,3 +11,5 @@ export { GenericForm } from './GenericForm';
 export { GenericDetail } from './GenericDetail';
 export { ModuleHeader } from './ModuleHeader';
 export { DynamicField } from './fields';
+export { resolveModuleComponent, resolveWidgetSchema, registeredComponentNames } from './component-registry';
+export type { WidgetProps } from './component-registry';

@@ -208,6 +208,7 @@ export const updateModuleSchema = z.object({
   entity: z.string().max(100).nullable().optional(),
   endpoint: z.string().max(255).nullable().optional(),
   component: z.string().max(100).nullable().optional(),
+  componentConfig: z.record(z.string(), z.unknown()).nullable().optional(),
   navConfig: navConfigSchema.nullable().optional(),
   actionsConfig: z.array(moduleActionSchema).nullable().optional(),
   order: z.number().int().min(0).optional(),

@@ -103,6 +103,17 @@ export class Module extends BaseEntity {
   component?: string;
 
   /**
+   * Configuration data for the specialized component (widget props).
+   * Validated by the widget's Zod schema on write, passed through as-is on read.
+   */
+  @Column({
+    name: 'component_config',
+    type: 'jsonb',
+    nullable: true,
+  })
+  componentConfig?: Record<string, unknown>;
+
+  /**
    * Navigation configuration (path and order)
    */
   @Column({

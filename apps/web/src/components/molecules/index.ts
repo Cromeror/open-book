@@ -36,3 +36,6 @@ export type {
   CondominiumSelectorProps,
   Condominium,
 } from './CondominiumSelector';
+
+export { GridContainer } from './GridContainer';
+export type { GridContainerProps, GridItem } from './GridContainer';

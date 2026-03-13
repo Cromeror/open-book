@@ -16,6 +16,7 @@ import {
   Bell,
   X,
   Link2,
+  Eye,
 } from 'lucide-react';
 
 import { publicEnv } from '@/config/env';
@@ -50,6 +51,7 @@ const navSections: NavSection[] = [
     title: publicEnv.NEXT_PUBLIC_APP_NAME,
     items: [
       { label: 'Organizaciones', path: '/admin/organizations', icon: <Building2 className="h-4 w-4" /> },
+      { label: 'Configuración de vistas', path: '/admin/organization-views', icon: <Eye className="h-4 w-4" /> },
     ],
   },
   {

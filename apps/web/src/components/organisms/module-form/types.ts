@@ -202,6 +202,7 @@ export interface ModuleFormData {
   entity?: string;
   endpoint?: string;
   component?: string;
+  componentConfig?: Record<string, unknown>;
   navConfig?: NavConfig;
   actionsConfig?: ModuleAction[];
   order?: number;

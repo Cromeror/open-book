@@ -15,6 +15,7 @@ import { isListUiConfig } from '@/lib/types/modules';
 import { ModuleHeader } from './ModuleHeader';
 import { GenericList } from './GenericList';
 import { GenericForm } from './GenericForm';
+import { resolveModuleComponent } from './component-registry';
 
 export interface ModuleProps {
   moduleCode: string;
@@ -59,6 +60,11 @@ type ViewState =
 export function GenericModule({ moduleCode, metadata }: ModuleProps) {
   const [viewState, setViewState] = useState<ViewState>({ component: 'list' });
 
+  const SpecializedComponent = useMemo(
+    () => resolveModuleComponent(metadata.component),
+    [metadata.component],
+  );
+
   const allActions = useMemo(() => extractActions(metadata), [metadata]);
 
   const actionsMap = useMemo(() => {
@@ -92,6 +98,11 @@ export function GenericModule({ moduleCode, metadata }: ModuleProps) {
         icon={metadata.icon}
         onBack={!isDefault ? handleBack : undefined}
       />
+
+      {/* Specialized component (rendered above generic content when configured) */}
+      {SpecializedComponent && metadata.componentConfig && (
+        <SpecializedComponent moduleCode={moduleCode} componentConfig={metadata.componentConfig} />
+      )}
 
       {/* List view */}
       {isDefault && (

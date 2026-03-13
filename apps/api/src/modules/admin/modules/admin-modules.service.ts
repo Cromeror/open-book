@@ -211,6 +211,7 @@ export class AdminModulesService {
     if (dto.entity !== undefined) module.entity = dto.entity ?? undefined;
     if (dto.endpoint !== undefined) module.endpoint = dto.endpoint ?? undefined;
     if (dto.component !== undefined) module.component = dto.component ?? undefined;
+    if (dto.componentConfig !== undefined) module.componentConfig = dto.componentConfig ?? undefined;
     if (dto.navConfig !== undefined) module.navConfig = dto.navConfig ?? undefined;
     if (dto.actionsConfig !== undefined) module.actionsConfig = dto.actionsConfig ?? undefined;
     if (dto.order !== undefined) module.order = dto.order;

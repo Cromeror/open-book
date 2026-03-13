@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Pencil, Users, KeyRound, AlertCircle } from 'lucide-react';
+import { Pencil, Users, KeyRound, AlertCircle, Eye } from 'lucide-react';
 import { SearchInput } from '@/components/molecules/SearchInput';
 import type { Organization, ExternalUser } from '@/types/business/organization.types';
 
@@ -54,6 +54,13 @@ export function OrganizationDetailView({
           >
             {organization.isActive ? 'Activa' : 'Inactiva'}
           </span>
+          <Link
+            href={`/admin/organization-views/${organization.code}`}
+            className="inline-flex items-center gap-1.5 rounded-md border border-blue-600 px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50"
+          >
+            <Eye className="h-3.5 w-3.5" />
+            Configurar Vistas
+          </Link>
           <Link
             href={`/admin/organizations/${organization.code}/edit`}
             className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"

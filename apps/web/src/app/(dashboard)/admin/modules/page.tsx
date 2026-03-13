@@ -20,6 +20,7 @@ interface Module {
   entity?: string;
   endpoint?: string;
   component?: string;
+  componentConfig?: Record<string, unknown>;
   navConfig?: NavConfig;
   actionsConfig?: ModuleAction[];
   order: number;
