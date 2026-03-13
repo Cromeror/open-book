@@ -64,7 +64,9 @@ export default function ProjectDetailClient() {
   const [cfDefinitions, setCfDefinitions] = useState<CfDefinition[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [requestErrors, setRequestErrors] = useState<Record<string, string>>({});
   const [connected, setConnected] = useState(false);
+  const [externalUserId, setExternalUserId] = useState<string>('');
 
   const fetchProject = useCallback(
     async (payload: EmbedMessage['payload']) => {
@@ -73,6 +75,8 @@ export default function ProjectDetailClient() {
 
       setLoading(true);
       setError('');
+      setRequestErrors({});
+      setExternalUserId(String(user.id ?? ''));
 
       try {
         const result = await fetchProjectData({ authHeaders, user, projectId, apiUrl });
@@ -84,6 +88,9 @@ export default function ProjectDetailClient() {
         setProject(result.project);
         setCfTypes(result.cfTypes);
         setCfDefinitions(result.cfDefinitions);
+        if (result.errors && Object.keys(result.errors).length > 0) {
+          setRequestErrors(result.errors);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error en la petición');
       } finally {
@@ -165,6 +172,54 @@ export default function ProjectDetailClient() {
           {error}
         </div>
       )}
+
+      <div className="mb-4 rounded-md bg-gray-200 px-3 py-2 text-xs text-gray-700">
+        <span className="font-semibold">x-external-user-id:</span> {externalUserId || '(vacío)'}
+      </div>
+
+      <div className="mb-6 space-y-2">
+        <details className="rounded-lg bg-gray-100">
+          <summary className={`cursor-pointer select-none p-3 text-sm font-semibold ${requestErrors.project ? 'text-red-600' : 'text-gray-700'}`}>
+            GET /ext/clients/:client_id/projects/:projectId
+            {requestErrors.project && <span className="ml-2 font-normal text-red-500">({requestErrors.project})</span>}
+          </summary>
+          {requestErrors.project ? (
+            <div className="rounded-b-lg bg-red-50 p-3 text-xs text-red-600">{requestErrors.project}</div>
+          ) : (
+            <pre className="overflow-auto rounded-b-lg bg-gray-900 p-3 text-xs text-green-400">
+              {JSON.stringify(project, null, 2)}
+            </pre>
+          )}
+        </details>
+
+        <details className="rounded-lg bg-gray-100">
+          <summary className={`cursor-pointer select-none p-3 text-sm font-semibold ${requestErrors.cfTypes ? 'text-red-600' : 'text-gray-700'}`}>
+            GET /ext/custom_fields/cf_types
+            {requestErrors.cfTypes && <span className="ml-2 font-normal text-red-500">({requestErrors.cfTypes})</span>}
+          </summary>
+          {requestErrors.cfTypes ? (
+            <div className="rounded-b-lg bg-red-50 p-3 text-xs text-red-600">{requestErrors.cfTypes}</div>
+          ) : (
+            <pre className="overflow-auto rounded-b-lg bg-gray-900 p-3 text-xs text-green-400">
+              {JSON.stringify(cfTypes, null, 2)}
+            </pre>
+          )}
+        </details>
+
+        <details className="rounded-lg bg-gray-100">
+          <summary className={`cursor-pointer select-none p-3 text-sm font-semibold ${requestErrors.cfDefinitions ? 'text-red-600' : 'text-gray-700'}`}>
+            GET /ext/clients/:client_id/definitions_by_class?target_class=projects
+            {requestErrors.cfDefinitions && <span className="ml-2 font-normal text-red-500">({requestErrors.cfDefinitions})</span>}
+          </summary>
+          {requestErrors.cfDefinitions ? (
+            <div className="rounded-b-lg bg-red-50 p-3 text-xs text-red-600">{requestErrors.cfDefinitions}</div>
+          ) : (
+            <pre className="overflow-auto rounded-b-lg bg-gray-900 p-3 text-xs text-green-400">
+              {JSON.stringify(cfDefinitions, null, 2)}
+            </pre>
+          )}
+        </details>
+      </div>
 
       {/* Custom Fields — only show definitions the user has access to */}
       {cfDefinitions.length > 0 && (

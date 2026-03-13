@@ -29,24 +29,35 @@ export async function fetchProjectData(params: FetchProjectParams) {
 
   const extHeaders: Record<string, string> = {
     ...headers,
-    'x-external-user-id': String(user.id ?? authHeaders.uid ?? ''),
+    'x-external-user-id': String(user.id ?? ''),
   };
 
   const [projectRes, cfTypesRes, cfDefsRes] = await Promise.all([
-    fetch(`${apiUrl}/clients/${user.client_id}/projects/${projectId}/`, { headers }),
-    fetch(`${apiUrl}/custom_fields/cf_types`, { headers }),
+    fetch(`${API_BASE_URL}/ext/clients/${user.client_id}/projects/${projectId}`, { headers: extHeaders }),
+    fetch(`${API_BASE_URL}/ext/custom_fields/cf_types`, { headers: extHeaders }),
     fetch(`${API_BASE_URL}/ext/clients/${user.client_id}/definitions_by_class?target_class=projects`, { headers: extHeaders }),
   ]);
 
   const [projectData, cfTypesData, cfDefsData] = await Promise.all([
-    projectRes.json(),
-    cfTypesRes.json(),
-    cfDefsRes.json(),
+    projectRes.json().catch(() => null),
+    cfTypesRes.json().catch(() => null),
+    cfDefsRes.json().catch(() => null),
   ]);
 
+  const errors: Record<string, string> = {};
+
   if (!projectRes.ok) {
-    const message = projectData.errors?.join(', ') || projectData.error || 'Error al consultar proyecto';
-    return { success: false as const, error: message };
+    errors.project = projectData?.errors?.join(', ') || projectData?.error || `Error ${projectRes.status}`;
+  }
+  if (!cfTypesRes.ok) {
+    errors.cfTypes = cfTypesData?.errors?.join(', ') || cfTypesData?.error || `Error ${cfTypesRes.status}`;
+  }
+  if (!cfDefsRes.ok) {
+    errors.cfDefinitions = cfDefsData?.errors?.join(', ') || cfDefsData?.error || `Error ${cfDefsRes.status}`;
+  }
+
+  if (errors.project && !projectData) {
+    return { success: false as const, error: errors.project };
   }
 
   return {
@@ -54,5 +65,6 @@ export async function fetchProjectData(params: FetchProjectParams) {
     project: projectData,
     cfTypes: Array.isArray(cfTypesData) ? cfTypesData : [],
     cfDefinitions: Array.isArray(cfDefsData) ? cfDefsData : [],
+    errors,
   };
 }
