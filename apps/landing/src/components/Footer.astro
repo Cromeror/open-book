@@ -1,0 +1,47 @@
+---
+import { t, type Lang } from '../i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const dict = t(lang);
+---
+
+<footer class="border-t border-dark-700/50 bg-dark-950 py-16">
+  <div class="mx-auto max-w-7xl px-6">
+    <div class="grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
+      <div>
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-white">GDOM</h4>
+        <p class="mt-4 text-sm leading-relaxed text-dark-400">{dict.footer.tagline}</p>
+      </div>
+      <div>
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-white">{dict.footer.ecosystem}</h4>
+        <ul class="mt-4 space-y-3">
+          <li><a href="#" class="text-sm text-dark-400 transition hover:text-white">{dict.footer.docs}</a></li>
+          <li><a href="#" class="text-sm text-dark-400 transition hover:text-white">{dict.footer.security}</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-white">{dict.footer.legal}</h4>
+        <ul class="mt-4 space-y-3">
+          <li><a href="#" class="text-sm text-dark-400 transition hover:text-white">{dict.footer.privacy}</a></li>
+          <li><a href="#" class="text-sm text-dark-400 transition hover:text-white">{dict.footer.terms}</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-white">{dict.footer.status}</h4>
+        <ul class="mt-4 space-y-3">
+          <li class="flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-mint-500"></span>
+            <span class="text-sm text-dark-400">{dict.footer.status_ok}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-16 border-t border-dark-700/50 pt-8 text-center">
+      <p class="text-xs text-dark-500">
+        &copy; {new Date().getFullYear()} {dict.footer.copyright}
+      </p>
+    </div>
+  </div>
+</footer>

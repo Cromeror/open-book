@@ -1,0 +1,52 @@
+---
+import { t, type Lang } from '../i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const dict = t(lang);
+---
+
+<section id="pricing" class="bg-dark-900 py-24">
+  <div class="mx-auto max-w-7xl px-6">
+    <div class="text-center">
+      <h2 class="text-4xl font-extrabold tracking-tight text-white">{dict.pricing.title}</h2>
+      <p class="mt-4 text-base text-dark-300">{dict.pricing.description}</p>
+    </div>
+
+    <div class="mt-16 overflow-x-auto">
+      <table class="w-full min-w-[640px]">
+        <thead>
+          <tr class="border-b border-dark-700">
+            <th class="pb-4 pr-6 text-left text-xs font-semibold uppercase tracking-wider text-mint-400">
+              {lang === 'es' ? 'Funcionalidad' : 'Feature'}
+            </th>
+            {dict.pricing.tiers.map((tier) => (
+              <th class="pb-4 px-4 text-left text-xs font-semibold uppercase tracking-wider text-mint-400">
+                {tier}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {dict.pricing.rows.map((row) => (
+            <tr class="border-b border-dark-700/50">
+              <td class="py-5 pr-6 text-sm font-semibold text-white">{row.feature}</td>
+              {row.values.map((val, i) => (
+                <td class="px-4 py-5">
+                  <span class:list={[
+                    'text-sm',
+                    row.highlight[i]
+                      ? 'rounded-md border border-mint-500/30 bg-mint-500/10 px-3 py-1 font-medium text-mint-400'
+                      : 'text-dark-200',
+                  ]}>
+                    {val}
+                  </span>
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

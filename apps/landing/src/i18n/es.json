@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "title": "GDOM — Inteligencia Operativa | Fachada de Software Universal",
+    "description": "GDOM — Inteligencia Operativa. El motor de software universal que moderniza sus operaciones."
+  },
+  "nav": {
+    "features": "Funcionalidades",
+    "pricing": "Precios",
+    "panels": "Otros Paneles",
+    "contact": "Contáctanos"
+  },
+  "hero": {
+    "slides": [
+      {
+        "badge": "> Solución de software flexible",
+        "title": "Cualquier <i>Backend.</i>\nUna Potente <i>Fachada</i>\nde Soft<span class=\"dim\">ware</span>.",
+        "description": "El motor de software universal que moderniza sus operaciones, resguarda sus datos e impulsa su estrategia."
+      },
+      {
+        "badge": "● Inteligencia Operativa Activa",
+        "title": "GDOM:\n<span class=\"subtitle\">Gestión de Operaciones <i>Orientada a Objetivos.</i></span>",
+        "description": "La Fachada Empresarial que moderniza sus operaciones, resguarda sus datos e impulsa su estrategia."
+      }
+    ],
+    "compatibility": "Funciona con su ERP, CRM o stack heredado actual—sin necesidad de migración.",
+    "cta_explore": "Explorar la plataforma",
+    "cta_contact": "Contáctanos",
+    "status_label": "Adaptabilidad Universal Active",
+    "status_code": "STATUS: CONNECTED_AI_CORE_UNIVERSAL"
+  },
+  "features": {
+    "title": "Pilares Estratégicos",
+    "pillars": [
+      {
+        "title": "Estrategia <strong>Orientada a Objetivos</strong>",
+        "description": "Su negocio manda. Usted define las metas y <strong>GDOM</strong> las hace realidad, transformando sus objetivos en una operación <strong>segura</strong>, <strong>automática</strong> y <strong>escalable</strong>."
+      },
+      {
+        "title": "Fachada de Integración <strong>Adaptable</strong>",
+        "description": "Una capa de integración flexible que funciona con <strong>cualquier stack empresarial</strong>. Encapsula la complejidad heredada en una fachada unificada que habla <i>protocolos modernos</i> al instante."
+      },
+      {
+        "title": "Seguridad <strong>Zero Trust</strong>",
+        "description": "Blindado por defecto. Autenticación mutua <strong>mTLS</strong> y cifrado <strong>AES-256-GCM</strong> en reposo y tránsito, garantizando que cada bit sea verificado antes de la operación."
+      }
+    ]
+  },
+  "whyUs": {
+    "badge": "¿Por qué elegirnos?",
+    "title": "Tu operación lista <strong>hoy</strong>, no en meses.",
+    "cards": [
+      {
+        "title": "Cero Construcción",
+        "description": "Te damos la \"oficina virtual\" terminada. Conéctate y opera sin programar un solo botón."
+      },
+      {
+        "title": "Tecnología que Piensa por Ti",
+        "description": "Una interfaz viva que muestra a cada persona solo lo que necesita ver. Menos caos, más eficiencia."
+      },
+      {
+        "title": "Blindaje Total",
+        "description": "Seguridad nativa de alto nivel para que te enfoques en crecer, mientras nosotros cuidamos tus transacciones."
+      },
+      {
+        "title": "Modelo Expandible",
+        "description": "Úsalo para tu empresa o conviértelo en tu propio producto para ofrecer a terceros."
+      }
+    ]
+  },
+  "pricing": {
+    "title": "Matriz SaaS",
+    "description": "Escala sus operaciones desde la validación inicial hasta la orquestación empresarial global.",
+    "tiers": ["Iniciación (Free)", "Profesional (Pro)", "Corporativo (Enterprise)"],
+    "rows": [
+      { "feature": "Protocolo de Datos", "values": ["REST Estándar", "REST Optimizado", "gRPC High-Perf"], "highlight": [false, false, true] },
+      { "feature": "Gestión de Accesos", "values": ["Directo (Manual)", "Pools (Basado)", "Entitlement Total"], "highlight": [false, false, false] },
+      { "feature": "Seguridad Base", "values": ["Cookies HttpOnly", "+ Auditoría", "Zero Trust (mTLS)"], "highlight": [false, false, true] },
+      { "feature": "Inteligencia de UI", "values": ["HATEOAS Básico", "Response Filters", "Filtros Avanzados"], "highlight": [false, false, false] },
+      { "feature": "Fachada Web \"Ready-to-Operate\"", "values": ["Widgets de UI básicos", "Aplicación Web Completa", "UI Embebible y Custom"], "highlight": [false, false, false] },
+      { "feature": "Resguardo Externo", "values": ["No disponible", "Conexión Básica", "Cifrado AES-256"], "highlight": [false, false, false] }
+    ]
+  },
+  "panels": {
+    "title": "Fachada Web \"Ready-to-Operate\"",
+    "items": [
+      {
+        "title": "Estrategia de Proxy de Incrustación",
+        "description": "Aproveche nuestro proxy de alta velocidad para incrustar componentes operativos complejos en cualquier interfaz de terceros sin problemas de CORS."
+      },
+      {
+        "title": "Entrega de UI Desacoplada",
+        "description": "Despliegue front-ends personalizables que interactúan con backends heredados a través de una pasarela GDOM unificada y segura."
+      }
+    ]
+  },
+  "contact": {
+    "title": "Iniciar Comando",
+    "description": "¿Listo para transformar el modo operativo de sus sistemas heredados en un activo estratégico orientado a objetivos?",
+    "placeholder": "Correo Corporativo",
+    "cta": "Hablar con un experto",
+    "disclaimer": "Consulta confidencial cubierta por protocolos de Secreto de Seguridad."
+  },
+  "footer": {
+    "tagline": "Gestión de Software flexible Universal para la fachada empresarial moderna.",
+    "ecosystem": "Ecosistema",
+    "docs": "Documentación",
+    "security": "Marco de Seguridad",
+    "legal": "Legal",
+    "privacy": "Política de Privacidad",
+    "terms": "Términos de Servicio",
+    "status": "Estado",
+    "status_ok": "Todos los Nodos Operativos",
+    "copyright": "Inteligencia Operativa GDOM Todos los derechos reservados."
+  }
+}

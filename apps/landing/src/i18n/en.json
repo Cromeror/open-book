@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "title": "GDOM — Operational Intelligence | Universal Software Facade",
+    "description": "GDOM — Operational Intelligence. The universal software engine that modernizes your operations."
+  },
+  "nav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "panels": "Other Panels",
+    "contact": "Contact Us"
+  },
+  "hero": {
+    "slides": [
+      {
+        "badge": "> Flexible software solution",
+        "title": "Any <i>Backend.</i>\nOne Powerful <i>Facade</i>\nof Soft<span class=\"dim\">ware</span>.",
+        "description": "The universal software engine that modernizes your operations, safeguards your data, and drives your strategy."
+      },
+      {
+        "badge": "● Operational Intelligence Active",
+        "title": "GDOM: Goal-Driven\nOperations\nManager.",
+        "description": "The Enterprise Facade that modernizes your operations, secures your data, and drives your strategy forward."
+      }
+    ],
+    "compatibility": "Works with your existing ERP, CRM, or legacy stack—no migration required.",
+    "cta_explore": "Explore the platform",
+    "cta_contact": "Contact Us",
+    "status_label": "Universal Adaptability Active",
+    "status_code": "STATUS: CONNECTED_AI_CORE_UNIVERSAL"
+  },
+  "features": {
+    "title": "Strategic Pillars",
+    "pillars": [
+      {
+        "title": "<strong>Goal-Oriented</strong> Strategy",
+        "description": "Your business leads. You define the goals and <strong>GDOM</strong> makes them a reality, transforming your objectives into a <strong>secure</strong>, <strong>automated</strong>, and <strong>scalable</strong> operation."
+      },
+      {
+        "title": "<strong>Adaptable</strong> Integration Facade",
+        "description": "A flexible integration layer that works with <strong>any enterprise stack</strong>. Encapsulates legacy complexity into a unified facade that speaks <i>modern protocols</i> instantly."
+      },
+      {
+        "title": "<strong>Zero Trust</strong> Security",
+        "description": "Shielded by default. Mutual <strong>mTLS</strong> authentication and <strong>AES-256-GCM</strong> encryption at rest and in transit, ensuring every bit is verified before operation."
+      }
+    ]
+  },
+  "whyUs": {
+    "badge": "Why choose us?",
+    "title": "Your operation ready <strong>today</strong>, not in months.",
+    "cards": [
+      {
+        "title": "Zero Build",
+        "description": "We give you the finished \"virtual office.\" Connect and operate without coding a single button."
+      },
+      {
+        "title": "Technology that Thinks for You",
+        "description": "A living interface that shows each person only what they need to see. Less chaos, more efficiency."
+      },
+      {
+        "title": "Total Shielding",
+        "description": "Native high-level security so you can focus on growing, while we protect your transactions."
+      },
+      {
+        "title": "Expandable Model",
+        "description": "Use it for your company or turn it into your own product to offer to third parties."
+      }
+    ]
+  },
+  "pricing": {
+    "title": "SaaS Matrix",
+    "description": "Scale your operations from initial validation to global enterprise orchestration.",
+    "tiers": ["Starter (Free)", "Professional (Pro)", "Corporate (Enterprise)"],
+    "rows": [
+      { "feature": "Data Protocol", "values": ["Standard REST", "Optimized REST", "gRPC High-Perf"], "highlight": [false, false, true] },
+      { "feature": "Access Management", "values": ["Direct (Manual)", "Pools (Based)", "Full Entitlement"], "highlight": [false, false, false] },
+      { "feature": "Base Security", "values": ["HttpOnly Cookies", "+ Auditing", "Zero Trust (mTLS)"], "highlight": [false, false, true] },
+      { "feature": "UI Intelligence", "values": ["Basic HATEOAS", "Response Filters", "Advanced Filters"], "highlight": [false, false, false] },
+      { "feature": "Web Facade \"Ready-to-Operate\"", "values": ["Basic UI Widgets", "Full Web Application", "Embeddable & Custom UI"], "highlight": [false, false, false] },
+      { "feature": "External Backup", "values": ["Not available", "Basic Connection", "AES-256 Encryption"], "highlight": [false, false, false] }
+    ]
+  },
+  "panels": {
+    "title": "Web Facade \"Ready-to-Operate\"",
+    "items": [
+      {
+        "title": "Embedding Proxy Strategy",
+        "description": "Leverage our high-speed proxy to embed complex operational components into any third-party interface without CORS issues."
+      },
+      {
+        "title": "Decoupled UI Delivery",
+        "description": "Deploy customizable front-ends that interact with legacy backends through a unified and secure GDOM gateway."
+      }
+    ]
+  },
+  "contact": {
+    "title": "Launch Command",
+    "description": "Ready to transform the operating mode of your legacy systems into a goal-oriented strategic asset?",
+    "placeholder": "Corporate Email",
+    "cta": "Talk to an expert",
+    "disclaimer": "Confidential consultation covered by Security Secrecy protocols."
+  },
+  "footer": {
+    "tagline": "Flexible Universal Software Management for the modern enterprise facade.",
+    "ecosystem": "Ecosystem",
+    "docs": "Documentation",
+    "security": "Security Framework",
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "status": "Status",
+    "status_ok": "All Nodes Operational",
+    "copyright": "Operational Intelligence GDOM All rights reserved."
+  }
+}

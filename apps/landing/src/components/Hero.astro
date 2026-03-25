@@ -1,0 +1,214 @@
+---
+import { t, type Lang } from '../i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const dict = t(lang);
+const h = dict.hero;
+---
+
+<section class="relative overflow-hidden pt-32 pb-20">
+  <div class="absolute inset-0 bg-gradient-to-b from-dark-900 via-dark-950 to-dark-950"></div>
+
+  <div class="relative mx-auto max-w-7xl px-6">
+    <div class="max-w-3xl">
+      <!-- Carousel container -->
+      <div id="hero-carousel" class="relative">
+        {h.slides.map((slide: any, i: number) => (
+          <div
+            class={`hero-slide ${i === 0 ? 'active' : ''}`}
+            data-slide={i}
+          >
+            <span class="hero-badge inline-block rounded-full border border-mint-500/30 bg-mint-500/10 px-4 py-1.5 text-xs font-medium uppercase tracking-wider text-mint-400">
+              <Fragment set:html={slide.badge} />
+            </span>
+
+            <h1 class="hero-title mt-8 text-5xl font-black leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
+              <Fragment set:html={slide.title.replace(/\n/g, '<br />')} />
+            </h1>
+
+            <p class="hero-description mt-8 max-w-xl text-lg leading-relaxed text-dark-300">
+              {slide.description}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div class="mt-4 flex items-center gap-2 text-sm text-dark-400">
+        <span class="text-mint-400">●</span>
+        {h.compatibility}
+      </div>
+
+      <div class="mt-10 flex items-center gap-4">
+        <a
+          href="#features"
+          class="rounded-md border border-white px-6 py-3 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-white hover:text-dark-950"
+        >
+          {h.cta_explore}
+        </a>
+        <a
+          href="#contact"
+          class="rounded-md px-6 py-3 text-xs font-semibold uppercase tracking-wider text-dark-300 transition hover:text-white"
+        >
+          {h.cta_contact}
+        </a>
+      </div>
+
+      <!-- Slide indicators -->
+      <div class="mt-8 flex gap-2">
+        {h.slides.map((_: any, i: number) => (
+          <button
+            class={`hero-dot h-1.5 w-8 rounded-full transition-all duration-300 ${i === 0 ? 'bg-mint-400' : 'bg-dark-600'}`}
+            data-dot={i}
+            aria-label={`Slide ${i + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<style>
+  /* Slide positioning */
+  .hero-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .hero-slide.active {
+    position: relative;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Cascade enter animation */
+  .hero-slide.active .hero-badge,
+  .hero-slide.active .hero-title,
+  .hero-slide.active .hero-description {
+    animation: slideIn 0.5s ease-out forwards;
+  }
+
+  .hero-slide.active .hero-badge {
+    animation-delay: 0s;
+  }
+
+  .hero-slide.active .hero-title {
+    animation-delay: 0.225s;
+    opacity: 0;
+  }
+
+  .hero-slide.active .hero-description {
+    animation-delay: 0.45s;
+    opacity: 0;
+  }
+
+  /* Cascade exit animation */
+  .hero-slide.exiting .hero-badge,
+  .hero-slide.exiting .hero-title,
+  .hero-slide.exiting .hero-description {
+    animation: slideOut 0.4s ease-in forwards;
+  }
+
+  .hero-slide.exiting .hero-badge {
+    animation-delay: 0s;
+  }
+
+  .hero-slide.exiting .hero-title {
+    animation-delay: 0.18s;
+  }
+
+  .hero-slide.exiting .hero-description {
+    animation-delay: 0.36s;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideOut {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(-40px);
+    }
+  }
+
+  /* Dim style for title_3b effect */
+  .hero-title :global(.dim) {
+    color: rgb(var(--color-dark-400, 107 114 128));
+  }
+
+  /* Slightly smaller text for long subtitles */
+  .hero-title :global(.subtitle) {
+    font-size: 0.82em;
+  }
+</style>
+
+<script>
+  const INTERVAL = 5000;
+  const EXIT_DURATION = 700;
+
+  const slides = document.querySelectorAll<HTMLElement>('.hero-slide');
+  const dots = document.querySelectorAll<HTMLButtonElement>('.hero-dot');
+  let current = 0;
+  let timer: ReturnType<typeof setInterval>;
+
+  function goTo(next: number) {
+    if (next === current) return;
+
+    const currentSlide = slides[current];
+    const nextSlide = slides[next];
+
+    // Exit cascade: badge → title → description slide out left
+    currentSlide.classList.add('exiting');
+
+    setTimeout(() => {
+      currentSlide.classList.remove('active', 'exiting');
+      nextSlide.classList.add('active');
+      current = next;
+
+      // Update dots
+      dots.forEach((d, i) => {
+        d.classList.toggle('bg-mint-400', i === next);
+        d.classList.toggle('bg-dark-600', i !== next);
+      });
+    }, EXIT_DURATION);
+  }
+
+  function next() {
+    goTo((current + 1) % slides.length);
+  }
+
+  function startTimer() {
+    clearInterval(timer);
+    timer = setInterval(next, INTERVAL);
+  }
+
+  // Dot click navigation
+  dots.forEach((dot) => {
+    dot.addEventListener('click', () => {
+      const target = Number(dot.dataset.dot);
+      if (target !== current) {
+        goTo(target);
+        startTimer();
+      }
+    });
+  });
+
+  startTimer();
+</script>

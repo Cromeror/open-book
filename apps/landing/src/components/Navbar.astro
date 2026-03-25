@@ -1,0 +1,44 @@
+---
+import { t, languages, getLocalizedPath, type Lang } from '../i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const dict = t(lang);
+
+const links = [
+  { href: '#features', label: dict.nav.features },
+  { href: '#pricing', label: dict.nav.pricing },
+  { href: '#otros-paneles', label: dict.nav.panels },
+];
+
+const otherLangs = Object.entries(languages).filter(([code]) => code !== lang);
+---
+
+<nav class="fixed top-0 z-50 w-full border-b border-dark-700/50 bg-dark-950/80 backdrop-blur-md">
+  <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+    <a href={lang === 'es' ? '/' : `/${lang}`} class="text-lg font-extrabold tracking-wider text-mint-400">GDOM</a>
+    <div class="hidden items-center gap-8 md:flex">
+      {links.map((link) => (
+        <a href={link.href} class="text-xs font-medium uppercase tracking-wider text-dark-300 transition hover:text-white">
+          {link.label}
+        </a>
+      ))}
+
+      {otherLangs.map(([code, label]) => (
+        <a
+          href={getLocalizedPath('/', code as Lang)}
+          class="text-xs font-medium uppercase tracking-wider text-dark-400 transition hover:text-mint-400"
+        >
+          {label}
+        </a>
+      ))}
+
+      <a
+        href="#contact"
+        class="rounded-md bg-mint-500 px-5 py-2 text-xs font-semibold uppercase tracking-wider text-dark-950 transition hover:bg-mint-400"
+      >
+        {dict.nav.contact}
+      </a>
+    </div>
+  </div>
+</nav>
