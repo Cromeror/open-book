@@ -16,14 +16,12 @@ import { ExternalPermissionsService } from '../external-permissions.service';
  *
  * Matches the request to a resource, then applies the decision chain:
  * 1. No resource match → allow (proxy service will 404)
- * 2. resource.requiresExternalAuth = false → allow
- * 3. resource.integration is null → allow
- * 4. integration.managesUsers = false → allow
- * 5. integration.internalPermissions = false → allow
- * 6. Require externalUserId header → 403 if missing
- * 7. Check resource-level access → allow if granted (attach responseFilter)
- * 8. Fall back to module-level access → allow if granted
- * 9. Deny
+ * 2. If external user is identified → always check resource access and
+ *    attach responseFilter (even if auth is not required)
+ * 3. If auth not required (requiresExternalAuth/managesUsers/internalPermissions) → allow
+ * 4. If auth required: check resource-level access → allow if granted
+ * 5. Fall back to module-level access → allow if granted
+ * 6. Deny
  */
 @Injectable()
 export class ExternalAuthGuard implements CanActivate {
@@ -48,62 +46,63 @@ export class ExternalAuthGuard implements CanActivate {
 
     const { resource, resourceHttpMethod } = match;
 
-    // 2. Resource doesn't require external auth
-    if (!resource.requiresExternalAuth) return true;
-
-    // 3. No integration attached
     const integration = resource.integration;
-    if (!integration) return true;
+    const requiresAuth =
+      resource.requiresExternalAuth &&
+      integration?.managesUsers &&
+      integration?.internalPermissions;
 
-    // 4. Integration doesn't manage external users
-    if (!integration.managesUsers) return true;
-
-    // 5. Integration doesn't enforce internal permissions
-    if (!integration.internalPermissions) return true;
-
-    // 6. External user ID is required from this point
+    // Resolve external user (optional when auth is not required)
     const externalUserId =
       (req.headers['x-external-user-id'] as string) ?? req.externalUserId;
 
-    if (!externalUserId) {
-      this.logger.warn('Missing external user ID for protected resource');
-      throw new ForbiddenException(
-        'External user identification is required for this resource',
-      );
-    }
+    // If there's an external user and an integration, always try to attach
+    // the response filter — even when auth is not strictly required.
+    if (externalUserId && integration) {
+      const { allowed, responseFilter } =
+        await this.externalPermissions.checkResourceAccess(
+          externalUserId,
+          integration.id,
+          resource.id,
+          resourceHttpMethod.id,
+        );
 
-    // 7. Check resource-level access (most specific)
-    const { allowed, responseFilter } =
-      await this.externalPermissions.checkResourceAccess(
-        externalUserId,
-        integration.id,
-        resource.id,
-        resourceHttpMethod.id,
-      );
-
-    if (allowed) {
       if (responseFilter) {
         req.responseFilter = responseFilter;
       }
-      return true;
+
+      // Auth not required → allow (filter already attached)
+      if (!requiresAuth) return true;
+
+      // Auth required and access granted
+      if (allowed) return true;
+
+      // Fall back to module-level access
+      const moduleCode = resource.code;
+      const hasModule = await this.externalPermissions.hasModuleAccess(
+        externalUserId,
+        integration.id,
+        moduleCode,
+      );
+
+      if (hasModule) return true;
+
+      // Deny
+      this.logger.warn(
+        `External user ${externalUserId} denied access to ${resource.code} ${resourceHttpMethod.httpMethod?.method}`,
+      );
+      throw new ForbiddenException(
+        'You do not have permission to access this resource',
+      );
     }
 
-    // 8. Fall back to module-level access via resource's module association
-    const moduleCode = resource.code;
-    const hasModule = await this.externalPermissions.hasModuleAccess(
-      externalUserId,
-      integration.id,
-      moduleCode,
-    );
+    // No external user provided
+    if (!requiresAuth) return true;
 
-    if (hasModule) return true;
-
-    // 9. Deny
-    this.logger.warn(
-      `External user ${externalUserId} denied access to ${resource.code} ${resourceHttpMethod.httpMethod?.method}`,
-    );
+    // Auth required but no external user ID
+    this.logger.warn('Missing external user ID for protected resource');
     throw new ForbiddenException(
-      'You do not have permission to access this resource',
+      'External user identification is required for this resource',
     );
   }
 
