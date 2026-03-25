@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { fetchProjectData } from './actions';
+import { publicEnv } from '@/config/env';
+
+const API_BASE_URL = publicEnv.NEXT_PUBLIC_API_URL;
 
 interface AuthHeaders {
   'access-token': string;
@@ -70,7 +72,7 @@ export default function ProjectDetailClient() {
 
   const fetchProject = useCallback(
     async (payload: EmbedMessage['payload']) => {
-      const { authHeaders, user, projectId, apiUrl } = payload;
+      const { authHeaders, user, projectId } = payload;
       if (!authHeaders || !user?.client_id || !projectId) return;
 
       setLoading(true);
@@ -79,17 +81,48 @@ export default function ProjectDetailClient() {
       setExternalUserId(String(user.id ?? ''));
 
       try {
-        const result = await fetchProjectData({ authHeaders, user, projectId, apiUrl });
+        const headers: Record<string, string> = {
+          'access-token': authHeaders['access-token'] || '',
+          client: authHeaders.client || '',
+          uid: authHeaders.uid || '',
+          expiry: authHeaders.expiry || '',
+          'token-type': 'Bearer',
+          'x-external-user-id': String(user.id ?? ''),
+        };
 
-        if (!result.success) {
-          throw new Error(result.error);
+        const [projectRes, cfTypesRes, cfDefsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/ext/clients/${user.client_id}/projects/${projectId}`, { headers }),
+          fetch(`${API_BASE_URL}/ext/custom_fields/cf_types`, { headers }),
+          fetch(`${API_BASE_URL}/ext/clients/${user.client_id}/definitions_by_class?target_class=projects`, { headers }),
+        ]);
+
+        const [projectData, cfTypesData, cfDefsData] = await Promise.all([
+          projectRes.json().catch(() => null),
+          cfTypesRes.json().catch(() => null),
+          cfDefsRes.json().catch(() => null),
+        ]);
+
+        const errors: Record<string, string> = {};
+
+        if (!projectRes.ok) {
+          errors.project = projectData?.errors?.join(', ') || projectData?.error || `Error ${projectRes.status}`;
+        }
+        if (!cfTypesRes.ok) {
+          errors.cfTypes = cfTypesData?.errors?.join(', ') || cfTypesData?.error || `Error ${cfTypesRes.status}`;
+        }
+        if (!cfDefsRes.ok) {
+          errors.cfDefinitions = cfDefsData?.errors?.join(', ') || cfDefsData?.error || `Error ${cfDefsRes.status}`;
         }
 
-        setProject(result.project);
-        setCfTypes(result.cfTypes);
-        setCfDefinitions(result.cfDefinitions);
-        if (result.errors && Object.keys(result.errors).length > 0) {
-          setRequestErrors(result.errors);
+        if (errors.project && !projectData) {
+          throw new Error(errors.project);
+        }
+
+        setProject(projectData);
+        setCfTypes(Array.isArray(cfTypesData) ? cfTypesData : []);
+        setCfDefinitions(Array.isArray(cfDefsData) ? cfDefsData : []);
+        if (Object.keys(errors).length > 0) {
+          setRequestErrors(errors);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error en la petición');

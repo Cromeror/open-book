@@ -128,33 +128,19 @@ export class ExternalProxyService {
   }
 
   /**
-   * Forward original request headers, overriding with auth headers.
-   * Strips hop-by-hop headers that shouldn't be forwarded to the external system.
+   * Build headers for the external system request.
+   * Only forwards whitelisted headers — this is a server-to-server connection,
+   * browser headers (origin, referer, sec-*, cookie, user-agent) are never forwarded.
    */
   private buildForwardHeaders(
     req: Request,
     authHeaders: Record<string, string>,
   ): Record<string, string> {
-    const hopByHop = new Set([
-      'host',
-      'connection',
-      'keep-alive',
-      'transfer-encoding',
-      'te',
-      'trailer',
-      'upgrade',
-      'proxy-authorization',
-      'proxy-authenticate',
-    ]);
+    const forwarded: Record<string, string> = {
+      'content-type': req.headers['content-type'] || 'application/json',
+    };
 
-    const forwarded: Record<string, string> = {};
-    for (const [key, value] of Object.entries(req.headers)) {
-      if (typeof value === 'string' && !hopByHop.has(key.toLowerCase())) {
-        forwarded[key] = value;
-      }
-    }
-
-    // Auth headers take precedence over incoming ones
+    // Auth headers from the strategy (e.g. Devise tokens, Bearer, API key)
     Object.assign(forwarded, authHeaders);
 
     return forwarded;
