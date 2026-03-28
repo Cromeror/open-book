@@ -29,19 +29,30 @@
     "status_code": "STATUS: CONNECTED_AI_CORE_UNIVERSAL"
   },
   "features": {
-    "title": "Pilares Estratégicos",
     "pillars": [
       {
-        "title": "Estrategia <strong>Orientada a Objetivos</strong>",
-        "description": "Su negocio manda. Usted define las metas y <strong>GDOM</strong> las hace realidad, transformando sus objetivos en una operación <strong>segura</strong>, <strong>automática</strong> y <strong>escalable</strong>."
+        "badge": "Estrategia 01",
+        "title": "Estrategia Orientada a Objetivos",
+        "description": "Tu negocio marca el rumbo. Define tus objetivos y deja que GDOM los convierta en resultados reales, con una operación segura, automatizada y lista para escalar sin límites."
       },
       {
-        "title": "Fachada de Integración <strong>Adaptable</strong>",
-        "description": "Una capa de integración flexible que funciona con <strong>cualquier stack empresarial</strong>. Encapsula la complejidad heredada en una fachada unificada que habla <i>protocolos modernos</i> al instante."
+        "badge": "Estrategia 02",
+        "title": "Fachada Web \"Ready-to-Operate\"",
+        "description": "Olvida los ciclos eternos de programación y despliegue. <strong>GDOM</strong> es una infraestructura ya construida que se conecta a tus sistemas actuales para que empieces a trabajar de inmediato. No construimos software desde cero; te entregamos una solución lista para operar que elimina meses de espera técnica.",
+        "highlights": [
+          "Operatividad de \u201CD\u00eda Cero\u201D",
+          "Interfaz de Conexión Inmediata"
+        ]
       },
       {
-        "title": "Seguridad <strong>Zero Trust</strong>",
-        "description": "Blindado por defecto. Autenticación mutua <strong>mTLS</strong> y cifrado <strong>AES-256-GCM</strong> en reposo y tránsito, garantizando que cada bit sea verificado antes de la operación."
+        "badge": "Estrategia 03",
+        "title": "Fachada de Integración Adaptable",
+        "description": "Una capa de integración flexible que funciona con cualquier stack empresarial. Encapsula la complejidad heredada en una fachada unificada que habla protocolos modernos al instante."
+      },
+      {
+        "badge": "Estrategia 04",
+        "title": "Seguridad Zero Trust",
+        "description": "Blindado por defecto. Autenticación mutua mTLS y cifrado AES-256-GCM en reposo y tránsito, garantizando que cada bit sea verificado antes de la operación."
       }
     ]
   },
@@ -63,21 +74,67 @@
       },
       {
         "title": "Modelo Expandible",
-        "description": "Úsalo para tu empresa o conviértelo en tu propio producto para ofrecer a terceros."
+        "description": "Integra nuestra tecnología como el motor de tus propios servicios para expandir tu oferta comercial y entregar soluciones de alto nivel bajo tu marca."
       }
     ]
   },
   "pricing": {
-    "title": "Matriz SaaS",
-    "description": "Escala sus operaciones desde la validación inicial hasta la orquestación empresarial global.",
-    "tiers": ["Iniciación (Free)", "Profesional (Pro)", "Corporativo (Enterprise)"],
+    "title": "Inversión en <span class='text-gray-500'>Eficiencia</span>",
+    "description": "Escala tu arquitectura según tus necesidades operativas.",
+    "capabilities_label": "Capacidades",
+    "tiers": [
+      {
+        "name": "Iniciación",
+        "price": "$499/mes",
+        "cta": "Seleccionar",
+        "featured": false
+      },
+      {
+        "name": "Profesional",
+        "price": "$1,299/mes",
+        "cta": "Desplegar Ahora",
+        "featured": true
+      },
+      {
+        "name": "Corporativo",
+        "price": "Contacto",
+        "cta": "Agendar Demo",
+        "featured": false
+      }
+    ],
     "rows": [
-      { "feature": "Protocolo de Datos", "values": ["REST Estándar", "REST Optimizado", "gRPC High-Perf"], "highlight": [false, false, true] },
-      { "feature": "Gestión de Accesos", "values": ["Directo (Manual)", "Pools (Basado)", "Entitlement Total"], "highlight": [false, false, false] },
-      { "feature": "Seguridad Base", "values": ["Cookies HttpOnly", "+ Auditoría", "Zero Trust (mTLS)"], "highlight": [false, false, true] },
-      { "feature": "Inteligencia de UI", "values": ["HATEOAS Básico", "Response Filters", "Filtros Avanzados"], "highlight": [false, false, false] },
-      { "feature": "Fachada Web \"Ready-to-Operate\"", "values": ["Widgets de UI básicos", "Aplicación Web Completa", "UI Embebible y Custom"], "highlight": [false, false, false] },
-      { "feature": "Resguardo Externo", "values": ["No disponible", "Conexión Básica", "Cifrado AES-256"], "highlight": [false, false, false] }
+      {
+        "feature": "Nodos de Proxy",
+        "values": [
+          "Hasta 5",
+          "Hasta 25",
+          "Ilimitados"
+        ]
+      },
+      {
+        "feature": "HATEOAS Dinámico",
+        "values": [
+          "check",
+          "check",
+          "check"
+        ]
+      },
+      {
+        "feature": "Seguridad mTLS",
+        "values": [
+          "cross",
+          "check",
+          "check"
+        ]
+      },
+      {
+        "feature": "Soporte Dedicado",
+        "values": [
+          "Email",
+          "24/7 Priority",
+          "Ingeniero In-Situ"
+        ]
+      }
     ]
   },
   "panels": {
@@ -90,6 +147,33 @@
       {
         "title": "Entrega de UI Desacoplada",
         "description": "Despliegue front-ends personalizables que interactúan con backends heredados a través de una pasarela GDOM unificada y segura."
+      }
+    ]
+  },
+  "faq": {
+    "badge": "FAQs",
+    "title": "Lo que necesitas saber para dar el salto",
+    "subtitle": "¿Tienes otra pregunta? Contacta a nuestro equipo.",
+    "items": [
+      {
+        "question": "¿Qué es GDOM?",
+        "answer": "<strong>GDOM</strong> (Goal-Driven Operations Manager) es un <strong>motor estratégico</strong> y una fachada empresarial diseñada para convertir su visión de negocio en una realidad operativa. A diferencia de un simple servidor de datos, actúa como una \u201Ccaja negra\u201D inteligente que orquesta sus <strong>metas, recursos y actividades</strong>, permitiéndole centrarse en el \u201Cqué\u201D de su estrategia mientras la plataforma gestiona automáticamente el \u201Ccómo\u201D de forma <strong>segura y escalable</strong>."
+      },
+      {
+        "question": "¿Cómo protege GDOM mi negocio?",
+        "answer": "La plataforma implementa un modelo de <strong>Seguridad Zero Trust</strong> (\u201Cnunca confiar, siempre verificar\u201D) con blindaje de grado bancario.<br/><br/><strong>Sesiones Invisibles:</strong> los tokens de acceso nunca se guardan en el navegador, inmune a ataques XSS.<br/><strong>Comunicaciones Blindadas:</strong> tráfico interno con certificados mutuos <strong>mTLS</strong> de alta seguridad (RSA 4096 bits).<br/><strong>Cifrado de Datos:</strong> credenciales protegidas con <strong>AES-256-GCM</strong> en reposo.<br/><strong>Aislamiento Total:</strong> la lógica de negocio permanece resguardada detrás de una fachada, sin exposición directa a internet."
+      },
+      {
+        "question": "¿Es adecuado para pequeñas empresas?",
+        "answer": "Sí. GDOM cuenta con un plan de <strong>Iniciación (Free)</strong> diseñado para que organizaciones que están comenzando puedan visualizar sus metas básicas y probar el sistema <strong>sin costo</strong>. Su arquitectura es <strong>nativamente escalable</strong>, lo que permite que la herramienta crezca junto con su empresa, pasando de widgets básicos a una aplicación web completa o incluso a un modelo donde usted le ofrece tecnología a sus propios clientes."
+      },
+      {
+        "question": "¿Qué tipo de sistemas puede integrar?",
+        "answer": "GDOM es un motor <strong>agnóstico de dominio</strong> altamente flexible. En esencia, puede conectarse con <strong>todo lo que ofrezca comunicación REST</strong>.<br/><br/><strong>Sistemas Legados:</strong> moderniza infraestructuras antiguas de contabilidad o gestión.<br/><strong>Plataformas Empresariales:</strong> se integra con ERPs y CRMs existentes.<br/><strong>Servicios en la Nube:</strong> compatible con cualquier API cloud (<strong>AWS, Azure, Google Cloud</strong>) que exponga endpoints REST o utilice autenticación estándar (Bearer, API Key, OAuth).<br/><strong>Tecnología de Alto Rendimiento*:</strong> utiliza protocolos como <strong>gRPC</strong> para manejar grandes volúmenes de datos y streaming en tiempo real con sistemas externos de microservicios.<br/><br/>Soportamos <strong>5 estrategias de autenticación</strong> distintas (Bearer, Basic, API Key, OAuth y Devise Token Auth) para adaptarnos a cualquier sistema sin fricción.<br/><br/><em>*Disponible en algunos planes. Para más información, <a href='#contact' class='text-mint-400 underline'>contáctenos</a>.</em>"
+      },
+      {
+        "question": "¿Puedo integrar GDOM con mi sistema existente?",
+        "answer": "Sin duda. GDOM funciona como una <strong>fachada estratégica</strong> que eleva el nivel de madurez de tu infraestructura. En lugar de reconstruir desde cero, superponemos una arquitectura basada en el estándar <strong>HATEOAS</strong>, permitiendo orquestar acciones y menús de forma dinámica según el contexto de cada usuario.<br/><br/>Lo mejor es la flexibilidad del modelo: puedes enriquecer tus aplicaciones actuales con estas capacidades avanzadas a través de nuestras <strong>diversas modalidades de integración</strong> o, si lo prefieres, podemos entregarte la <strong>aplicación completa lista para operar</strong>. En cualquier escenario, las características esenciales y la lógica de tu sistema original se conservan intactas, pero ahora potenciadas por una interfaz flexible, <strong>trazabilidad absoluta</strong> y un <strong>blindaje Zero Trust</strong>."
       }
     ]
   },

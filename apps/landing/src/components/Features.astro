@@ -4,34 +4,74 @@ import { t, type Lang } from '../i18n';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const dict = t(lang);
+const pillars = dict.features.pillars;
 
-const icons = [
-  `<svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>`,
-  `<svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" /></svg>`,
-  `<svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>`,
+const placeholders = [
+  `<svg class="h-24 w-24 text-dark-500/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="0.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008V18m-1.5-.008h.008v.008h-.008v-.008zm-3 0h.008v.008h-.008v-.008z" /></svg>`,
+  `<svg class="h-24 w-24 text-dark-500/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="0.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 003 12c0-1.605.42-3.113 1.157-4.418" /></svg>`,
+  `<svg class="h-24 w-24 text-dark-500/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="0.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>`,
+  `<svg class="h-24 w-24 text-dark-500/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="0.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25A2.25 2.25 0 015.25 3h13.5A2.25 2.25 0 0121 5.25z" /></svg>`,
 ];
 ---
 
-<section id="features" class="py-24">
-  <div class="mx-auto max-w-7xl px-6">
-    <h2 class="text-4xl font-extrabold tracking-tight text-white">{dict.features.title}</h2>
+<section id="features" class="bg-[#10131a] py-24">
+  {pillars.map((pillar: any, i: number) => {
+    const isEven = i % 2 === 0;
+    return (
+      <div class="bg-[#10131a]">
+      <div class="mx-auto flex max-w-7xl flex-col items-center px-6 lg:flex-row lg:gap-16">
+        <!-- Text side -->
+        <div class:list={[
+          'w-full py-12 lg:w-1/2',
+          isEven ? 'order-2 lg:order-1' : 'order-2',
+        ]}>
+          <span class="mb-6 block text-xs font-bold uppercase tracking-widest text-mint-400">
+            {pillar.badge}
+          </span>
+          <h2 class="mb-8 text-4xl font-bold leading-tight text-white lg:text-5xl">
+            <Fragment set:html={pillar.title} />
+          </h2>
+          <p class="mb-8 text-lg leading-relaxed text-dark-300">
+            <Fragment set:html={pillar.description} />
+          </p>
 
-    <div class="mt-16 grid gap-12 md:grid-cols-3">
-      {dict.features.pillars.map((p, i) => (
-        <div>
-          <div class="flex h-14 w-14 items-center justify-center rounded-xl border border-dark-600 bg-dark-800 text-mint-400">
-            <Fragment set:html={icons[i]} />
-          </div>
-          <h3 class="mt-6 text-xl font-bold text-white"><Fragment set:html={p.title} /></h3>
-          <p class="mt-3 text-sm leading-relaxed text-dark-300"><Fragment set:html={p.description} /></p>
+          {/* Highlights (pillar 1) */}
+          {pillar.highlights && (
+            <ul class="space-y-4">
+              {pillar.highlights.map((h: string) => (
+                <li class="flex items-center space-x-3">
+                  <svg class="h-5 w-5 text-mint-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75" />
+                    <circle cx="12" cy="12" r="10" />
+                  </svg>
+                  <span class="text-sm font-medium text-white">{h}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Stats (pillar 2) */}
+          {pillar.stats && (
+            <div class="grid grid-cols-2 gap-8">
+              {pillar.stats.map((s: { value: string; label: string }) => (
+                <div class="rounded-tl-xl rounded-br-xl rounded-tr-sm rounded-bl-sm bg-zinc-900 p-6">
+                  <span class="text-3xl font-bold italic text-mint-400">{s.value}</span>
+                  <p class="mt-2 text-xs uppercase tracking-widest text-dark-400">{s.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      ))}
-    </div>
-  </div>
-</section>
 
-<style>
-  h3 :global(.dim) {
-    color: rgb(var(--color-dark-400, 107 114 128));
-  }
-</style>
+        <!-- Image placeholder side -->
+        <div class:list={[
+          'relative flex h-[400px] w-full items-center justify-center rounded-2xl bg-dark-800/50 lg:h-[400px] lg:w-1/2',
+          isEven ? 'order-1 lg:order-2' : 'order-1',
+        ]}>
+          <Fragment set:html={placeholders[i]} />
+        </div>
+      </div>
+      </div>
+    );
+  })}
+</section>

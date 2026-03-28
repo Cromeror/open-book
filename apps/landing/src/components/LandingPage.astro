@@ -5,7 +5,8 @@ import Hero from './Hero.astro';
 import Features from './Features.astro';
 import WhyUs from './WhyUs.astro';
 import Pricing from './Pricing.astro';
-import Legal from './Legal.astro';
+// import Panels from './Panels.astro';
+import Faq from './Faq.astro';
 import Contact from './Contact.astro';
 import Footer from './Footer.astro';
 import { t, type Lang } from '../i18n';
@@ -21,8 +22,9 @@ const dict = t(lang);
     <Hero lang={lang} />
     <WhyUs lang={lang} />
     <Features lang={lang} />
+    <!-- <Panels lang={lang} /> -->
     <Pricing lang={lang} />
-    <Legal lang={lang} />
+    <Faq lang={lang} />
     <Contact lang={lang} />
   </main>
   <Footer lang={lang} />

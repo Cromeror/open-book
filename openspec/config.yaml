@@ -1,0 +1,35 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Nx 22 monorepo, NestJS 11 (API), Next.js 16 (web), Astro (landing), TypeScript 5.9, PostgreSQL + TypeORM
+  Architecture: GDOM — enterprise software facade with Zero Trust security, HATEOAS-driven dynamic UI, granular permissions, 5 auth strategies
+  Testing: Vitest (unit), Playwright (e2e), Supertest (API integration)
+  Style: ESLint flat config + Prettier, import ordering enforced, Tailwind CSS 4
+  Package manager: pnpm, Nx 22 for orchestration
+  Apps: api, web, landing, demo, api-e2e, web-e2e
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Identify affected modules/packages
+  specs:
+    - Use Given/When/Then format for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+    - Respect the two-layer architecture (core platform vs client-specific domain)
+  tasks:
+    - Group tasks by phase (infrastructure, implementation, testing)
+    - Use hierarchical numbering (1.1, 1.2, etc.)
+    - Keep tasks small enough to complete in one session
+  apply:
+    - Follow existing code patterns and conventions
+    - All source code in English; UI text in Spanish
+    - Components in src/components/ (atomic design), never _components/ in routes
+    - New endpoints: register resource -> configure HATEOAS -> implement controller
+  verify:
+    - Run tests if test infrastructure exists
+    - Compare implementation against every spec scenario
+  archive:
+    - Warn before merging destructive deltas (large removals)

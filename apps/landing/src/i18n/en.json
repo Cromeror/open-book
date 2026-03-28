@@ -29,19 +29,30 @@
     "status_code": "STATUS: CONNECTED_AI_CORE_UNIVERSAL"
   },
   "features": {
-    "title": "Strategic Pillars",
     "pillars": [
       {
-        "title": "<strong>Goal-Oriented</strong> Strategy",
-        "description": "Your business leads. You define the goals and <strong>GDOM</strong> makes them a reality, transforming your objectives into a <strong>secure</strong>, <strong>automated</strong>, and <strong>scalable</strong> operation."
+        "badge": "Strategy 01",
+        "title": "Goal-Oriented Strategy",
+        "description": "Your business sets the course. Define your goals and let GDOM turn them into real results, with a secure, automated operation ready to scale without limits."
       },
       {
-        "title": "<strong>Adaptable</strong> Integration Facade",
-        "description": "A flexible integration layer that works with <strong>any enterprise stack</strong>. Encapsulates legacy complexity into a unified facade that speaks <i>modern protocols</i> instantly."
+        "badge": "Strategy 02",
+        "title": "Web Facade \"Ready-to-Operate\"",
+        "description": "Forget endless development and deployment cycles. <strong>GDOM</strong> is a pre-built infrastructure that connects to your current systems so you can start working immediately. We don't build software from scratch; we deliver a ready-to-operate solution that eliminates months of technical waiting.",
+        "highlights": [
+          "\u201CDay Zero\u201D Operability",
+          "Instant Connection Interface"
+        ]
       },
       {
-        "title": "<strong>Zero Trust</strong> Security",
-        "description": "Shielded by default. Mutual <strong>mTLS</strong> authentication and <strong>AES-256-GCM</strong> encryption at rest and in transit, ensuring every bit is verified before operation."
+        "badge": "Strategy 03",
+        "title": "Adaptable Integration Facade",
+        "description": "A flexible integration layer that works with any enterprise stack. Encapsulates legacy complexity into a unified facade that speaks modern protocols instantly."
+      },
+      {
+        "badge": "Strategy 04",
+        "title": "Zero Trust Security",
+        "description": "Shielded by default. Mutual mTLS authentication and AES-256-GCM encryption at rest and in transit, ensuring every bit is verified before operation."
       }
     ]
   },
@@ -63,21 +74,67 @@
       },
       {
         "title": "Expandable Model",
-        "description": "Use it for your company or turn it into your own product to offer to third parties."
+        "description": "Integrate our technology as the engine behind your own services to expand your commercial offering and deliver high-level solutions under your brand."
       }
     ]
   },
   "pricing": {
-    "title": "SaaS Matrix",
-    "description": "Scale your operations from initial validation to global enterprise orchestration.",
-    "tiers": ["Starter (Free)", "Professional (Pro)", "Corporate (Enterprise)"],
+    "title": "Investment in <span class='text-gray-500'>Efficiency</span>",
+    "description": "Scale your architecture according to your operational needs.",
+    "capabilities_label": "Capabilities",
+    "tiers": [
+      {
+        "name": "Starter",
+        "price": "$499/mo",
+        "cta": "Select",
+        "featured": false
+      },
+      {
+        "name": "Professional",
+        "price": "$1,299/mo",
+        "cta": "Deploy Now",
+        "featured": true
+      },
+      {
+        "name": "Corporate",
+        "price": "Contact",
+        "cta": "Schedule Demo",
+        "featured": false
+      }
+    ],
     "rows": [
-      { "feature": "Data Protocol", "values": ["Standard REST", "Optimized REST", "gRPC High-Perf"], "highlight": [false, false, true] },
-      { "feature": "Access Management", "values": ["Direct (Manual)", "Pools (Based)", "Full Entitlement"], "highlight": [false, false, false] },
-      { "feature": "Base Security", "values": ["HttpOnly Cookies", "+ Auditing", "Zero Trust (mTLS)"], "highlight": [false, false, true] },
-      { "feature": "UI Intelligence", "values": ["Basic HATEOAS", "Response Filters", "Advanced Filters"], "highlight": [false, false, false] },
-      { "feature": "Web Facade \"Ready-to-Operate\"", "values": ["Basic UI Widgets", "Full Web Application", "Embeddable & Custom UI"], "highlight": [false, false, false] },
-      { "feature": "External Backup", "values": ["Not available", "Basic Connection", "AES-256 Encryption"], "highlight": [false, false, false] }
+      {
+        "feature": "Proxy Nodes",
+        "values": [
+          "Up to 5",
+          "Up to 25",
+          "Unlimited"
+        ]
+      },
+      {
+        "feature": "Dynamic HATEOAS",
+        "values": [
+          "check",
+          "check",
+          "check"
+        ]
+      },
+      {
+        "feature": "mTLS Security",
+        "values": [
+          "cross",
+          "check",
+          "check"
+        ]
+      },
+      {
+        "feature": "Dedicated Support",
+        "values": [
+          "Email",
+          "24/7 Priority",
+          "On-Site Engineer"
+        ]
+      }
     ]
   },
   "panels": {
@@ -90,6 +147,33 @@
       {
         "title": "Decoupled UI Delivery",
         "description": "Deploy customizable front-ends that interact with legacy backends through a unified and secure GDOM gateway."
+      }
+    ]
+  },
+  "faq": {
+    "badge": "FAQs",
+    "title": "What you need to know to take the leap",
+    "subtitle": "Have another question? Please contact our team.",
+    "items": [
+      {
+        "question": "What is GDOM?",
+        "answer": "<strong>GDOM</strong> (Goal-Driven Operations Manager) is a <strong>strategic engine</strong> and enterprise facade designed to turn your business vision into operational reality. Unlike a simple data server, it acts as an intelligent \u201Cblack box\u201D that orchestrates your <strong>goals, resources, and activities</strong>, letting you focus on the \u201Cwhat\u201D of your strategy while the platform automatically manages the \u201Chow\u201D <strong>securely and at scale</strong>."
+      },
+      {
+        "question": "How does GDOM protect my business?",
+        "answer": "The platform implements a <strong>Zero Trust Security</strong> model (\u201Cnever trust, always verify\u201D) with bank-grade shielding.<br/><br/><strong>Invisible Sessions:</strong> access tokens are never stored in the browser, making the system immune to common XSS attacks.<br/><strong>Shielded Communications:</strong> internal traffic uses high-security mutual certificates (<strong>mTLS</strong>, RSA 4096 bits).<br/><strong>Data Encryption:</strong> credentials protected with <strong>AES-256-GCM</strong> at rest.<br/><strong>Total Isolation:</strong> business logic stays shielded behind a facade, with no direct internet exposure."
+      },
+      {
+        "question": "Is it suitable for small businesses?",
+        "answer": "Yes. GDOM offers a <strong>Starter (Free)</strong> plan designed for organizations just getting started to visualize their basic goals and try the system <strong>at no cost</strong>. Its architecture is <strong>natively scalable</strong>, allowing the tool to grow with your company—from basic widgets to a full web application or even a model where you offer technology to your own clients."
+      },
+      {
+        "question": "What kind of systems can it integrate?",
+        "answer": "GDOM is a highly flexible <strong>domain-agnostic</strong> engine. Essentially, it can connect with <strong>anything that offers REST communication</strong>.<br/><br/><strong>Legacy Systems:</strong> modernizes old accounting or management infrastructures.<br/><strong>Enterprise Platforms:</strong> integrates with existing ERPs and CRMs.<br/><strong>Cloud Services:</strong> compatible with any cloud API (<strong>AWS, Azure, Google Cloud</strong>) that exposes REST endpoints or uses standard authentication (Bearer, API Key, OAuth).<br/><strong>High-Performance Technology*:</strong> uses protocols like <strong>gRPC</strong> to handle large data volumes and real-time streaming with external microservice systems.<br/><br/>We support <strong>5 distinct authentication strategies</strong> (Bearer, Basic, API Key, OAuth, and Devise Token Auth) to adapt to any system without friction.<br/><br/><em>*Available in select plans. For more information, <a href='#contact' class='text-mint-400 underline'>contact us</a>.</em>"
+      },
+      {
+        "question": "Can I integrate GDOM with my existing system?",
+        "answer": "Without a doubt. GDOM works as a <strong>strategic facade</strong> that elevates the maturity level of your infrastructure. Instead of rebuilding from scratch, we overlay an architecture based on the <strong>HATEOAS</strong> standard, enabling dynamic orchestration of actions and menus based on each user's context.<br/><br/>The best part is the model's flexibility: you can enrich your current applications with these advanced capabilities through our <strong>various integration modalities</strong> or, if you prefer, we can deliver the <strong>complete application ready to operate</strong>. In any scenario, the essential features and logic of your original system remain intact, now powered by a flexible interface, <strong>absolute traceability</strong>, and <strong>Zero Trust shielding</strong>."
       }
     ]
   },

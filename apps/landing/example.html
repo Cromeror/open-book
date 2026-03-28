@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-variant": "#32353c",
+                        "surface-bright": "#363940",
+                        "primary-fixed-dim": "#bbc6e2",
+                        "on-primary": "#263046",
+                        "inverse-primary": "#545e76",
+                        "inverse-on-surface": "#2e3037",
+                        "on-secondary-container": "#9eb7d8",
+                        "tertiary-fixed": "#2cffca",
+                        "background": "#10131a",
+                        "on-tertiary-container": "#009473",
+                        "on-primary-fixed-variant": "#3c475d",
+                        "tertiary": "#00e0b0",
+                        "on-secondary-fixed-variant": "#2f4865",
+                        "on-secondary": "#17324d",
+                        "surface-tint": "#bbc6e2",
+                        "surface-container-low": "#191c22",
+                        "on-background": "#e1e2eb",
+                        "surface-dim": "#10131a",
+                        "secondary-fixed-dim": "#afc9ea",
+                        "on-primary-container": "#78839c",
+                        "on-surface": "#e1e2eb",
+                        "on-error-container": "#ffdad6",
+                        "surface-container": "#1d2026",
+                        "outline": "#8e9196",
+                        "secondary-container": "#2f4865",
+                        "error": "#ffb4ab",
+                        "primary-fixed": "#d7e2ff",
+                        "on-tertiary": "#00382a",
+                        "primary": "#bbc6e2",
+                        "tertiary-container": "#001f16",
+                        "on-tertiary-fixed-variant": "#00513e",
+                        "surface-container-high": "#272a31",
+                        "secondary-fixed": "#d1e4ff",
+                        "surface-container-highest": "#32353c",
+                        "primary-container": "#0f1a2e",
+                        "secondary": "#afc9ea",
+                        "error-container": "#93000a",
+                        "inverse-surface": "#e1e2eb",
+                        "on-secondary-fixed": "#001d36",
+                        "on-tertiary-fixed": "#002117",
+                        "on-surface-variant": "#c4c6cc",
+                        "on-error": "#690005",
+                        "outline-variant": "#44474c",
+                        "surface-container-lowest": "#0b0e14",
+                        "surface": "#10131a",
+                        "on-primary-fixed": "#101b30",
+                        "tertiary-fixed-dim": "#00e0b0"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            background-color: rgba(50, 53, 60, 0.6);
+        }
+
+        .asymmetric-card {
+            border-top-left-radius: 0.75rem;
+            border-bottom-right-radius: 0.75rem;
+            border-top-right-radius: 0.125rem;
+            border-bottom-left-radius: 0.125rem;
+        }
+
+        body {
+            background-color: #10131a;
+            color: #e1e2eb;
+            font-family: 'Inter', sans-serif;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="selection:bg-tertiary selection:text-on-tertiary">
+    <!-- TopNavBar -->
+    <nav class="fixed top-0 w-full z-50 bg-[#10131a]/80 backdrop-blur-xl border-b border-[#e1e2eb]/10">
+        <div class="flex justify-between items-center max-w-[1440px] mx-auto px-12 h-20">
+            <div class="text-2xl font-bold tracking-tighter text-[#bbc6e2] font-['Space_Grotesk']">
+                G.D.O.M.
+            </div>
+            <div class="hidden md:flex items-center space-x-8">
+                <a class="text-[#00e0b0] font-semibold font-['Space_Grotesk'] tracking-tight transition-colors duration-300"
+                    href="#">Platform</a>
+                <a class="text-[#e1e2eb]/60 font-['Space_Grotesk'] tracking-tight hover:text-[#00e0b0] transition-colors duration-300"
+                    href="#">Features</a>
+                <a class="text-[#e1e2eb]/60 font-['Space_Grotesk'] tracking-tight hover:text-[#00e0b0] transition-colors duration-300"
+                    href="#">Technical</a>
+                <a class="text-[#e1e2eb]/60 font-['Space_Grotesk'] tracking-tight hover:text-[#00e0b0] transition-colors duration-300"
+                    href="#">Pricing</a>
+                <a class="text-[#e1e2eb]/60 font-['Space_Grotesk'] tracking-tight hover:text-[#00e0b0] transition-colors duration-300"
+                    href="#">FAQ</a>
+            </div>
+            <button
+                class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2 text-sm font-bold tracking-widest uppercase hover:scale-95 transition-transform duration-200">
+                COMMAND CENTER
+            </button>
+        </div>
+    </nav>
+    <main>
+        <!-- Hero Section -->
+        <section class="relative min-h-screen flex items-center pt-20 overflow-hidden">
+            <div class="absolute inset-0 z-0">
+                <div class="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background"></div>
+                <img alt="" class="w-full h-full object-cover opacity-30"
+                    data-alt="abstract high-tech network grid with glowing blue lines and floating data particles in a dark digital space"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOnnGz4KrdP1LW_sEwAmt1O_sYECwFiu_fh6758yhJGdLMrlLo8l9iA8tQb1y1it9Wj7Yf0nvI24hxGI288QCgsKFDyE3zU6ajIePaxfnbw57y-s-G41NviebEaVnr4i5ybQgLQQB-Z3Qf3mqYlpqfVaw05MMMTmL_F0zxTsIne7Ug0zYjJ-oNPPIyawFFNN5HtlQEX3pW7e3pqXXwUQCb-VSAtCzAK-rWijQPii6eqpVfYM-xv4jhn787AFkQbkH8GFQUksMRXQyE" />
+            </div>
+            <div class="container mx-auto px-12 relative z-10">
+                <div class="max-w-4xl">
+                    <div
+                        class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-surface-container-high border border-outline-variant/30 mb-8">
+                        <span class="relative flex h-2 w-2">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary"></span>
+                        </span>
+                        <span class="text-[10px] font-bold tracking-[0.2em] text-tertiary uppercase">Universal Software
+                            Facade Active</span>
+                    </div>
+                    <h1 class="text-6xl md:text-8xl font-bold leading-[0.9] tracking-tighter mb-8 text-on-background">
+                        G.D.O.M. <br />
+                        <span class="text-primary italic">Universal</span> Facade
+                    </h1>
+                    <p class="text-xl text-on-surface-variant max-w-2xl mb-12 font-light leading-relaxed">
+                        The ultimate abstraction layer for high-speed enterprise orchestration. Orchestrate
+                        intelligence, ignore complexity, and deploy authority at scale.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-6">
+                        <button
+                            class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-10 py-5 text-sm font-bold tracking-widest uppercase asymmetric-card hover:scale-95 transition-all duration-300">
+                            INICIAR PROTOCOLO
+                        </button>
+                        <button
+                            class="group flex items-center space-x-4 text-tertiary hover:text-white transition-colors duration-300">
+                            <span class="text-sm font-bold tracking-widest uppercase">Ver Documentación</span>
+                            <span
+                                class="material-symbols-outlined group-hover:translate-x-2 transition-transform">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Why Us Section -->
+        <section class="py-32 bg-surface-container-lowest">
+            <div class="container mx-auto px-12">
+                <div class="mb-24">
+                    <h2 class="text-4xl md:text-5xl font-bold tracking-tight mb-4">Tu operación lista hoy,<br /><span
+                            class="text-tertiary">no en meses.</span></h2>
+                    <div class="w-24 h-1 bg-tertiary"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <!-- Card 1 -->
+                    <div
+                        class="p-8 bg-surface-container-high asymmetric-card border-l border-tertiary/20 flex flex-col justify-between group hover:bg-surface-bright transition-all duration-500">
+                        <div>
+                            <span class="material-symbols-outlined text-4xl text-tertiary mb-6"
+                                data-weight="fill">architecture</span>
+                            <h3 class="text-xl font-bold mb-4">Cero Construcción</h3>
+                            <p class="text-on-surface-variant text-sm leading-relaxed">Elimina el tiempo de desarrollo
+                                de infraestructura. Despliega capas de servicio instantáneas sin escribir código base.
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Card 2 -->
+                    <div
+                        class="p-8 bg-surface-container-high asymmetric-card border-l border-primary/20 flex flex-col justify-between group hover:bg-surface-bright transition-all duration-500">
+                        <div>
+                            <span class="material-symbols-outlined text-4xl text-primary mb-6"
+                                data-weight="fill">psychology</span>
+                            <h3 class="text-xl font-bold mb-4">Tecnología que Piensa por Ti</h3>
+                            <p class="text-on-surface-variant text-sm leading-relaxed">Algoritmos adaptativos que
+                                gestionan flujos de datos y priorizan tareas críticas de forma autónoma.</p>
+                        </div>
+                    </div>
+                    <!-- Card 3 -->
+                    <div
+                        class="p-8 bg-surface-container-high asymmetric-card border-l border-tertiary/20 flex flex-col justify-between group hover:bg-surface-bright transition-all duration-500">
+                        <div>
+                            <span class="material-symbols-outlined text-4xl text-tertiary mb-6"
+                                data-weight="fill">encrypted</span>
+                            <h3 class="text-xl font-bold mb-4">Blindaje Total</h3>
+                            <p class="text-on-surface-variant text-sm leading-relaxed">Seguridad mTLS de grado militar y
+                                arquitectura Zero-Trust embebida en cada nodo de comunicación.</p>
+                        </div>
+                    </div>
+                    <!-- Card 4 -->
+                    <div
+                        class="p-8 bg-surface-container-high asymmetric-card border-l border-primary/20 flex flex-col justify-between group hover:bg-surface-bright transition-all duration-500">
+                        <div>
+                            <span class="material-symbols-outlined text-4xl text-primary mb-6"
+                                data-weight="fill">account_tree</span>
+                            <h3 class="text-xl font-bold mb-4">Modelo Expandible</h3>
+                            <p class="text-on-surface-variant text-sm leading-relaxed">Escala de 10 a 10 millones de
+                                peticiones sin reconfiguración. El núcleo G.D.O.M. es elásticamente infinito.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Features Pillars (Split Screen) -->
+        <section class="py-24">
+            <!-- Pillar 1 -->
+            <div class="flex flex-col lg:flex-row items-center min-h-[716px]">
+                <div class="w-full lg:w-1/2 p-12 lg:p-24 order-2 lg:order-1">
+                    <span class="text-tertiary font-bold tracking-widest text-xs uppercase mb-6 block">Estrategia
+                        01</span>
+                    <h2 class="text-5xl font-bold mb-8 leading-tight">Orquestación de Nodos Centralizada</h2>
+                    <p class="text-on-surface-variant text-lg leading-relaxed mb-8">
+                        Nuestra arquitectura de fachada permite que sistemas legacy y microservicios modernos hablen el
+                        mismo idioma a través de un proxy unificado de ultra-baja latencia.
+                    </p>
+                    <ul class="space-y-4">
+                        <li class="flex items-center space-x-3">
+                            <span class="material-symbols-outlined text-tertiary">check_circle</span>
+                            <span class="text-sm font-medium">Protocolos Unificados</span>
+                        </li>
+                        <li class="flex items-center space-x-3">
+                            <span class="material-symbols-outlined text-tertiary">check_circle</span>
+                            <span class="text-sm font-medium">Auto-Healing de Nodos</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="w-full lg:w-1/2 h-[512px] lg:h-[716px] relative order-1 lg:order-2">
+                    <img alt="" class="w-full h-full object-cover"
+                        data-alt="massive data center corridor with rows of server racks glowing with blue and green status LEDs"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1U9VzLbnep3J5JES3uYbUv_ZiriC0mw2XbrPtGzri4O4zL3cCHx0uIAPViRQMMwdbFhUPKw3x7wv807dS8l8R2teRrSEmCzL1RPy7i7qQux1TUtctT_Ie2a232x4uBf-ej-BkIrtQIA0uxVZm7xUN2t1J8V4qo2WxwdTzzWrF7xmRBjUj1q9Wzuh6zMz6pT0jcYdsBYNFaCweoOjY7rJZduRoezOiAIebqXZNglVrlRTjhrjCB5mjZb-4pA3UisjXV09UHYlblNm7" />
+                    <div class="absolute inset-0 bg-background/20"></div>
+                </div>
+            </div>
+            <!-- Pillar 2 -->
+            <div class="flex flex-col lg:flex-row items-center min-h-[716px]">
+                <div class="w-full lg:w-1/2 h-[512px] lg:h-[716px] relative">
+                    <img alt="" class="w-full h-full object-cover"
+                        data-alt="abstract view of planet earth with digital connections and light streaks representing global data flow"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCDBKXJ6UeKl110vcNMMDdCzNq_70zWY9NYZWk1RaE6OecQc88_lYpUC0CNrEh0tPqd1BFxXumVkGjfGF61Xhn5UMjhx2YqKy4m6v07GdXkQnYBqq4R1BsONPskrBpq9H6JB0OylXgguZJpAj2_f2tfgj0cML4hToboRl6rKhf6AAO8FXbahaS3-ZyZmBnyE6wNTWIH5xjUzOUW-gY71KwxRJVe_4ltb-xXdntNaQRUrlqmVRZQ2HI_BkiCzQRBZl_njnoBeKChpRe" />
+                    <div class="absolute inset-0 bg-background/20"></div>
+                </div>
+                <div class="w-full lg:w-1/2 p-12 lg:p-24">
+                    <span class="text-primary font-bold tracking-widest text-xs uppercase mb-6 block">Estrategia
+                        02</span>
+                    <h2 class="text-5xl font-bold mb-8 leading-tight">Conectividad de Próxima Generación</h2>
+                    <p class="text-on-surface-variant text-lg leading-relaxed mb-8">
+                        Implementamos un sistema de HATEOAS autogenerado que permite a tus aplicaciones descubrir
+                        capacidades dinámicamente sin hardcoding.
+                    </p>
+                    <div class="grid grid-cols-2 gap-8">
+                        <div class="bg-surface-container-low p-6 asymmetric-card">
+                            <span class="text-3xl font-bold text-primary italic">99.99%</span>
+                            <p class="text-xs text-on-surface-variant uppercase tracking-widest mt-2">Disponibilidad</p>
+                        </div>
+                        <div class="bg-surface-container-low p-6 asymmetric-card">
+                            <span class="text-3xl font-bold text-primary italic">&lt;2ms</span>
+                            <p class="text-xs text-on-surface-variant uppercase tracking-widest mt-2">Latencia Core</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Pillar 3 -->
+            <div class="flex flex-col lg:flex-row items-center min-h-[716px]">
+                <div class="w-full lg:w-1/2 p-12 lg:p-24 order-2 lg:order-1">
+                    <span class="text-tertiary font-bold tracking-widest text-xs uppercase mb-6 block">Estrategia
+                        03</span>
+                    <h2 class="text-5xl font-bold mb-8 leading-tight">Seguridad Perimetral Inteligente</h2>
+                    <p class="text-on-surface-variant text-lg leading-relaxed mb-8">
+                        No confiamos en nadie. Cada bit de información es verificado mediante firmas criptográficas y
+                        validación de esquemas en tiempo real.
+                    </p>
+                    <button
+                        class="bg-surface-container-highest px-8 py-4 text-xs font-bold tracking-widest uppercase border border-outline-variant/30 hover:bg-surface-bright transition-colors">
+                        AUDITAR SISTEMA
+                    </button>
+                </div>
+                <div class="w-full lg:w-1/2 h-[512px] lg:h-[716px] relative order-1 lg:order-2">
+                    <img alt="" class="w-full h-full object-cover"
+                        data-alt="close-up of a high-tech security interface with fingerprint scanning and biometric data visualization"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2gNj_1_vDmbJxx0Z2-iBVUmYbpYmV1aLIKCM1YbAFufGQHcji_vtUVp7Q4HnMJ20jLUX3Z54zrozdXBDzAVljGRKxEfRqv2Q5uen_Rx_zdHLl4XNrz2aRQIej-1I_CEsH4vCGAWgVLA06hX8VN2KE-444DWOHY9DZ7x1kKhkmtQlh6O64QzsuQquE_A7Tf96CSI_Ot-79kAWzZBCafQoEChp0OmBgwDYkxygFyClaEGWAUwT7vJtaBihDsgkh6f-yZZgIwbYxZcB-" />
+                    <div class="absolute inset-0 bg-background/20"></div>
+                </div>
+            </div>
+        </section>
+        <!-- Technical Panels -->
+        <section class="py-32 bg-surface">
+            <div class="container mx-auto px-12">
+                <div class="flex flex-col lg:flex-row gap-16 items-center">
+                    <div class="lg:w-2/5">
+                        <h2 class="text-4xl font-bold mb-8 leading-tight">Implementación Técnica Sin Fricción</h2>
+                        <p class="text-on-surface-variant mb-6 leading-relaxed">
+                            Integra G.D.O.M. en tu stack actual en minutos. Nuestra fachada se adapta a cualquier API
+                            RESTful, GraphQL o gRPC y la transforma en una interfaz hipermedia navegable.
+                        </p>
+                        <div class="space-y-6">
+                            <div class="flex gap-4">
+                                <div class="mt-1"><span class="material-symbols-outlined text-tertiary">code</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-on-background">HATEOAS Automático</h4>
+                                    <p class="text-sm text-on-surface-variant">Generación dinámica de enlaces y acciones
+                                        basadas en el estado del recurso.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="mt-1"><span class="material-symbols-outlined text-tertiary">terminal</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-on-background">Proxy Embed Snippets</h4>
+                                    <p class="text-sm text-on-surface-variant">Inyecta capacidades de fachada
+                                        directamente en tu frontend con solo dos líneas de código.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lg:w-3/5 w-full">
+                        <div
+                            class="bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/20 shadow-2xl">
+                            <div
+                                class="flex items-center justify-between px-6 py-3 bg-surface-container-high border-b border-outline-variant/20">
+                                <div class="flex space-x-2">
+                                    <div class="w-3 h-3 rounded-full bg-error/40"></div>
+                                    <div class="w-3 h-3 rounded-full bg-tertiary/40"></div>
+                                    <div class="w-3 h-3 rounded-full bg-primary/40"></div>
+                                </div>
+                                <div class="text-[10px] font-mono text-outline uppercase tracking-widest">
+                                    response_payload.json</div>
+                            </div>
+                            <div class="p-8 font-mono text-sm leading-relaxed overflow-x-auto">
+                                <pre class="text-on-surface-variant"><span class="text-tertiary">{</span>
+  <span class="text-primary">"resource"</span>: <span class="text-on-tertiary-container">"enterprise_core_v1"</span>,
+  <span class="text-primary">"status"</span>: <span class="text-on-tertiary-container">"operational"</span>,
+  <span class="text-primary">"facade_active"</span>: <span class="text-on-tertiary-container">true</span>,
+  <span class="text-primary">"links"</span>: [
+    {
+      <span class="text-primary">"rel"</span>: <span class="text-on-tertiary-container">"self"</span>,
+      <span class="text-primary">"href"</span>: <span class="text-on-tertiary-container">"https://api.gdom.io/v1/system"</span>,
+      <span class="text-primary">"method"</span>: <span class="text-on-tertiary-container">"GET"</span>
+    },
+    {
+      <span class="text-primary">"rel"</span>: <span class="text-on-tertiary-container">"upgrade"</span>,
+      <span class="text-primary">"href"</span>: <span class="text-on-tertiary-container">"https://api.gdom.io/v1/deploy"</span>,
+      <span class="text-primary">"method"</span>: <span class="text-on-tertiary-container">"POST"</span>
+    }
+  ],
+  <span class="text-primary">"security"</span>: {
+    <span class="text-primary">"protocol"</span>: <span class="text-on-tertiary-container">"mTLS"</span>,
+    <span class="text-primary">"handshake"</span>: <span class="text-on-tertiary-container">"verified"</span>
+  }
+<span class="text-tertiary">}</span></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Pricing Section -->
+        <section class="py-32 bg-surface-container-lowest">
+            <div class="container mx-auto px-12 text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4">Inversión en <span
+                        class="text-primary">Eficiencia</span></h2>
+                <p class="text-on-surface-variant">Escala tu arquitectura según tus necesidades operativas.</p>
+            </div>
+            <div class="container mx-auto px-12 overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-outline-variant/30">
+                            <th class="py-8 px-6 text-xl font-bold">Capacidades</th>
+                            <th
+                                class="py-8 px-6 text-center transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                <div class="text-2xl font-bold">Iniciación</div>
+                                <div class="text-tertiary font-mono text-sm mt-2">$499/mes</div>
+                            </th>
+                            <th
+                                class="py-8 px-6 text-center transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                <div
+                                    class="absolute -top-4 left-1/2 -translate-x-1/2 bg-tertiary text-on-tertiary text-[10px] font-bold px-3 py-1 uppercase tracking-widest rounded-full">
+                                    Más Popular</div>
+                                <div class="text-2xl font-bold">Profesional</div>
+                                <div class="text-tertiary font-mono text-sm mt-2">$1,299/mes</div>
+                            </th>
+                            <th
+                                class="py-8 px-6 text-center transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                <div class="text-2xl font-bold">Corporativo</div>
+                                <div class="text-tertiary font-mono text-sm mt-2">Contacto</div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-on-surface-variant">
+                        <tr class="border-b border-outline-variant/10">
+                            <td class="py-6 px-6 font-medium text-on-background">Nodos de Proxy</td>
+                            <td
+                                class="py-6 px-6 text-center transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                Hasta 5</td>
+                            <td
+                                class="py-6 px-6 text-center transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                Hasta 25</td>
+                            <td
+                                class="py-6 px-6 text-center transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                Ilimitados</td>
+                        </tr>
+                        <tr class="border-b border-outline-variant/10">
+                            <td class="py-6 px-6 font-medium text-on-background">HATEOAS Dinámico</td>
+                            <td
+                                class="py-6 px-6 text-center transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                <span class="material-symbols-outlined text-tertiary">check</span></td>
+                            <td
+                                class="py-6 px-6 text-center transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                <span class="material-symbols-outlined text-tertiary">check</span></td>
+                            <td
+                                class="py-6 px-6 text-center transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                <span class="material-symbols-outlined text-tertiary">check</span></td>
+                        </tr>
+                        <tr class="border-b border-outline-variant/10">
+                            <td class="py-6 px-6 font-medium text-on-background">Seguridad mTLS</td>
+                            <td
+                                class="py-6 px-6 text-center text-outline transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                <span class="material-symbols-outlined">close</span></td>
+                            <td
+                                class="py-6 px-6 text-center transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                <span class="material-symbols-outlined text-tertiary">check</span></td>
+                            <td
+                                class="py-6 px-6 text-center transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                <span class="material-symbols-outlined text-tertiary">check</span></td>
+                        </tr>
+                        <tr class="border-b border-outline-variant/10">
+                            <td class="py-6 px-6 font-medium text-on-background">Soporte Dedicado</td>
+                            <td
+                                class="py-6 px-6 text-center text-outline transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                Email</td>
+                            <td
+                                class="py-6 px-6 text-center transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                24/7 Priority</td>
+                            <td
+                                class="py-6 px-6 text-center transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                Ingeniero In-Situ</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td></td>
+                            <td
+                                class="py-8 px-6 text-center transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                <button
+                                    class="text-xs font-bold tracking-widest uppercase border border-outline-variant/30 px-6 py-3 hover:bg-surface-container-high transition-colors">Seleccionar</button>
+                            </td>
+                            <td
+                                class="py-8 px-6 text-center transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                <button
+                                    class="text-xs font-bold tracking-widest uppercase border border-outline-variant/30 px-6 py-3 hover:bg-surface-container-high transition-colors">Desplegar
+                                    Ahora</button>
+                            </td>
+                            <td
+                                class="py-8 px-6 text-center transition-all duration-300 hover:bg-surface-container-high/50 hover:shadow-xl">
+                                <button
+                                    class="text-xs font-bold tracking-widest uppercase border border-outline-variant/30 px-6 py-3 hover:bg-surface-container-high transition-colors">Agendar
+                                    Demo</button>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+        <!-- FAQ Section -->
+        <section class="py-32">
+            <div class="container mx-auto px-12 max-w-4xl">
+                <h2 class="text-4xl font-bold mb-16 text-center">Interrogación del <span
+                        class="text-tertiary italic">Sistema</span></h2>
+                <div class="space-y-4">
+                    <!-- Accordion 1 -->
+                    <details
+                        class="group bg-surface-container-low asymmetric-card border border-outline-variant/10 overflow-hidden">
+                        <summary
+                            class="flex justify-between items-center p-6 cursor-pointer list-none hover:bg-surface-container-high transition-colors">
+                            <span class="font-bold">¿Qué es exactamente una "Universal Software Facade"?</span>
+                            <span
+                                class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+                        </summary>
+                        <div class="p-6 pt-0 text-on-surface-variant text-sm leading-relaxed">
+                            Es una capa de abstracción técnica que se sitúa frente a sus sistemas existentes para
+                            proporcionar una interfaz unificada, segura y navegable por hipermedia, permitiendo la
+                            interoperabilidad sin rediseñar el núcleo.
+                        </div>
+                    </details>
+                    <!-- Accordion 2 -->
+                    <details
+                        class="group bg-surface-container-low asymmetric-card border border-outline-variant/10 overflow-hidden">
+                        <summary
+                            class="flex justify-between items-center p-6 cursor-pointer list-none hover:bg-surface-container-high transition-colors">
+                            <span class="font-bold">¿Cómo garantiza G.D.O.M. la seguridad Zero-Trust?</span>
+                            <span
+                                class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+                        </summary>
+                        <div class="p-6 pt-0 text-on-surface-variant text-sm leading-relaxed">
+                            Implementamos una validación continua de identidad en cada salto de red, utilizando
+                            certificados mTLS rotativos y tokens de corta duración para asegurar que cada petición sea
+                            autorizada y auténtica.
+                        </div>
+                    </details>
+                    <!-- Accordion 3 -->
+                    <details
+                        class="group bg-surface-container-low asymmetric-card border border-outline-variant/10 overflow-hidden">
+                        <summary
+                            class="flex justify-between items-center p-6 cursor-pointer list-none hover:bg-surface-container-high transition-colors">
+                            <span class="font-bold">¿Es compatible con infraestructura On-Premise?</span>
+                            <span
+                                class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+                        </summary>
+                        <div class="p-6 pt-0 text-on-surface-variant text-sm leading-relaxed">
+                            Sí. G.D.O.M. puede desplegarse como contenedores Docker, instancias de Kubernetes o binarios
+                            aislados tanto en nubes públicas como en centros de datos privados.
+                        </div>
+                    </details>
+                    <!-- Accordion 4 -->
+                    <details
+                        class="group bg-surface-container-low asymmetric-card border border-outline-variant/10 overflow-hidden">
+                        <summary
+                            class="flex justify-between items-center p-6 cursor-pointer list-none hover:bg-surface-container-high transition-colors">
+                            <span class="font-bold">¿Cuánto tiempo toma la implementación inicial?</span>
+                            <span
+                                class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+                        </summary>
+                        <div class="p-6 pt-0 text-on-surface-variant text-sm leading-relaxed">
+                            Una configuración estándar de fachada puede estar operativa en menos de 24 horas,
+                            permitiendo que sus equipos comiencen a consumir la API unificada de inmediato.
+                        </div>
+                    </details>
+                    <!-- Accordion 5 -->
+                    <details
+                        class="group bg-surface-container-low asymmetric-card border border-outline-variant/10 overflow-hidden">
+                        <summary
+                            class="flex justify-between items-center p-6 cursor-pointer list-none hover:bg-surface-container-high transition-colors">
+                            <span class="font-bold">¿Ofrecen personalización para modelos de negocio específicos?</span>
+                            <span
+                                class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+                        </summary>
+                        <div class="p-6 pt-0 text-on-surface-variant text-sm leading-relaxed">
+                            Totalmente. El plan Corporativo incluye consultoría de arquitectura para adaptar las reglas
+                            de orquestación y los esquemas de datos a los requisitos exclusivos de su industria.
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+        <!-- Contact Section -->
+        <section class="py-32 bg-surface">
+            <div class="container mx-auto px-12 relative">
+                <div class="absolute inset-0 z-0 flex items-center justify-center opacity-5 pointer-events-none">
+                    <span class="text-[20vw] font-bold tracking-tighter text-outline">G.D.O.M.</span>
+                </div>
+                <div class="relative z-10 max-w-3xl mx-auto text-center">
+                    <h2 class="text-5xl font-bold mb-8 tracking-tight">El futuro es hoy.<br /><span
+                            class="text-primary italic">¿Estás listo?</span></h2>
+                    <p class="text-on-surface-variant text-lg mb-12">Suscríbete para recibir el Whitepaper técnico y
+                        acceso prioritario a la fase Beta de la Consola de Comando.</p>
+                    <form
+                        class="flex flex-col sm:flex-row gap-4 p-2 bg-surface-container-high rounded-lg border border-outline-variant/30">
+                        <input
+                            class="flex-grow bg-transparent border-none focus:ring-0 text-sm font-bold tracking-widest px-6 py-4 placeholder:text-outline/50 uppercase"
+                            placeholder="CORREO@CORPORACION.COM" type="email" />
+                        <button
+                            class="bg-tertiary text-on-tertiary px-8 py-4 text-xs font-bold tracking-widest uppercase hover:brightness-110 transition-all"
+                            type="submit">
+                            SOLICITAR ACCESO
+                        </button>
+                    </form>
+                    <p class="mt-6 text-[10px] text-outline uppercase tracking-[0.2em]">Enviando este formulario aceptas
+                        los términos de despliegue y seguridad.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- Footer -->
+    <footer class="w-full py-16 px-12 mt-24 bg-[#0b0e14] border-t border-[#e1e2eb]/5">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 max-w-[1440px] mx-auto">
+            <div>
+                <div class="text-lg font-bold text-[#bbc6e2] mb-6">G.D.O.M.</div>
+                <p class="text-[#e1e2eb]/40 text-xs leading-relaxed max-w-xs">
+                    Universal Software Facade. Abstracción radical para la empresa moderna. Orquestando la inteligencia
+                    del mañana, hoy.
+                </p>
+            </div>
+            <div>
+                <h4 class="text-on-background font-bold text-sm mb-6 uppercase tracking-widest">Navegación</h4>
+                <ul class="space-y-4 text-sm font-['Inter'] tracking-wide">
+                    <li><a class="text-[#e1e2eb]/40 hover:text-[#bbc6e2] transition-all" href="#">Documentation</a></li>
+                    <li><a class="text-[#e1e2eb]/40 hover:text-[#bbc6e2] transition-all" href="#">Security</a></li>
+                    <li><a class="text-[#e1e2eb]/40 hover:text-[#bbc6e2] transition-all" href="#">Status</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-on-background font-bold text-sm mb-6 uppercase tracking-widest">Legal</h4>
+                <ul class="space-y-4 text-sm font-['Inter'] tracking-wide">
+                    <li><a class="text-[#e1e2eb]/40 hover:text-[#bbc6e2] transition-all" href="#">Privacy</a></li>
+                    <li><a class="text-[#e1e2eb]/40 hover:text-[#bbc6e2] transition-all" href="#">Terms</a></li>
+                    <li><a class="text-[#e1e2eb]/40 hover:text-[#bbc6e2] transition-all" href="#">Compliance</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-on-background font-bold text-sm mb-6 uppercase tracking-widest">Conectar</h4>
+                <div class="flex space-x-4">
+                    <a class="text-[#e1e2eb]/40 hover:text-[#00e0b0] transition-all" href="#"><span
+                            class="material-symbols-outlined">terminal</span></a>
+                    <a class="text-[#e1e2eb]/40 hover:text-[#00e0b0] transition-all" href="#"><span
+                            class="material-symbols-outlined">hub</span></a>
+                    <a class="text-[#e1e2eb]/40 hover:text-[#00e0b0] transition-all" href="#"><span
+                            class="material-symbols-outlined">shield_with_heart</span></a>
+                </div>
+            </div>
+        </div>
+        <div
+            class="max-w-[1440px] mx-auto mt-16 pt-8 border-t border-[#e1e2eb]/5 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-[#e1e2eb]/40 text-[10px] tracking-[0.2em] font-['Inter'] uppercase">
+                © 2024 G.D.O.M. UNIVERSAL FACADE. ALL RIGHTS RESERVED.
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="w-2 h-2 rounded-full bg-tertiary"></div>
+                <span class="text-[10px] font-bold text-tertiary tracking-widest uppercase">System Online</span>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>
